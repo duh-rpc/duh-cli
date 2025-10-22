@@ -2175,18 +2175,18 @@ done
 ## Final Acceptance Criteria
 
 **Functional Requirements:**
-- [ ] CLI accepts OpenAPI YAML file path as argument
+- [x] CLI accepts OpenAPI YAML file path as argument
 - [ ] All 8 DUH-RPC rules are validated
-- [ ] Violations reported with clear messages and suggestions
-- [ ] Exit codes: 0 (valid), 1 (violations), 2 (errors)
-- [ ] --help and --version flags work
-- [ ] File not found and parse errors handled gracefully
+- [x] Violations reported with clear messages and suggestions
+- [x] Exit codes: 0 (valid), 1 (violations), 2 (errors)
+- [x] --help and --version flags work
+- [x] File not found and parse errors handled gracefully
 
 **Testing Requirements:**
-- [ ] `go test ./...` passes all tests
+- [x] `go test ./...` passes all tests
 - [ ] Coverage >90% for all packages
 - [ ] Integration tests verify end-to-end behavior
-- [ ] All testdata files work correctly
+- [x] All testdata files work correctly
 
 **Documentation Requirements:**
 - [ ] README explains installation and usage
@@ -2198,12 +2198,13 @@ done
 - [ ] `make install` installs to GOPATH/bin
 - [ ] `make test` runs all tests successfully
 - [ ] `make integration-test` validates end-to-end
+- [x] `go build ./cmd/duhrpc-lint` produces working binary (Phase 1)
 
 **Code Quality:**
-- [ ] Follows CLAUDE.md guidelines (tests in _test package, table-driven, etc.)
-- [ ] No linting errors (`go vet`, `go fmt`)
-- [ ] Clear separation of concerns (loader, validator, rules, reporter)
-- [ ] Testable design (run() pattern, io.Writer parameters)
+- [x] Follows CLAUDE.md guidelines (tests in _test package, table-driven, etc.)
+- [x] No linting errors (`go vet`, `go fmt`)
+- [x] Clear separation of concerns (loader, validator, rules, reporter)
+- [x] Testable design (run() pattern, io.Writer parameters)
 
 ---
 
