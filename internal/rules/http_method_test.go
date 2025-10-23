@@ -1,19 +1,19 @@
 package rules_test
 
 import (
+	"bytes"
 	"testing"
 
-	"github.com/duh-rpc/duhrpc-lint/internal/rules"
-	"github.com/pb33f/libopenapi"
-	"github.com/stretchr/testify/require"
+	"github.com/duh-rpc/duhrpc-lint"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestHTTPMethodRule(t *testing.T) {
 	for _, test := range []struct {
-		name            string
-		spec            string
-		expectViolation bool
-		violationCount  int
+		name           string
+		spec           string
+		expectedExit   int
+		expectedOutput string
 	}{
 		{
 			name: "ValidPOSTMethod",
@@ -37,7 +37,8 @@ paths:
             application/json:
               schema:
                 type: object`,
-			expectViolation: false,
+			expectedExit:   0,
+			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
 		},
 		{
 			name: "InvalidGETMethod",
@@ -55,8 +56,10 @@ paths:
             application/json:
               schema:
                 type: array`,
-			expectViolation: true,
-			violationCount:  1,
+			expectedExit: 1,
+			expectedOutput: `[http-method] GET /v1/users.list
+  HTTP method GET is not allowed in DUH-RPC
+  Use POST method for all DUH-RPC operations`,
 		},
 		{
 			name: "InvalidPUTMethod",
@@ -79,8 +82,10 @@ paths:
             application/json:
               schema:
                 type: object`,
-			expectViolation: true,
-			violationCount:  1,
+			expectedExit: 1,
+			expectedOutput: `[http-method] PUT /v1/users.update
+  HTTP method PUT is not allowed in DUH-RPC
+  Use POST method for all DUH-RPC operations`,
 		},
 		{
 			name: "InvalidDELETEMethod",
@@ -98,8 +103,10 @@ paths:
             application/json:
               schema:
                 type: object`,
-			expectViolation: true,
-			violationCount:  1,
+			expectedExit: 1,
+			expectedOutput: `[http-method] DELETE /v1/users.delete
+  HTTP method DELETE is not allowed in DUH-RPC
+  Use POST method for all DUH-RPC operations`,
 		},
 		{
 			name: "InvalidPATCHMethod",
@@ -122,8 +129,10 @@ paths:
             application/json:
               schema:
                 type: object`,
-			expectViolation: true,
-			violationCount:  1,
+			expectedExit: 1,
+			expectedOutput: `[http-method] PATCH /v1/users.patch
+  HTTP method PATCH is not allowed in DUH-RPC
+  Use POST method for all DUH-RPC operations`,
 		},
 		{
 			name: "MultipleNonPOSTMethods",
@@ -162,8 +171,10 @@ paths:
             application/json:
               schema:
                 type: object`,
-			expectViolation: true,
-			violationCount:  3,
+			expectedExit: 1,
+			expectedOutput: `[http-method] GET /v1/users.manage
+  HTTP method GET is not allowed in DUH-RPC
+  Use POST method for all DUH-RPC operations`,
 		},
 		{
 			name: "MixedPOSTAndOtherMethods",
@@ -195,30 +206,20 @@ paths:
             application/json:
               schema:
                 type: object`,
-			expectViolation: true,
-			violationCount:  1,
+			expectedExit: 1,
+			expectedOutput: `[http-method] GET /v1/users.create
+  HTTP method GET is not allowed in DUH-RPC
+  Use POST method for all DUH-RPC operations`,
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			doc, err := libopenapi.NewDocument([]byte(test.spec))
-			require.NoError(t, err)
+			filePath := writeYAML(t, test.spec)
 
-			model, errs := doc.BuildV3Model()
-			require.Empty(t, errs)
+			var stdout bytes.Buffer
+			exitCode := lint.RunCmd(&stdout, []string{filePath})
 
-			rule := rules.NewHTTPMethodRule()
-			violations := rule.Validate(&model.Model)
-
-			if test.expectViolation {
-				require.NotEmpty(t, violations)
-				require.Len(t, violations, test.violationCount)
-				require.Equal(t, "http-method", violations[0].RuleName)
-				require.NotEmpty(t, violations[0].Location)
-				require.NotEmpty(t, violations[0].Message)
-				require.NotEmpty(t, violations[0].Suggestion)
-			} else {
-				require.Empty(t, violations)
-			}
+			assert.Equal(t, test.expectedExit, exitCode)
+			assert.Contains(t, stdout.String(), test.expectedOutput)
 		})
 	}
 }
