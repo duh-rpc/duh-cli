@@ -751,42 +751,51 @@ paths:
 
 ---
 
-## Phase 5: request_body_test.go
+## Phase 5: request_body_test.go ✅ COMPLETE
 
 **File**: `internal/rules/request_body_test.go`
-**Lines**: 115
+**Lines**: 129 (after conversion)
 **Test function**: `TestRequestBodyRule`
 **Number of test cases**: 4
 **Validation command**: `go test ./internal/rules -run TestRequestBodyRule -v`
 
-### Changes Required
+### Changes Completed
 
-1. **Copy helper functions** from Phase 2
+1. **Reused writeYAML helper** ✅ - Shares helper from Phase 2 (same package)
 
-2. **Update imports**: Same as Phase 2
+2. **Updated imports** ✅:
+   - Removed: `github.com/duh-rpc/duhrpc-lint/internal/rules`, `github.com/pb33f/libopenapi`, `require`
+   - Added: `bytes`, `github.com/duh-rpc/duhrpc-lint`, `assert`
 
-3. **Convert struct definition**:
+3. **Updated struct definition** ✅:
    ```go
    for _, test := range []struct {
-       name          string
-       spec          string
-       wantViolation bool
+       name           string
+       spec           string
+       expectedExit   int
+       expectedOutput string
    }{
    ```
 
-4. **Replace test body**:
+4. **Converted all 4 test cases** ✅ - Each includes full expected output visible in test
+
+5. **Replaced test body** ✅:
    ```go
    t.Run(test.name, func(t *testing.T) {
        filePath := writeYAML(t, test.spec)
-       exitCode, stdout := runLint(t, filePath)
 
-       if test.wantViolation {
-           assertViolation(t, exitCode, stdout, "request-body-required")
-       } else {
-           assertNoViolations(t, exitCode, stdout)
-       }
+       var stdout bytes.Buffer
+       exitCode := lint.RunCmd(&stdout, []string{filePath})
+
+       assert.Equal(t, test.expectedExit, exitCode)
+       assert.Contains(t, stdout.String(), test.expectedOutput)
    })
    ```
+
+### Results
+- ✅ All 4 tests pass
+- ✅ Tests are self-documenting - full error messages visible in test cases
+- ✅ Shares writeYAML helper with other tests in same package
 
 ---
 

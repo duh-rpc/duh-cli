@@ -1,20 +1,19 @@
 package rules_test
 
 import (
+	"bytes"
 	"testing"
 
-	"github.com/duh-rpc/duhrpc-lint/internal/rules"
-	"github.com/pb33f/libopenapi"
+	"github.com/duh-rpc/duhrpc-lint"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestRequestBodyRule(t *testing.T) {
 	for _, test := range []struct {
-		name          string
-		spec          string
-		wantViolation bool
-		wantMessage   string
+		name           string
+		spec           string
+		expectedExit   int
+		expectedOutput string
 	}{
 		{
 			name: "ValidRequestBody",
@@ -33,8 +32,13 @@ paths:
               type: object
       responses:
         200:
-          description: Success`,
-			wantViolation: false,
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object`,
+			expectedExit:   0,
+			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
 		},
 		{
 			name: "MissingRequestBody",
@@ -47,9 +51,15 @@ paths:
     post:
       responses:
         200:
-          description: Success`,
-			wantViolation: true,
-			wantMessage:   "missing a request body",
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object`,
+			expectedExit: 1,
+			expectedOutput: `[request-body-required] POST /v1/users.create
+  Operation is missing a request body
+  Add a required request body to this operation`,
 		},
 		{
 			name: "RequestBodyNotRequired",
@@ -68,9 +78,15 @@ paths:
               type: object
       responses:
         200:
-          description: Success`,
-			wantViolation: true,
-			wantMessage:   "must be marked as required",
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object`,
+			expectedExit: 1,
+			expectedOutput: `[request-body-required] POST /v1/users.create
+  Request body must be marked as required
+  Set requestBody.required to true`,
 		},
 		{
 			name: "RequestBodyRequiredOmitted",
@@ -88,28 +104,25 @@ paths:
               type: object
       responses:
         200:
-          description: Success`,
-			wantViolation: true,
-			wantMessage:   "must be marked as required",
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object`,
+			expectedExit: 1,
+			expectedOutput: `[request-body-required] POST /v1/users.create
+  Request body must be marked as required
+  Set requestBody.required to true`,
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			doc, err := libopenapi.NewDocument([]byte(test.spec))
-			require.NoError(t, err)
+			filePath := writeYAML(t, test.spec)
 
-			model, errs := doc.BuildV3Model()
-			require.Empty(t, errs)
+			var stdout bytes.Buffer
+			exitCode := lint.RunCmd(&stdout, []string{filePath})
 
-			rule := rules.NewRequestBodyRule()
-			violations := rule.Validate(&model.Model)
-
-			if test.wantViolation {
-				require.NotEmpty(t, violations)
-				assert.Contains(t, violations[0].Message, test.wantMessage)
-				assert.Equal(t, "request-body-required", violations[0].RuleName)
-			} else {
-				assert.Empty(t, violations)
-			}
+			assert.Equal(t, test.expectedExit, exitCode)
+			assert.Contains(t, stdout.String(), test.expectedOutput)
 		})
 	}
 }
