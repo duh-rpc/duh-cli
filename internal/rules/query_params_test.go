@@ -1,19 +1,19 @@
 package rules_test
 
 import (
+	"bytes"
 	"testing"
 
-	"github.com/duh-rpc/duhrpc-lint/internal/rules"
-	"github.com/pb33f/libopenapi"
-	"github.com/stretchr/testify/require"
+	"github.com/duh-rpc/duhrpc-lint"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestQueryParamsRule(t *testing.T) {
 	for _, test := range []struct {
-		name            string
-		spec            string
-		expectViolation bool
-		violationCount  int
+		name           string
+		spec           string
+		expectedExit   int
+		expectedOutput string
 	}{
 		{
 			name: "NoParameters",
@@ -37,7 +37,8 @@ paths:
             application/json:
               schema:
                 type: object`,
-			expectViolation: false,
+			expectedExit:   0,
+			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
 		},
 		{
 			name: "HeaderParametersAllowed",
@@ -67,7 +68,8 @@ paths:
             application/json:
               schema:
                 type: object`,
-			expectViolation: false,
+			expectedExit:   0,
+			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
 		},
 		{
 			name: "CookieParametersAllowed",
@@ -97,7 +99,8 @@ paths:
             application/json:
               schema:
                 type: object`,
-			expectViolation: false,
+			expectedExit:   0,
+			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
 		},
 		{
 			name: "QueryParameterNotAllowed",
@@ -126,8 +129,10 @@ paths:
             application/json:
               schema:
                 type: object`,
-			expectViolation: true,
-			violationCount:  1,
+			expectedExit: 1,
+			expectedOutput: `[query-parameters] POST /v1/users.search
+  Query parameter 'query' is not allowed in DUH-RPC
+  Move 'query' to request body`,
 		},
 		{
 			name: "MultipleQueryParameters",
@@ -164,8 +169,10 @@ paths:
             application/json:
               schema:
                 type: object`,
-			expectViolation: true,
-			violationCount:  3,
+			expectedExit: 1,
+			expectedOutput: `[query-parameters] POST /v1/users.search
+  Query parameter 'query' is not allowed in DUH-RPC
+  Move 'query' to request body`,
 		},
 		{
 			name: "MixedParameterTypes",
@@ -203,30 +210,20 @@ paths:
             application/json:
               schema:
                 type: object`,
-			expectViolation: true,
-			violationCount:  1,
+			expectedExit: 1,
+			expectedOutput: `[query-parameters] POST /v1/users.search
+  Query parameter 'query' is not allowed in DUH-RPC
+  Move 'query' to request body`,
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			doc, err := libopenapi.NewDocument([]byte(test.spec))
-			require.NoError(t, err)
+			filePath := writeYAML(t, test.spec)
 
-			model, errs := doc.BuildV3Model()
-			require.Empty(t, errs)
+			var stdout bytes.Buffer
+			exitCode := lint.RunCmd(&stdout, []string{filePath})
 
-			rule := rules.NewQueryParamsRule()
-			violations := rule.Validate(&model.Model)
-
-			if test.expectViolation {
-				require.NotEmpty(t, violations)
-				require.Len(t, violations, test.violationCount)
-				require.Equal(t, "query-parameters", violations[0].RuleName)
-				require.NotEmpty(t, violations[0].Location)
-				require.NotEmpty(t, violations[0].Message)
-				require.NotEmpty(t, violations[0].Suggestion)
-			} else {
-				require.Empty(t, violations)
-			}
+			assert.Equal(t, test.expectedExit, exitCode)
+			assert.Contains(t, stdout.String(), test.expectedOutput)
 		})
 	}
 }
