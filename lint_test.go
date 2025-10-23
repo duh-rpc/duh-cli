@@ -1,11 +1,11 @@
-package duh_test
+package duhrpc_test
 
 import (
 	"bytes"
 	"strings"
 	"testing"
 
-	lint "github.com/duh-rpc/duhrpc-lint"
+	"github.com/duh-rpc/duhrpc"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -13,7 +13,7 @@ import (
 func TestLinterValidSpec(t *testing.T) {
 	var stdout bytes.Buffer
 
-	exitCode := lint.RunCmd(&stdout, []string{"internal/lint/testdata/valid-spec.yaml"})
+	exitCode := duhrpc.RunCmd(&stdout, []string{"internal/lint/testdata/valid-spec.yaml"})
 
 	require.Equal(t, 0, exitCode)
 	assert.Contains(t, stdout.String(), "✓")
@@ -81,7 +81,7 @@ func TestLinterAllRuleViolations(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			var stdout bytes.Buffer
 
-			exitCode := lint.RunCmd(&stdout, []string{test.file})
+			exitCode := duhrpc.RunCmd(&stdout, []string{test.file})
 
 			assert.Equal(t, test.expectedExitCode, exitCode)
 			output := stdout.String()
@@ -95,7 +95,7 @@ func TestLinterAllRuleViolations(t *testing.T) {
 func TestLinterMultipleViolations(t *testing.T) {
 	var stdout bytes.Buffer
 
-	exitCode := lint.RunCmd(&stdout, []string{"internal/lint/testdata/multiple-violations.yaml"})
+	exitCode := duhrpc.RunCmd(&stdout, []string{"internal/lint/testdata/multiple-violations.yaml"})
 
 	require.Equal(t, 1, exitCode)
 
@@ -129,7 +129,7 @@ func TestLinterMultipleViolations(t *testing.T) {
 func TestLinterFileNotFound(t *testing.T) {
 	var stdout bytes.Buffer
 
-	exitCode := lint.RunCmd(&stdout, []string{"nonexistent.yaml"})
+	exitCode := duhrpc.RunCmd(&stdout, []string{"nonexistent.yaml"})
 
 	require.Equal(t, 2, exitCode)
 	assert.Contains(t, stdout.String(), "file not found")
@@ -138,7 +138,7 @@ func TestLinterFileNotFound(t *testing.T) {
 func TestLinterInvalidYAML(t *testing.T) {
 	var stdout bytes.Buffer
 
-	exitCode := lint.RunCmd(&stdout, []string{"internal/lint/testdata/invalid-syntax.yaml"})
+	exitCode := duhrpc.RunCmd(&stdout, []string{"internal/lint/testdata/invalid-syntax.yaml"})
 
 	require.Equal(t, 2, exitCode)
 	assert.Contains(t, stdout.String(), "failed to parse OpenAPI spec")

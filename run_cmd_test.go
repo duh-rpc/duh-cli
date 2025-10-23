@@ -1,11 +1,11 @@
-package duh_test
+package duhrpc_test
 
 import (
 	"bytes"
 	"strings"
 	"testing"
 
-	lint "github.com/duh-rpc/duhrpc-lint"
+	lint "github.com/duh-rpc/duhrpc"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -15,7 +15,7 @@ func TestRunCmdHelp(t *testing.T) {
 	exitCode := lint.RunCmd(&stdout, []string{"--help"})
 
 	assert.Equal(t, 0, exitCode)
-	assert.Contains(t, stdout.String(), "duhrpc-lint - Validate OpenAPI specs")
+	assert.Contains(t, stdout.String(), "duhrpc - Validate OpenAPI specs")
 	assert.Contains(t, stdout.String(), "Usage:")
 	assert.Contains(t, stdout.String(), "Exit Codes:")
 }
@@ -25,7 +25,7 @@ func TestRunCmdVersion(t *testing.T) {
 	exitCode := lint.RunCmd(&stdout, []string{"--version"})
 
 	assert.Equal(t, 0, exitCode)
-	assert.Contains(t, stdout.String(), "duhrpc-lint version")
+	assert.Contains(t, stdout.String(), "duhrpc version")
 	assert.Contains(t, stdout.String(), "1.0.0")
 }
 

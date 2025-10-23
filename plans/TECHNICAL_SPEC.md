@@ -1705,7 +1705,7 @@ func TestPathFormatRule(t *testing.T) {
 func TestCLIValidSpec(t *testing.T) {
     const validSpec = "../../testdata/valid-spec.yaml"
 
-    cmd := exec.Command("./duhrpc-lint", validSpec)
+    cmd := exec.Command("./duhrpc", validSpec)
     output, err := cmd.CombinedOutput()
 
     require.NoError(t, err)
@@ -1716,7 +1716,7 @@ func TestCLIValidSpec(t *testing.T) {
 func TestCLIInvalidSpec(t *testing.T) {
     const invalidSpec = "../../testdata/invalid-specs/bad-path-format.yaml"
 
-    cmd := exec.Command("./duhrpc-lint", invalidSpec)
+    cmd := exec.Command("./duhrpc", invalidSpec)
     output, err := cmd.CombinedOutput()
 
     require.Error(t, err)
@@ -1728,7 +1728,7 @@ func TestCLIInvalidSpec(t *testing.T) {
 }
 
 func TestCLIFileNotFound(t *testing.T) {
-    cmd := exec.Command("./duhrpc-lint", "nonexistent.yaml")
+    cmd := exec.Command("./duhrpc", "nonexistent.yaml")
     output, err := cmd.CombinedOutput()
 
     require.Error(t, err)
@@ -2235,7 +2235,7 @@ $ duhrpc-lint openapi.yaml
 ✓ openapi.yaml is DUH-RPC compliant
 
 # Validate with violations
-$ duhrpc-lint bad-spec.yaml
+$ duhrpc bad-spec.yaml
 Validating bad-spec.yaml...
 
 ERRORS FOUND:
@@ -2252,7 +2252,7 @@ $ echo $?
 1
 
 # File not found
-$ duhrpc-lint missing.yaml
+$ duhrpc missing.yaml
 Error: File not found: missing.yaml
 
 $ echo $?

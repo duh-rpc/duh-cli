@@ -4,21 +4,21 @@ Validate OpenAPI 3.0 specifications for DUH-RPC compliance.
 
 ## Overview
 
-`duhrpc-lint` is a command-line tool that validates OpenAPI YAML specifications against DUH-RPC conventions. It ensures your API specifications follow the Document-Unified HTTP RPC pattern, providing clear error messages and actionable suggestions when violations are found.
+`duhrpc` is a command-line tool that validates OpenAPI YAML specifications against DUH-RPC conventions. It ensures your API specifications follow the Document-Unified HTTP RPC pattern, providing clear error messages and actionable suggestions when violations are found.
 
 ## Installation
 
 ### Using go install
 
 ```bash
-go install github.com/duh-rpc/duhrpc-lint/cmd/duhrpc-lint@latest
+go install github.com/duh-rpc/duhrpc/cmd/duhrpc@latest
 ```
 
 ### From source
 
 ```bash
 git clone https://github.com/duh-rpc/duhrpc-lint.git
-cd duhrpc-lint
+cd duhrpc
 make install
 ```
 
@@ -26,7 +26,7 @@ make install
 
 ```bash
 make build
-# Binary will be created as ./duhrpc-lint
+# Binary will be created as ./duhrpc
 ```
 
 ## Usage
@@ -34,14 +34,14 @@ make build
 ### Basic Usage
 
 ```bash
-duhrpc-lint <openapi-file>
+duhrpc <openapi-file>
 ```
 
 ### Examples
 
 **Validate a compliant specification:**
 ```bash
-duhrpc-lint api-spec.yaml
+duhrpc api-spec.yaml
 ```
 Output:
 ```
@@ -50,7 +50,7 @@ Output:
 
 **Validate a specification with violations:**
 ```bash
-duhrpc-lint api-spec.yaml
+duhrpc api-spec.yaml
 ```
 Output:
 ```
@@ -73,10 +73,10 @@ Summary: 2 violations found in api-spec.yaml
 
 ```bash
 # Show help
-duhrpc-lint --help
+duhrpc --help
 
 # Show version
-duhrpc-lint --version
+duhrpc --version
 ```
 
 ### Exit Codes

@@ -1,21 +1,21 @@
-package duh
+package duhrpc
 
 import (
 	"flag"
 	"fmt"
 	"io"
 
-	"github.com/duh-rpc/duhrpc-lint/internal/lint"
+	"github.com/duh-rpc/duhrpc/internal/lint"
 )
 
 const Version = "1.0.0"
 
-const helpText = `duhrpc-lint - Validate OpenAPI specs for DUH-RPC compliance
+const helpText = `duhrpc - Validate OpenAPI specs for DUH-RPC compliance
 
 Usage:
-  duhrpc-lint <openapi-file>
-  duhrpc-lint --help
-  duhrpc-lint --version
+  duhrpc <openapi-file>
+  duhrpc --help
+  duhrpc --version
 
 Arguments:
   <openapi-file>    Path to OpenAPI 3.0 YAML file
@@ -32,7 +32,7 @@ Exit Codes:
 
 // RunCmd executes the CLI logic and returns exit code
 func RunCmd(stdout io.Writer, args []string) int {
-	fs := flag.NewFlagSet("duhrpc-lint", flag.ContinueOnError)
+	fs := flag.NewFlagSet("duhrpc", flag.ContinueOnError)
 	fs.SetOutput(stdout)
 
 	var showHelp bool
@@ -50,7 +50,7 @@ func RunCmd(stdout io.Writer, args []string) int {
 	}
 
 	if showVersion {
-		_, _ = fmt.Fprintf(stdout, "duhrpc-lint version %s\n", Version)
+		_, _ = fmt.Fprintf(stdout, "duhrpc version %s\n", Version)
 		return 0
 	}
 

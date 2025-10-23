@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	lint "github.com/duh-rpc/duhrpc-lint"
+	lint "github.com/duh-rpc/duhrpc"
 	"github.com/stretchr/testify/assert"
 )
 

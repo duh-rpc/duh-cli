@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/duh-rpc/duhrpc-lint"
+	"github.com/duh-rpc/duhrpc"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -220,7 +220,7 @@ paths:
 			filePath := writeYAML(t, test.spec)
 
 			var stdout bytes.Buffer
-			exitCode := duh.RunCmd(&stdout, []string{filePath})
+			exitCode := duhrpc.RunCmd(&stdout, []string{filePath})
 
 			assert.Equal(t, test.expectedExit, exitCode)
 			assert.Contains(t, stdout.String(), test.expectedOutput)

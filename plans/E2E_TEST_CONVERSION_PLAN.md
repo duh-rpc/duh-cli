@@ -113,7 +113,7 @@ func RunCmd(stdout io.Writer, args []string) int
 2. Remove `stderr io.Writer` parameter
 3. Update flag set error output from `stderr` to `stdout`:
    ```go
-   fs := flag.NewFlagSet("duhrpc-lint", flag.ContinueOnError)
+   fs := flag.NewFlagSet("duhrpc", flag.ContinueOnError)
    fs.SetOutput(stdout)  // Changed from stderr
    ```
 4. Update all error messages to write to `stdout` instead of `stderr`:
@@ -139,7 +139,7 @@ func RunCmd(stdout io.Writer, args []string) int
 **Full updated function**:
 ```go
 func RunCmd(stdout io.Writer, args []string) int {
-    fs := flag.NewFlagSet("duhrpc-lint", flag.ContinueOnError)
+    fs := flag.NewFlagSet("duhrpc", flag.ContinueOnError)
     fs.SetOutput(stdout)
 
     var showHelp bool
@@ -157,7 +157,7 @@ func RunCmd(stdout io.Writer, args []string) int {
     }
 
     if showVersion {
-        _, _ = fmt.Fprintf(stdout, "duhrpc-lint version %s\n", Version)
+        _, _ = fmt.Fprintf(stdout, "duhrpc version %s\n", Version)
         return 0
     }
 
@@ -216,7 +216,7 @@ func TestRunCmdHelp(t *testing.T) {
     exitCode := lint.RunCmd(nil, &stdout, &stderr, []string{"--help"})
 
     assert.Equal(t, 0, exitCode)
-    assert.Contains(t, stdout.String(), "duhrpc-lint - Validate OpenAPI specs")
+    assert.Contains(t, stdout.String(), "duhrpc - Validate OpenAPI specs")
     assert.Contains(t, stdout.String(), "Usage:")
     assert.Contains(t, stdout.String(), "Exit Codes:")
     assert.Empty(t, stderr.String())
@@ -230,7 +230,7 @@ func TestRunCmdHelp(t *testing.T) {
     exitCode := lint.RunCmd(&stdout, []string{"--help"})
 
     assert.Equal(t, 0, exitCode)
-    assert.Contains(t, stdout.String(), "duhrpc-lint - Validate OpenAPI specs")
+    assert.Contains(t, stdout.String(), "duhrpc - Validate OpenAPI specs")
     assert.Contains(t, stdout.String(), "Usage:")
     assert.Contains(t, stdout.String(), "Exit Codes:")
 }

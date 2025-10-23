@@ -2094,7 +2094,7 @@ make integration-test
 ```bash
 make build
 ./duhrpc-lint --version
-# Outputs: duhrpc-lint version 1.0.0
+# Outputs: duhrpc version 1.0.0
 ```
 
 **Install and Use:**

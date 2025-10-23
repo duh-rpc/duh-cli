@@ -1,7 +1,7 @@
 package lint
 
 import (
-	rules2 "github.com/duh-rpc/duhrpc-lint/internal/lint/rules"
+	rules2 "github.com/duh-rpc/duhrpc/internal/lint/rules"
 	"github.com/pb33f/libopenapi/datamodel/high/v3"
 )
 

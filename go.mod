@@ -1,4 +1,4 @@
-module github.com/duh-rpc/duhrpc-lint
+module github.com/duh-rpc/duhrpc
 
 go 1.24.7
 
