@@ -2157,10 +2157,10 @@ done
 - [x] Test data for 3 rules
 
 ### Phase 4: Complex Rules
-- ✅ Content type validation (REQ-006)
-- ✅ Error response schema validation (REQ-007)
-- ✅ Complete valid spec test data
-- ✅ All 8 rules implemented
+- [x] Content type validation (REQ-006)
+- [x] Error response schema validation (REQ-007)
+- [x] Complete valid spec test data
+- [x] All 8 rules implemented
 
 ### Phase 5: Integration & Documentation
 - ✅ Comprehensive end-to-end tests
@@ -2176,7 +2176,7 @@ done
 
 **Functional Requirements:**
 - [x] CLI accepts OpenAPI YAML file path as argument
-- [ ] All 8 DUH-RPC rules are validated
+- [x] All 8 DUH-RPC rules are validated
 - [x] Violations reported with clear messages and suggestions
 - [x] Exit codes: 0 (valid), 1 (violations), 2 (errors)
 - [x] --help and --version flags work

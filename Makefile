@@ -1,4 +1,4 @@
-.PHONY: test lint install build clean
+.PHONY: test lint install build clean ci tidy
 
 # Run all tests
 test:
@@ -11,6 +11,13 @@ lint:
 # Install binary to GOPATH/bin
 install:
 	go install ./cmd/duhrpc-lint
+
+tidy:
+	go mod tidy && git diff --exit-code
+
+ci: tidy lint test
+	@echo
+	@echo "\033[32mEVERYTHING PASSED!\033[0m"
 
 # Build binary
 build:

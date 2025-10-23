@@ -20,6 +20,8 @@ func Validate(doc *v3.Document, filePath string) ValidationResult {
 		rules.NewRequestBodyRule(),
 		rules.NewStatusCodeRule(),
 		rules.NewSuccessResponseRule(),
+		rules.NewContentTypeRule(),
+		rules.NewErrorResponseRule(),
 	}
 
 	var violations []Violation
