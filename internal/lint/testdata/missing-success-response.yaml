@@ -1,0 +1,32 @@
+openapi: 3.0.0
+info:
+  title: Missing Success Response
+  version: 1.0.0
+paths:
+  /v1/users.create:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        201:  # Has 201 but not 200
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+  /v1/users.list:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        200:
+          description: Success
+          # Missing content

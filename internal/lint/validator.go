@@ -1,7 +1,7 @@
-package internal
+package lint
 
 import (
-	"github.com/duh-rpc/duhrpc-lint/internal/rules"
+	rules2 "github.com/duh-rpc/duhrpc-lint/internal/lint/rules"
 	"github.com/pb33f/libopenapi/datamodel/high/v3"
 )
 
@@ -14,14 +14,14 @@ type Rule interface {
 // Validate runs all registered rules against the document
 func Validate(doc *v3.Document, filePath string) ValidationResult {
 	allRules := []Rule{
-		rules.NewPathFormatRule(),
-		rules.NewHTTPMethodRule(),
-		rules.NewQueryParamsRule(),
-		rules.NewRequestBodyRule(),
-		rules.NewStatusCodeRule(),
-		rules.NewSuccessResponseRule(),
-		rules.NewContentTypeRule(),
-		rules.NewErrorResponseRule(),
+		rules2.NewPathFormatRule(),
+		rules2.NewHTTPMethodRule(),
+		rules2.NewQueryParamsRule(),
+		rules2.NewRequestBodyRule(),
+		rules2.NewStatusCodeRule(),
+		rules2.NewSuccessResponseRule(),
+		rules2.NewContentTypeRule(),
+		rules2.NewErrorResponseRule(),
 	}
 
 	var violations []Violation

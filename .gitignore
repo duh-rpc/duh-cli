@@ -10,5 +10,4 @@ coverage.html
 .env
 docs/notes
 docs/plans
-testdata/
 duhrpc-lint

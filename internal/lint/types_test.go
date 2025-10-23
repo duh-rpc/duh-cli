@@ -1,21 +1,21 @@
-package internal_test
+package lint_test
 
 import (
 	"testing"
 
-	"github.com/duh-rpc/duhrpc-lint/internal"
+	"github.com/duh-rpc/duhrpc-lint/internal/lint"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestViolationString(t *testing.T) {
 	for _, test := range []struct {
 		name       string
-		violation  internal.Violation
+		violation  lint.Violation
 		wantString string
 	}{
 		{
 			name: "AllFields",
-			violation: internal.Violation{
+			violation: lint.Violation{
 				Suggestion: "Use POST instead of GET",
 				RuleName:   "http-method",
 				Location:   "GET /v1/users.list",
@@ -25,7 +25,7 @@ func TestViolationString(t *testing.T) {
 		},
 		{
 			name: "MinimalFields",
-			violation: internal.Violation{
+			violation: lint.Violation{
 				RuleName: "test-rule",
 				Location: "/v1/test.endpoint",
 				Message:  "Test message",
@@ -43,21 +43,21 @@ func TestViolationString(t *testing.T) {
 func TestValidationResultValid(t *testing.T) {
 	for _, test := range []struct {
 		name      string
-		result    internal.ValidationResult
+		result    lint.ValidationResult
 		wantValid bool
 	}{
 		{
 			name: "NoViolations",
-			result: internal.ValidationResult{
+			result: lint.ValidationResult{
 				FilePath: "test.yaml",
 			},
 			wantValid: true,
 		},
 		{
 			name: "WithViolations",
-			result: internal.ValidationResult{
+			result: lint.ValidationResult{
 				FilePath: "test.yaml",
-				Violations: []internal.Violation{
+				Violations: []lint.Violation{
 					{
 						RuleName: "test-rule",
 						Location: "/v1/test",
@@ -69,9 +69,9 @@ func TestValidationResultValid(t *testing.T) {
 		},
 		{
 			name: "MultipleViolations",
-			result: internal.ValidationResult{
+			result: lint.ValidationResult{
 				FilePath: "test.yaml",
-				Violations: []internal.Violation{
+				Violations: []lint.Violation{
 					{
 						RuleName: "rule-1",
 						Location: "/v1/test1",

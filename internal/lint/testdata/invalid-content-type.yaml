@@ -1,0 +1,35 @@
+openapi: 3.0.0
+info:
+  title: Invalid Content Types
+  version: 1.0.0
+paths:
+  /v1/users.create:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/xml:  # Not allowed
+            schema:
+              type: object
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+  /v1/users.update:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json; charset=utf-8:  # MIME parameters not allowed
+            schema:
+              type: object
+      responses:
+        200:
+          description: Success
+          content:
+            text/html:  # Not allowed
+              schema:
+                type: string

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/duh-rpc/duhrpc-lint/internal"
+	"github.com/duh-rpc/duhrpc-lint/internal/lint"
 )
 
 const Version = "1.0.0"
@@ -62,14 +62,14 @@ func RunCmd(stdout io.Writer, args []string) int {
 
 	filePath := fs.Arg(0)
 
-	doc, err := internal.Load(filePath)
+	doc, err := lint.Load(filePath)
 	if err != nil {
 		_, _ = fmt.Fprintf(stdout, "Error: %v\n", err)
 		return 2
 	}
 
-	result := internal.Validate(doc, filePath)
-	internal.Print(stdout, result)
+	result := lint.Validate(doc, filePath)
+	lint.Print(stdout, result)
 
 	if result.Valid() {
 		return 0

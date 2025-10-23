@@ -1,7 +1,7 @@
-package internal
+package lint
 
 import (
-	"github.com/duh-rpc/duhrpc-lint/internal/rules"
+	"github.com/duh-rpc/duhrpc-lint/internal/lint/rules"
 )
 
 // Violation is an alias for types.Violation for backwards compatibility

@@ -1,0 +1,26 @@
+openapi: 3.0.0
+info:
+  title: Invalid Status Codes
+  version: 1.0.0
+paths:
+  /v1/users.create:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        201:  # Not allowed, should be 200
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+        503:  # Not allowed, should be 500
+          description: Service Unavailable
+          content:
+            application/json:
+              schema:
+                type: object

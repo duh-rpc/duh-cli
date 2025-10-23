@@ -1,0 +1,58 @@
+openapi: 3.0.0
+info:
+  title: Multiple Violations
+  version: 1.0.0
+  description: Spec with multiple DUH-RPC violations for testing
+
+paths:
+  /api/users/create:  # VIOLATION: bad path format
+    get:  # VIOLATION: wrong HTTP method
+      operationId: createUser
+      parameters:
+        - name: userId  # VIOLATION: query parameter
+          in: query
+          schema:
+            type: string
+      responses:
+        201:  # VIOLATION: invalid status code
+          description: Created
+          content:
+            application/xml:  # VIOLATION: invalid content type
+              schema:
+                type: object
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                # VIOLATION: bad error schema (missing required fields)
+                properties:
+                  error:
+                    type: string
+
+  /v1/products.list:
+    post:
+      # VIOLATION: missing request body
+      responses:
+        200:
+          description: Success
+          # VIOLATION: missing content in 200 response
+        202:  # VIOLATION: invalid status code
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                type: object
+        500:
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [code, message]
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string

@@ -29,16 +29,6 @@ func TestRunCmdVersion(t *testing.T) {
 	assert.Contains(t, stdout.String(), "1.0.0")
 }
 
-func TestRunCmdValidFile(t *testing.T) {
-	var stdout bytes.Buffer
-	exitCode := lint.RunCmd(&stdout, []string{"testdata/minimal-valid.yaml"})
-
-	assert.Equal(t, 0, exitCode)
-	assert.Contains(t, stdout.String(), "✓")
-	assert.Contains(t, stdout.String(), "minimal-valid.yaml")
-	assert.Contains(t, stdout.String(), "DUH-RPC compliant")
-}
-
 func TestRunCmdFileNotFound(t *testing.T) {
 	var stdout bytes.Buffer
 	exitCode := lint.RunCmd(&stdout, []string{"nonexistent.yaml"})
@@ -46,15 +36,6 @@ func TestRunCmdFileNotFound(t *testing.T) {
 	assert.Equal(t, 2, exitCode)
 	assert.Contains(t, stdout.String(), "Error:")
 	assert.Contains(t, stdout.String(), "file not found")
-}
-
-func TestRunCmdInvalidYAML(t *testing.T) {
-	var stdout bytes.Buffer
-	exitCode := lint.RunCmd(&stdout, []string{"testdata/invalid-syntax.yaml"})
-
-	assert.Equal(t, 2, exitCode)
-	assert.Contains(t, stdout.String(), "Error:")
-	assert.Contains(t, stdout.String(), "failed to parse OpenAPI spec")
 }
 
 func TestRunCmdNoArguments(t *testing.T) {

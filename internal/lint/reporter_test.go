@@ -1,21 +1,21 @@
-package internal_test
+package lint_test
 
 import (
 	"bytes"
 	"strings"
 	"testing"
 
-	"github.com/duh-rpc/duhrpc-lint/internal"
+	"github.com/duh-rpc/duhrpc-lint/internal/lint"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestPrintValidResult(t *testing.T) {
 	var buf bytes.Buffer
-	result := internal.ValidationResult{
+	result := lint.ValidationResult{
 		FilePath: "/path/to/test.yaml",
 	}
 
-	internal.Print(&buf, result)
+	lint.Print(&buf, result)
 
 	output := buf.String()
 	assert.Contains(t, output, "✓")
@@ -25,9 +25,9 @@ func TestPrintValidResult(t *testing.T) {
 
 func TestPrintWithViolations(t *testing.T) {
 	var buf bytes.Buffer
-	result := internal.ValidationResult{
+	result := lint.ValidationResult{
 		FilePath: "/path/to/test.yaml",
-		Violations: []internal.Violation{
+		Violations: []lint.Violation{
 			{
 				Suggestion: "Use POST instead",
 				RuleName:   "http-method",
@@ -37,7 +37,7 @@ func TestPrintWithViolations(t *testing.T) {
 		},
 	}
 
-	internal.Print(&buf, result)
+	lint.Print(&buf, result)
 
 	output := buf.String()
 	assert.Contains(t, output, "Validating test.yaml")
@@ -51,9 +51,9 @@ func TestPrintWithViolations(t *testing.T) {
 
 func TestPrintMultipleViolations(t *testing.T) {
 	var buf bytes.Buffer
-	result := internal.ValidationResult{
+	result := lint.ValidationResult{
 		FilePath: "/path/to/test.yaml",
-		Violations: []internal.Violation{
+		Violations: []lint.Violation{
 			{
 				RuleName: "rule-1",
 				Location: "/v1/test1",
@@ -72,7 +72,7 @@ func TestPrintMultipleViolations(t *testing.T) {
 		},
 	}
 
-	internal.Print(&buf, result)
+	lint.Print(&buf, result)
 
 	output := buf.String()
 	assert.Contains(t, output, "ERRORS FOUND:")

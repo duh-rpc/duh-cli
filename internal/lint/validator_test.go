@@ -1,9 +1,9 @@
-package internal_test
+package lint_test
 
 import (
 	"testing"
 
-	"github.com/duh-rpc/duhrpc-lint/internal"
+	"github.com/duh-rpc/duhrpc-lint/internal/lint"
 	"github.com/pb33f/libopenapi"
 	"github.com/pb33f/libopenapi/datamodel/high/base"
 	"github.com/pb33f/libopenapi/datamodel/high/v3"
@@ -21,7 +21,7 @@ func TestValidateEmptyRules(t *testing.T) {
 		Paths: &v3.Paths{},
 	}
 
-	result := internal.Validate(doc, "test.yaml")
+	result := lint.Validate(doc, "test.yaml")
 
 	require.NotNil(t, result)
 	assert.Equal(t, "test.yaml", result.FilePath)
@@ -56,7 +56,7 @@ paths:
 	model, errs := doc.BuildV3Model()
 	require.Empty(t, errs)
 
-	result := internal.Validate(&model.Model, "test.yaml")
+	result := lint.Validate(&model.Model, "test.yaml")
 
 	require.NotNil(t, result)
 	assert.Equal(t, "test.yaml", result.FilePath)
