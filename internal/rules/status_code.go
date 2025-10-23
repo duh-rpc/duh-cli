@@ -3,7 +3,6 @@ package rules
 import (
 	"fmt"
 
-	"github.com/duh-rpc/duhrpc-lint/internal/types"
 	"github.com/pb33f/libopenapi/datamodel/high/v3"
 )
 
@@ -23,8 +22,8 @@ func (r *StatusCodeRule) Name() string {
 }
 
 // Validate checks that only allowed status codes are used
-func (r *StatusCodeRule) Validate(doc *v3.Document) []types.Violation {
-	var violations []types.Violation
+func (r *StatusCodeRule) Validate(doc *v3.Document) []Violation {
+	var violations []Violation
 
 	if doc == nil || doc.Paths == nil || doc.Paths.PathItems == nil {
 		return violations
@@ -52,7 +51,7 @@ func (r *StatusCodeRule) Validate(doc *v3.Document) []types.Violation {
 			for statusCode := range op.Responses.Codes.FromOldest() {
 				if !allowedMap[statusCode] {
 					location := method + " " + path
-					violations = append(violations, types.Violation{
+					violations = append(violations, Violation{
 						Suggestion: fmt.Sprintf("Use one of the allowed status codes: %v", allowedStatusCodes),
 						Message:    fmt.Sprintf("Status code %s is not allowed", statusCode),
 						Location:   location,

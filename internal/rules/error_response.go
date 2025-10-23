@@ -3,7 +3,6 @@ package rules
 import (
 	"fmt"
 
-	"github.com/duh-rpc/duhrpc-lint/internal/types"
 	"github.com/pb33f/libopenapi/datamodel/high/base"
 	"github.com/pb33f/libopenapi/datamodel/high/v3"
 )
@@ -20,8 +19,8 @@ func (r *ErrorResponseRule) Name() string {
 	return "error-response-schema"
 }
 
-func (r *ErrorResponseRule) Validate(doc *v3.Document) []types.Violation {
-	var violations []types.Violation
+func (r *ErrorResponseRule) Validate(doc *v3.Document) []Violation {
+	var violations []Violation
 
 	errorStatusCodes := map[string]bool{
 		"400": true,
@@ -90,7 +89,7 @@ func (r *ErrorResponseRule) Validate(doc *v3.Document) []types.Violation {
 					}
 
 					if err := r.validateErrorSchema(schema, make(map[*base.Schema]bool)); err != nil {
-						violations = append(violations, types.Violation{
+						violations = append(violations, Violation{
 							Message:    err.Error(),
 							Suggestion: "Error response schema must be type 'object' with required fields [code, message] where code is integer and message is string. Optional details field must be type object.",
 							RuleName:   r.Name(),

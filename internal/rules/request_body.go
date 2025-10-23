@@ -1,7 +1,6 @@
 package rules
 
 import (
-	"github.com/duh-rpc/duhrpc-lint/internal/types"
 	"github.com/pb33f/libopenapi/datamodel/high/v3"
 )
 
@@ -19,8 +18,8 @@ func (r *RequestBodyRule) Name() string {
 }
 
 // Validate checks that all operations have a required request body
-func (r *RequestBodyRule) Validate(doc *v3.Document) []types.Violation {
-	var violations []types.Violation
+func (r *RequestBodyRule) Validate(doc *v3.Document) []Violation {
+	var violations []Violation
 
 	if doc == nil || doc.Paths == nil || doc.Paths.PathItems == nil {
 		return violations
@@ -44,7 +43,7 @@ func (r *RequestBodyRule) Validate(doc *v3.Document) []types.Violation {
 
 			// Check if request body is missing
 			if op.RequestBody == nil {
-				violations = append(violations, types.Violation{
+				violations = append(violations, Violation{
 					Suggestion: "Add a required request body to this operation",
 					Message:    "Operation is missing a request body",
 					Location:   location,
@@ -55,7 +54,7 @@ func (r *RequestBodyRule) Validate(doc *v3.Document) []types.Violation {
 
 			// Check if request body is not required
 			if op.RequestBody.Required == nil || !*op.RequestBody.Required {
-				violations = append(violations, types.Violation{
+				violations = append(violations, Violation{
 					Suggestion: "Set requestBody.required to true",
 					Message:    "Request body must be marked as required",
 					Location:   location,

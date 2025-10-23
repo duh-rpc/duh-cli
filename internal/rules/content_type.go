@@ -3,7 +3,6 @@ package rules
 import (
 	"strings"
 
-	"github.com/duh-rpc/duhrpc-lint/internal/types"
 	"github.com/pb33f/libopenapi/datamodel/high/v3"
 )
 
@@ -19,8 +18,8 @@ func (r *ContentTypeRule) Name() string {
 	return "content-type"
 }
 
-func (r *ContentTypeRule) Validate(doc *v3.Document) []types.Violation {
-	var violations []types.Violation
+func (r *ContentTypeRule) Validate(doc *v3.Document) []Violation {
+	var violations []Violation
 
 	allowedTypes := map[string]bool{
 		"application/json":         true,
@@ -71,7 +70,7 @@ func (r *ContentTypeRule) Validate(doc *v3.Document) []types.Violation {
 
 				// Only report missing JSON if we have valid content types but none is JSON
 				if !hasJSON && hasValidContentType {
-					violations = append(violations, types.Violation{
+					violations = append(violations, Violation{
 						Message:    "Request body must include application/json content type",
 						Suggestion: "Add application/json to request body content types",
 						RuleName:   r.Name(),
@@ -103,7 +102,7 @@ func (r *ContentTypeRule) Validate(doc *v3.Document) []types.Violation {
 	return violations
 }
 
-func (r *ContentTypeRule) validateContentType(contentType string, allowedTypes map[string]bool, method, path, context string) *types.Violation {
+func (r *ContentTypeRule) validateContentType(contentType string, allowedTypes map[string]bool, method, path, context string) *Violation {
 	normalized := strings.ToLower(contentType)
 
 	// Check for MIME parameters
@@ -112,7 +111,7 @@ func (r *ContentTypeRule) validateContentType(contentType string, allowedTypes m
 		if context != "" {
 			msg = "MIME parameters not allowed in " + context + " content type"
 		}
-		return &types.Violation{
+		return &Violation{
 			Message:    msg,
 			Suggestion: "Remove parameters from content type (use '" + strings.Split(normalized, ";")[0] + "' instead of '" + contentType + "')",
 			RuleName:   r.Name(),
@@ -126,7 +125,7 @@ func (r *ContentTypeRule) validateContentType(contentType string, allowedTypes m
 		if context != "" {
 			msg = "Invalid " + context + " content type: " + contentType
 		}
-		return &types.Violation{
+		return &Violation{
 			Message:    msg,
 			Suggestion: "Use one of: application/json, application/protobuf, application/octet-stream",
 			RuleName:   r.Name(),

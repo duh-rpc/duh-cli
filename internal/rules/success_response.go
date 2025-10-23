@@ -1,7 +1,6 @@
 package rules
 
 import (
-	"github.com/duh-rpc/duhrpc-lint/internal/types"
 	"github.com/pb33f/libopenapi/datamodel/high/v3"
 )
 
@@ -19,8 +18,8 @@ func (r *SuccessResponseRule) Name() string {
 }
 
 // Validate checks that all operations have a 200 response with content
-func (r *SuccessResponseRule) Validate(doc *v3.Document) []types.Violation {
-	var violations []types.Violation
+func (r *SuccessResponseRule) Validate(doc *v3.Document) []Violation {
+	var violations []Violation
 
 	if doc == nil || doc.Paths == nil || doc.Paths.PathItems == nil {
 		return violations
@@ -52,7 +51,7 @@ func (r *SuccessResponseRule) Validate(doc *v3.Document) []types.Violation {
 			}
 
 			if response200 == nil {
-				violations = append(violations, types.Violation{
+				violations = append(violations, Violation{
 					Suggestion: "Add a 200 response with content to this operation",
 					Message:    "Operation is missing a 200 (success) response",
 					Location:   location,
@@ -63,7 +62,7 @@ func (r *SuccessResponseRule) Validate(doc *v3.Document) []types.Violation {
 
 			// Check if 200 response has content
 			if response200.Content == nil || response200.Content.Len() == 0 {
-				violations = append(violations, types.Violation{
+				violations = append(violations, Violation{
 					Suggestion: "Add content with a schema to the 200 response",
 					Message:    "200 response is missing content",
 					Location:   location,
@@ -82,7 +81,7 @@ func (r *SuccessResponseRule) Validate(doc *v3.Document) []types.Violation {
 			}
 
 			if !hasSchema {
-				violations = append(violations, types.Violation{
+				violations = append(violations, Violation{
 					Suggestion: "Add a schema to at least one media type in the 200 response",
 					Message:    "200 response content is missing a schema",
 					Location:   location,

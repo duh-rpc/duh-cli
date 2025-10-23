@@ -5,7 +5,6 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/duh-rpc/duhrpc-lint/internal/types"
 	"github.com/pb33f/libopenapi/datamodel/high/v3"
 )
 
@@ -24,8 +23,8 @@ func (r *PathFormatRule) Name() string {
 	return "path-format"
 }
 
-func (r *PathFormatRule) Validate(doc *v3.Document) []types.Violation {
-	var violations []types.Violation
+func (r *PathFormatRule) Validate(doc *v3.Document) []Violation {
+	var violations []Violation
 
 	if doc == nil || doc.Paths == nil || doc.Paths.PathItems == nil {
 		return violations
@@ -38,7 +37,7 @@ func (r *PathFormatRule) Validate(doc *v3.Document) []types.Violation {
 
 		// Check for path parameters in the path string
 		if pathParamRegex.MatchString(path) {
-			violations = append(violations, types.Violation{
+			violations = append(violations, Violation{
 				RuleName:   r.Name(),
 				Location:   path,
 				Message:    "Path contains path parameters, which are not allowed in DUH-RPC",
@@ -51,7 +50,7 @@ func (r *PathFormatRule) Validate(doc *v3.Document) []types.Violation {
 		if len(pathItem.Parameters) > 0 {
 			for _, param := range pathItem.Parameters {
 				if param != nil && param.In == "path" {
-					violations = append(violations, types.Violation{
+					violations = append(violations, Violation{
 						RuleName:   r.Name(),
 						Location:   path,
 						Message:    fmt.Sprintf("Path parameter '%s' is not allowed in DUH-RPC", param.Name),
@@ -63,7 +62,7 @@ func (r *PathFormatRule) Validate(doc *v3.Document) []types.Violation {
 
 		// Check path format
 		if !pathFormatRegex.MatchString(path) {
-			violations = append(violations, types.Violation{
+			violations = append(violations, Violation{
 				RuleName:   r.Name(),
 				Location:   path,
 				Message:    r.generateErrorMessage(path),

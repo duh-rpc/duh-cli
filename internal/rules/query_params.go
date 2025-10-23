@@ -3,7 +3,6 @@ package rules
 import (
 	"fmt"
 
-	"github.com/duh-rpc/duhrpc-lint/internal/types"
 	"github.com/pb33f/libopenapi/datamodel/high/v3"
 )
 
@@ -18,8 +17,8 @@ func (r *QueryParamsRule) Name() string {
 	return "query-parameters"
 }
 
-func (r *QueryParamsRule) Validate(doc *v3.Document) []types.Violation {
-	var violations []types.Violation
+func (r *QueryParamsRule) Validate(doc *v3.Document) []Violation {
+	var violations []Violation
 
 	if doc == nil || doc.Paths == nil || doc.Paths.PathItems == nil {
 		return violations
@@ -51,7 +50,7 @@ func (r *QueryParamsRule) Validate(doc *v3.Document) []types.Violation {
 			if operation.Parameters != nil {
 				for _, param := range operation.Parameters {
 					if param != nil && param.In == "query" {
-						violations = append(violations, types.Violation{
+						violations = append(violations, Violation{
 							RuleName:   r.Name(),
 							Location:   fmt.Sprintf("%s %s", method, path),
 							Message:    fmt.Sprintf("Query parameter '%s' is not allowed in DUH-RPC", param.Name),

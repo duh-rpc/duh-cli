@@ -1,11 +1,11 @@
 package internal
 
 import (
-	"github.com/duh-rpc/duhrpc-lint/internal/types"
+	"github.com/duh-rpc/duhrpc-lint/internal/rules"
 )
 
 // Violation is an alias for types.Violation for backwards compatibility
-type Violation = types.Violation
+type Violation = rules.Violation
 
 // ValidationResult contains all violations found in a document
 type ValidationResult struct {
