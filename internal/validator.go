@@ -17,6 +17,9 @@ func Validate(doc *v3.Document, filePath string) ValidationResult {
 		rules.NewPathFormatRule(),
 		rules.NewHTTPMethodRule(),
 		rules.NewQueryParamsRule(),
+		rules.NewRequestBodyRule(),
+		rules.NewStatusCodeRule(),
+		rules.NewSuccessResponseRule(),
 	}
 
 	var violations []Violation

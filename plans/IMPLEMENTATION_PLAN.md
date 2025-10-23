@@ -2151,10 +2151,10 @@ done
 - ✅ Test data for 3 rules
 
 ### Phase 3: Simple Rules Batch 2
-- ✅ Request body validation (REQ-005)
-- ✅ Status code validation (REQ-008)
-- ✅ Success response validation (REQ-009)
-- ✅ Test data for 3 rules
+- [x] Request body validation (REQ-005)
+- [x] Status code validation (REQ-008)
+- [x] Success response validation (REQ-009)
+- [x] Test data for 3 rules
 
 ### Phase 4: Complex Rules
 - ✅ Content type validation (REQ-006)
