@@ -1,4 +1,4 @@
-package lint_test
+package duh_test
 
 import (
 	"bytes"

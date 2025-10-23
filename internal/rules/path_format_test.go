@@ -372,7 +372,7 @@ paths:
 			filePath := writeYAML(t, test.spec)
 
 			var stdout bytes.Buffer
-			exitCode := lint.RunCmd(&stdout, []string{filePath})
+			exitCode := duh.RunCmd(&stdout, []string{filePath})
 
 			assert.Equal(t, test.expectedExit, exitCode)
 			assert.Contains(t, stdout.String(), test.expectedOutput)
