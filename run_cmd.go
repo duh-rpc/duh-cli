@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 
+	init_ "github.com/duh-rpc/duhrpc/internal/init"
 	"github.com/duh-rpc/duhrpc/internal/lint"
 	"github.com/spf13/cobra"
 )
@@ -60,8 +61,38 @@ Exit Codes:
 		},
 	}
 
-	rootCmd.AddCommand(lintCmd)
-	rootCmd.SetOutput(stdout)
+	initCmd := &cobra.Command{
+		Use:   "init [openapi-file]",
+		Short: "Create a DUH-RPC compliant OpenAPI specification template",
+		Long: `Create a DUH-RPC compliant OpenAPI specification template.
+
+The init command generates a comprehensive example OpenAPI 3.0 specification
+that demonstrates all DUH-RPC requirements and best practices.
+
+If no file path is provided, defaults to 'openapi.yaml' in the current directory.
+
+Exit Codes:
+  0    Template created successfully
+  2    Error (file already exists, permission denied, etc.)`,
+		Args: cobra.MaximumNArgs(1),
+		Run: func(cmd *cobra.Command, args []string) {
+			const defaultOutput = "openapi.yaml"
+			outputPath := defaultOutput
+			if len(args) > 0 {
+				outputPath = args[0]
+			}
+
+			if err := init_.Run(cmd.OutOrStdout(), outputPath); err != nil {
+				_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Error: %v\n", err)
+				exitCode = 2
+				return
+			}
+		},
+	}
+
+	rootCmd.AddCommand(lintCmd, initCmd)
+	rootCmd.SetOut(stdout)
+	rootCmd.SetErr(stdout)
 	rootCmd.SetArgs(args)
 
 	if err := rootCmd.Execute(); err != nil {
