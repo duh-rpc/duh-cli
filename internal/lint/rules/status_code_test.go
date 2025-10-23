@@ -292,7 +292,7 @@ paths:
 			filePath := writeYAML(t, test.spec)
 
 			var stdout bytes.Buffer
-			exitCode := duhrpc.RunCmd(&stdout, []string{filePath})
+			exitCode := duhrpc.RunCmd(&stdout, []string{"lint", filePath})
 
 			assert.Equal(t, test.expectedExit, exitCode)
 			assert.Contains(t, stdout.String(), test.expectedOutput)

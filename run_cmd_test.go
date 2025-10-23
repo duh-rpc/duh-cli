@@ -2,6 +2,7 @@ package duhrpc_test
 
 import (
 	"bytes"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -15,9 +16,9 @@ func TestRunCmdHelp(t *testing.T) {
 	exitCode := lint.RunCmd(&stdout, []string{"--help"})
 
 	assert.Equal(t, 0, exitCode)
-	assert.Contains(t, stdout.String(), "duhrpc - Validate OpenAPI specs")
+	assert.Contains(t, stdout.String(), "duhrpc is a command-line tool")
 	assert.Contains(t, stdout.String(), "Usage:")
-	assert.Contains(t, stdout.String(), "Exit Codes:")
+	assert.Contains(t, stdout.String(), "Available Commands:")
 }
 
 func TestRunCmdVersion(t *testing.T) {
@@ -31,7 +32,7 @@ func TestRunCmdVersion(t *testing.T) {
 
 func TestRunCmdFileNotFound(t *testing.T) {
 	var stdout bytes.Buffer
-	exitCode := lint.RunCmd(&stdout, []string{"nonexistent.yaml"})
+	exitCode := lint.RunCmd(&stdout, []string{"lint", "nonexistent.yaml"})
 
 	assert.Equal(t, 2, exitCode)
 	assert.Contains(t, stdout.String(), "Error:")
@@ -40,19 +41,19 @@ func TestRunCmdFileNotFound(t *testing.T) {
 
 func TestRunCmdNoArguments(t *testing.T) {
 	var stdout bytes.Buffer
-	exitCode := lint.RunCmd(&stdout, []string{})
+	exitCode := lint.RunCmd(&stdout, []string{"lint"})
 
 	assert.Equal(t, 2, exitCode)
-	assert.Contains(t, stdout.String(), "Error:")
-	assert.Contains(t, stdout.String(), "Exactly one OpenAPI file path is required")
+	output := strings.ToLower(stdout.String())
+	fmt.Println(output)
+	require.Contains(t, output, "error: accepts 1 arg")
 }
 
 func TestRunCmdMultipleArguments(t *testing.T) {
 	var stdout bytes.Buffer
-	exitCode := lint.RunCmd(&stdout, []string{"file1.yaml", "file2.yaml"})
+	exitCode := lint.RunCmd(&stdout, []string{"lint", "file1.yaml", "file2.yaml"})
 
 	assert.Equal(t, 2, exitCode)
-	assert.Contains(t, stdout.String(), "Error:")
 	output := strings.ToLower(stdout.String())
-	require.True(t, strings.Contains(output, "exactly one") || strings.Contains(output, "one openapi file"))
+	require.Contains(t, output, "error: accepts 1 arg")
 }
