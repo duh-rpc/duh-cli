@@ -1,20 +1,19 @@
 package rules_test
 
 import (
+	"bytes"
 	"testing"
 
-	"github.com/duh-rpc/duhrpc-lint/internal/rules"
-	"github.com/pb33f/libopenapi"
+	"github.com/duh-rpc/duhrpc-lint"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestStatusCodeRule(t *testing.T) {
 	for _, test := range []struct {
-		name          string
-		spec          string
-		wantViolation bool
-		wantCode      string
+		name           string
+		spec           string
+		expectedExit   int
+		expectedOutput string
 	}{
 		{
 			name: "AllowedStatusCode200",
@@ -25,10 +24,21 @@ info:
 paths:
   /v1/users.create:
     post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
       responses:
         200:
-          description: Success`,
-			wantViolation: false,
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object`,
+			expectedExit:   0,
+			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
 		},
 		{
 			name: "AllowedStatusCode400",
@@ -39,10 +49,35 @@ info:
 paths:
   /v1/users.create:
     post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
       responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
         400:
-          description: Bad Request`,
-			wantViolation: false,
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - code
+                  - message
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string`,
+			expectedExit:   0,
+			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
 		},
 		{
 			name: "AllowedStatusCode500",
@@ -53,10 +88,35 @@ info:
 paths:
   /v1/users.create:
     post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
       responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
         500:
-          description: Server Error`,
-			wantViolation: false,
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - code
+                  - message
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string`,
+			expectedExit:   0,
+			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
 		},
 		{
 			name: "AllowedStatusCode452",
@@ -67,10 +127,35 @@ info:
 paths:
   /v1/users.create:
     post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
       responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
         452:
-          description: Custom Error`,
-			wantViolation: false,
+          description: Custom Error
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - code
+                  - message
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string`,
+			expectedExit:   0,
+			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
 		},
 		{
 			name: "DisallowedStatusCode201",
@@ -81,11 +166,23 @@ info:
 paths:
   /v1/users.create:
     post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
       responses:
         201:
-          description: Created`,
-			wantViolation: true,
-			wantCode:      "201",
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object`,
+			expectedExit: 1,
+			expectedOutput: `[status-code] POST /v1/users.create
+  Status code 201 is not allowed
+  Use one of the allowed status codes: [200 400 401 403 404 429 452 453 454 455 500]`,
 		},
 		{
 			name: "DisallowedStatusCode204",
@@ -96,11 +193,19 @@ info:
 paths:
   /v1/users.delete:
     post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
       responses:
         204:
           description: No Content`,
-			wantViolation: true,
-			wantCode:      "204",
+			expectedExit: 1,
+			expectedOutput: `[status-code] POST /v1/users.delete
+  Status code 204 is not allowed
+  Use one of the allowed status codes: [200 400 401 403 404 429 452 453 454 455 500]`,
 		},
 		{
 			name: "DisallowedStatusCode503",
@@ -111,11 +216,23 @@ info:
 paths:
   /v1/users.create:
     post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
       responses:
         503:
-          description: Service Unavailable`,
-			wantViolation: true,
-			wantCode:      "503",
+          description: Service Unavailable
+          content:
+            application/json:
+              schema:
+                type: object`,
+			expectedExit: 1,
+			expectedOutput: `[status-code] POST /v1/users.create
+  Status code 503 is not allowed
+  Use one of the allowed status codes: [200 400 401 403 404 429 452 453 454 455 500]`,
 		},
 		{
 			name: "MultipleAllowedCodes",
@@ -126,33 +243,59 @@ info:
 paths:
   /v1/users.create:
     post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
       responses:
         200:
           description: Success
+          content:
+            application/json:
+              schema:
+                type: object
         400:
           description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - code
+                  - message
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
         500:
-          description: Server Error`,
-			wantViolation: false,
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - code
+                  - message
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string`,
+			expectedExit:   0,
+			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			doc, err := libopenapi.NewDocument([]byte(test.spec))
-			require.NoError(t, err)
+			filePath := writeYAML(t, test.spec)
 
-			model, errs := doc.BuildV3Model()
-			require.Empty(t, errs)
+			var stdout bytes.Buffer
+			exitCode := lint.RunCmd(&stdout, []string{filePath})
 
-			rule := rules.NewStatusCodeRule()
-			violations := rule.Validate(&model.Model)
-
-			if test.wantViolation {
-				require.NotEmpty(t, violations)
-				assert.Contains(t, violations[0].Message, test.wantCode)
-				assert.Equal(t, "status-code", violations[0].RuleName)
-			} else {
-				assert.Empty(t, violations)
-			}
+			assert.Equal(t, test.expectedExit, exitCode)
+			assert.Contains(t, stdout.String(), test.expectedOutput)
 		})
 	}
 }

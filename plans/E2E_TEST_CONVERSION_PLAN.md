@@ -799,42 +799,52 @@ paths:
 
 ---
 
-## Phase 6: status_code_test.go
+## Phase 6: status_code_test.go ✅ COMPLETE
 
 **File**: `internal/rules/status_code_test.go`
-**Lines**: 158
+**Lines**: 302 (after conversion)
 **Test function**: `TestStatusCodeRule`
-**Number of test cases**: 7
+**Number of test cases**: 8
 **Validation command**: `go test ./internal/rules -run TestStatusCodeRule -v`
 
-### Changes Required
+### Changes Completed
 
-1. **Copy helper functions** from Phase 2
+1. **Reused writeYAML helper** ✅ - Shares helper from Phase 2 (same package)
 
-2. **Update imports**: Same as Phase 2
+2. **Updated imports** ✅:
+   - Removed: `github.com/duh-rpc/duhrpc-lint/internal/rules`, `github.com/pb33f/libopenapi`, `require`
+   - Added: `bytes`, `github.com/duh-rpc/duhrpc-lint`, `assert`
 
-3. **Convert struct definition**:
+3. **Updated struct definition** ✅:
    ```go
    for _, test := range []struct {
-       name          string
-       spec          string
-       wantViolation bool
+       name           string
+       spec           string
+       expectedExit   int
+       expectedOutput string
    }{
    ```
 
-4. **Replace test body**:
+4. **Converted all 8 test cases** ✅ - Each includes full expected output visible in test
+
+5. **Replaced test body** ✅:
    ```go
    t.Run(test.name, func(t *testing.T) {
        filePath := writeYAML(t, test.spec)
-       exitCode, stdout := runLint(t, filePath)
 
-       if test.wantViolation {
-           assertViolation(t, exitCode, stdout, "status-code")
-       } else {
-           assertNoViolations(t, exitCode, stdout)
-       }
+       var stdout bytes.Buffer
+       exitCode := lint.RunCmd(&stdout, []string{filePath})
+
+       assert.Equal(t, test.expectedExit, exitCode)
+       assert.Contains(t, stdout.String(), test.expectedOutput)
    })
    ```
+
+### Results
+- ✅ All 8 tests pass (note: original plan said 7, but there are actually 8 test cases)
+- ✅ Tests are self-documenting - full error messages visible in test cases
+- ✅ Shares writeYAML helper with other tests in same package
+- ✅ Fixed error response schemas to use integer type for code field
 
 ---
 
