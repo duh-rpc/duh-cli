@@ -13,7 +13,7 @@ This document provides a reference guide for writing OpenAPI 3.0 specifications 
 - Review the Quick Reference table for an overview of all rules
 - Refer to individual rule sections for detailed requirements and examples
 - Use the Complete Example as a template for your specifications
-- Validate your spec with `duhrpc-lint` to ensure compliance
+- Validate your spec with `duh lint` to ensure compliance
 
 ---
 
@@ -533,11 +533,11 @@ paths:
 
 ## Validation Tool
 
-Use `duhrpc-lint` to automatically validate your OpenAPI specifications against all DUH-RPC rules:
+Use `duh lint` to automatically validate your OpenAPI specifications against all DUH-RPC rules:
 
 ```bash
 # Validate a spec
-duhrpc-lint openapi.yaml
+duh lint openapi.yaml
 
 # If compliant
 ✓ openapi.yaml is DUH-RPC compliant

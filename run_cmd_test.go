@@ -18,7 +18,7 @@ func TestRunCmdHelp(t *testing.T) {
 	exitCode := lint.RunCmd(&stdout, []string{"--help"})
 
 	assert.Equal(t, 0, exitCode)
-	assert.Contains(t, stdout.String(), "duhrpc is a command-line tool")
+	assert.Contains(t, stdout.String(), "duh is a command-line tool")
 	assert.Contains(t, stdout.String(), "Usage:")
 	assert.Contains(t, stdout.String(), "Available Commands:")
 }
@@ -28,7 +28,7 @@ func TestRunCmdVersion(t *testing.T) {
 	exitCode := lint.RunCmd(&stdout, []string{"--version"})
 
 	assert.Equal(t, 0, exitCode)
-	assert.Contains(t, stdout.String(), "duhrpc version")
+	assert.Contains(t, stdout.String(), "duh version")
 	assert.Contains(t, stdout.String(), "1.0.0")
 }
 

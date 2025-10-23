@@ -10,7 +10,7 @@ lint:
 
 # Install binary to GOPATH/bin
 install:
-	go install ./cmd/duhrpc
+	go install ./cmd/duh
 
 tidy:
 	go mod tidy && git diff --exit-code
@@ -21,11 +21,11 @@ ci: tidy lint test
 
 # Build binary
 build:
-	go build -o duhrpc ./cmd/duhrpc
+	go build -o duh ./cmd/duh
 
 # Clean build artifacts
 clean:
-	rm -f duhrpc coverage.out coverage.html
+	rm -f duh coverage.out coverage.html
 	go clean
 
 # Coverage report
@@ -37,15 +37,15 @@ coverage:
 # Integration tests
 integration-test: build
 	@echo "Testing valid spec..."
-	./duhrpc lint testdata/valid-spec.yaml
+	./duh lint testdata/valid-spec.yaml
 	@echo "\nTesting invalid specs..."
-	! ./duhrpc lint testdata/invalid-specs/bad-path-format.yaml
-	! ./duhrpc lint testdata/invalid-specs/wrong-http-method.yaml
-	! ./duhrpc lint testdata/invalid-specs/has-query-params.yaml
-	! ./duhrpc lint testdata/invalid-specs/missing-request-body.yaml
-	! ./duhrpc lint testdata/invalid-specs/invalid-status-code.yaml
-	! ./duhrpc lint testdata/invalid-specs/missing-success-response.yaml
-	! ./duhrpc lint testdata/invalid-specs/invalid-content-type.yaml
-	! ./duhrpc lint testdata/invalid-specs/bad-error-schema.yaml
-	! ./duhrpc lint testdata/invalid-specs/multiple-violations.yaml
+	! ./duh lint testdata/invalid-specs/bad-path-format.yaml
+	! ./duh lint testdata/invalid-specs/wrong-http-method.yaml
+	! ./duh lint testdata/invalid-specs/has-query-params.yaml
+	! ./duh lint testdata/invalid-specs/missing-request-body.yaml
+	! ./duh lint testdata/invalid-specs/invalid-status-code.yaml
+	! ./duh lint testdata/invalid-specs/missing-success-response.yaml
+	! ./duh lint testdata/invalid-specs/invalid-content-type.yaml
+	! ./duh lint testdata/invalid-specs/bad-error-schema.yaml
+	! ./duh lint testdata/invalid-specs/multiple-violations.yaml
 	@echo "\nIntegration tests passed!"

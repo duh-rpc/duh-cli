@@ -1,24 +1,24 @@
-# duhrpc
+# duh
 
 Command-line tools for working with DUH-RPC specifications.
 
 ## Overview
 
-`duhrpc` is a command-line tool for working with DUH-RPC specifications. It provides commands for validating OpenAPI YAML specifications against DUH-RPC conventions, ensuring your API specifications follow the Document-Unified HTTP RPC pattern with clear error messages and actionable suggestions when violations are found.
+`duh` is a command-line tool for working with DUH-RPC specifications. It provides commands for validating OpenAPI YAML specifications against DUH-RPC conventions, ensuring your API specifications follow the Document-Unified HTTP RPC pattern with clear error messages and actionable suggestions when violations are found.
 
 ## Installation
 
 ### Using go install
 
 ```bash
-go install github.com/duh-rpc/duhrpc/cmd/duhrpc@latest
+go install github.com/duh-rpc/duh-cli/cmd/duh@latest
 ```
 
 ### From source
 
 ```bash
-git clone https://github.com/duh-rpc/duhrpc.git
-cd duhrpc
+git clone https://github.com/duh-rpc/duh-cli.git
+cd duh-cli
 make install
 ```
 
@@ -26,7 +26,7 @@ make install
 
 ```bash
 make build
-# Binary will be created as ./duhrpc
+# Binary will be created as ./duh
 ```
 
 ## Usage
@@ -34,14 +34,14 @@ make build
 ### Basic Usage
 
 ```bash
-duhrpc lint <openapi-file>
+duh lint <openapi-file>
 ```
 
 ### Examples
 
 **Validate a compliant specification:**
 ```bash
-duhrpc lint api-spec.yaml
+duh lint api-spec.yaml
 ```
 Output:
 ```
@@ -50,7 +50,7 @@ Output:
 
 **Validate a specification with violations:**
 ```bash
-duhrpc lint api-spec.yaml
+duh lint api-spec.yaml
 ```
 Output:
 ```
@@ -73,10 +73,10 @@ Summary: 2 violations found in api-spec.yaml
 
 ```bash
 # Show help
-duhrpc lint --help
+duh lint --help
 
 # Show version
-duhrpc --version
+duh --version
 ```
 
 ### Exit Codes
@@ -87,7 +87,7 @@ duhrpc --version
 
 ## Validation Rules
 
-`duhrpc lint` validates against 8 DUH-RPC requirements:
+`duh lint` validates against 8 DUH-RPC requirements:
 
 1. **Path Format (REQ-002)**: Paths must follow `/v{N}/{subject}.{method}` format
    - Must start with version prefix like `/v1/`

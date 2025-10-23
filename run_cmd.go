@@ -17,16 +17,16 @@ func RunCmd(stdout io.Writer, args []string) int {
 	exitCode := 0
 
 	rootCmd := &cobra.Command{
-		Use:   "duhrpc",
+		Use:   "duh",
 		Short: "DUH-RPC tooling",
-		Long:  `duhrpc is a command-line tool for working with DUH-RPC specifications and code.`,
+		Long:  `duh is a command-line tool for working with DUH-RPC specifications and code.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			_ = cmd.Help()
 		},
 	}
 
 	rootCmd.Version = Version
-	rootCmd.SetVersionTemplate("duhrpc version {{.Version}}\n")
+	rootCmd.SetVersionTemplate("duh version {{.Version}}\n")
 
 	lintCmd := &cobra.Command{
 		Use:   "lint <openapi-file>",
