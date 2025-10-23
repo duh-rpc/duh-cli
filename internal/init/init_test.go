@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	init_ "github.com/duh-rpc/duhrpc/internal/init"
+	init_ "github.com/duh-rpc/duh-cli/internal/init"
 	"github.com/stretchr/testify/require"
 )
 

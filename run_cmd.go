@@ -1,12 +1,12 @@
-package duhrpc
+package duh
 
 import (
 	"fmt"
 	"io"
 
-	"github.com/duh-rpc/duhrpc/internal/add"
-	init_ "github.com/duh-rpc/duhrpc/internal/init"
-	"github.com/duh-rpc/duhrpc/internal/lint"
+	"github.com/duh-rpc/duh-cli/internal/add"
+	init_ "github.com/duh-rpc/duh-cli/internal/init"
+	"github.com/duh-rpc/duh-cli/internal/lint"
 	"github.com/spf13/cobra"
 )
 

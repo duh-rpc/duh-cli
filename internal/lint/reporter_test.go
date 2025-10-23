@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/duh-rpc/duhrpc/internal/lint"
+	"github.com/duh-rpc/duh-cli/internal/lint"
 	"github.com/stretchr/testify/assert"
 )
 

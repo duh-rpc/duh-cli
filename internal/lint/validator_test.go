@@ -3,7 +3,7 @@ package lint_test
 import (
 	"testing"
 
-	"github.com/duh-rpc/duhrpc/internal/lint"
+	"github.com/duh-rpc/duh-cli/internal/lint"
 	"github.com/pb33f/libopenapi"
 	"github.com/pb33f/libopenapi/datamodel/high/base"
 	"github.com/pb33f/libopenapi/datamodel/high/v3"

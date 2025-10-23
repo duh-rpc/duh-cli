@@ -1,4 +1,4 @@
-package duhrpc_test
+package duh_test
 
 import (
 	"bytes"
@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	lint "github.com/duh-rpc/duhrpc"
+	lint "github.com/duh-rpc/duh-cli"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
