@@ -7,5 +7,5 @@ import (
 )
 
 func main() {
-	os.Exit(lint.RunCmd(os.Stdin, os.Stdout, os.Stderr, os.Args[1:]))
+	os.Exit(lint.RunCmd(os.Stdout, os.Args[1:]))
 }

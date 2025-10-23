@@ -31,9 +31,9 @@ Exit Codes:
 `
 
 // RunCmd executes the CLI logic and returns exit code
-func RunCmd(stdin io.Reader, stdout, stderr io.Writer, args []string) int {
+func RunCmd(stdout io.Writer, args []string) int {
 	fs := flag.NewFlagSet("duhrpc-lint", flag.ContinueOnError)
-	fs.SetOutput(stderr)
+	fs.SetOutput(stdout)
 
 	var showHelp bool
 	var showVersion bool
@@ -55,8 +55,8 @@ func RunCmd(stdin io.Reader, stdout, stderr io.Writer, args []string) int {
 	}
 
 	if fs.NArg() != 1 {
-		_, _ = fmt.Fprintln(stderr, "Error: Exactly one OpenAPI file path is required")
-		_, _ = fmt.Fprintln(stderr, "Use --help for usage information")
+		_, _ = fmt.Fprintln(stdout, "Error: Exactly one OpenAPI file path is required")
+		_, _ = fmt.Fprintln(stdout, "Use --help for usage information")
 		return 2
 	}
 
@@ -64,7 +64,7 @@ func RunCmd(stdin io.Reader, stdout, stderr io.Writer, args []string) int {
 
 	doc, err := internal.Load(filePath)
 	if err != nil {
-		_, _ = fmt.Fprintf(stderr, "Error: %v\n", err)
+		_, _ = fmt.Fprintf(stdout, "Error: %v\n", err)
 		return 2
 	}
 

@@ -1,19 +1,32 @@
 package rules_test
 
 import (
+	"bytes"
+	"os"
+	"path/filepath"
 	"testing"
 
-	"github.com/duh-rpc/duhrpc-lint/internal/rules"
-	"github.com/pb33f/libopenapi"
-	"github.com/stretchr/testify/require"
+	"github.com/duh-rpc/duhrpc-lint"
+	"github.com/stretchr/testify/assert"
 )
+
+func writeYAML(t *testing.T, yaml string) string {
+	t.Helper()
+	dir := t.TempDir()
+	filePath := filepath.Join(dir, "spec.yaml")
+	err := os.WriteFile(filePath, []byte(yaml), 0644)
+	if err != nil {
+		t.Fatalf("Failed to write test YAML: %v", err)
+	}
+	return filePath
+}
 
 func TestPathFormatRule(t *testing.T) {
 	for _, test := range []struct {
-		name            string
-		spec            string
-		expectViolation bool
-		violationCount  int
+		name           string
+		spec           string
+		expectedExit   int
+		expectedOutput string
 	}{
 		{
 			name: "ValidPathV1",
@@ -37,7 +50,8 @@ paths:
             application/json:
               schema:
                 type: object`,
-			expectViolation: false,
+			expectedExit:   0,
+			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
 		},
 		{
 			name: "ValidPathV0",
@@ -61,7 +75,8 @@ paths:
             application/json:
               schema:
                 type: object`,
-			expectViolation: false,
+			expectedExit:   0,
+			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
 		},
 		{
 			name: "ValidPathV10WithHyphensAndUnderscores",
@@ -85,7 +100,8 @@ paths:
             application/json:
               schema:
                 type: object`,
-			expectViolation: false,
+			expectedExit:   0,
+			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
 		},
 		{
 			name: "MissingVersion",
@@ -109,8 +125,10 @@ paths:
             application/json:
               schema:
                 type: object`,
-			expectViolation: true,
-			violationCount:  1,
+			expectedExit: 1,
+			expectedOutput: `[path-format] /users.create
+  Path must start with version prefix (e.g., /v1/)
+  Add a version prefix like /v1/`,
 		},
 		{
 			name: "InvalidVersionFormat",
@@ -134,8 +152,10 @@ paths:
             application/json:
               schema:
                 type: object`,
-			expectViolation: true,
-			violationCount:  1,
+			expectedExit: 1,
+			expectedOutput: `[path-format] /v1.2/users.create
+  Version must be /v{N}/ where N is a non-negative integer (e.g., /v1/, /v2/)
+  Ensure path follows format /v{N}/subject.method with lowercase letters, numbers, hyphens, and underscores only`,
 		},
 		{
 			name: "InvalidVersionBeta",
@@ -159,8 +179,10 @@ paths:
             application/json:
               schema:
                 type: object`,
-			expectViolation: true,
-			violationCount:  1,
+			expectedExit: 1,
+			expectedOutput: `[path-format] /vbeta/users.create
+  Version must be /v{N}/ where N is a non-negative integer (e.g., /v1/, /v2/)
+  Ensure path follows format /v{N}/subject.method with lowercase letters, numbers, hyphens, and underscores only`,
 		},
 		{
 			name: "UppercaseSubject",
@@ -184,8 +206,10 @@ paths:
             application/json:
               schema:
                 type: object`,
-			expectViolation: true,
-			violationCount:  1,
+			expectedExit: 1,
+			expectedOutput: `[path-format] /v1/Users.create
+  Subject must start with a lowercase letter
+  Ensure path follows format /v{N}/subject.method with lowercase letters, numbers, hyphens, and underscores only`,
 		},
 		{
 			name: "MissingDot",
@@ -209,8 +233,10 @@ paths:
             application/json:
               schema:
                 type: object`,
-			expectViolation: true,
-			violationCount:  1,
+			expectedExit: 1,
+			expectedOutput: `[path-format] /v1/users
+  Path must have format /v{N}/subject.method with a dot separator
+  Use format /v1/subject.method (e.g., /v1/users.create)`,
 		},
 		{
 			name: "PathParametersInURL",
@@ -234,8 +260,10 @@ paths:
             application/json:
               schema:
                 type: object`,
-			expectViolation: true,
-			violationCount:  1,
+			expectedExit: 1,
+			expectedOutput: `[path-format] /v1/users/{id}.get
+  Path contains path parameters, which are not allowed in DUH-RPC
+  Remove path parameters and use request body fields instead`,
 		},
 		{
 			name: "InvalidCharacters",
@@ -259,8 +287,10 @@ paths:
             application/json:
               schema:
                 type: object`,
-			expectViolation: true,
-			violationCount:  1,
+			expectedExit: 1,
+			expectedOutput: `[path-format] /v1/user$accounts.create
+  Subject must contain only lowercase letters, numbers, hyphens, and underscores
+  Ensure path follows format /v{N}/subject.method with lowercase letters, numbers, hyphens, and underscores only`,
 		},
 		{
 			name: "PathParameterDefined",
@@ -290,8 +320,10 @@ paths:
             application/json:
               schema:
                 type: object`,
-			expectViolation: true,
-			violationCount:  1,
+			expectedExit: 1,
+			expectedOutput: `[path-format] /v1/users.get
+  Path parameter 'id' is not allowed in DUH-RPC
+  Move path parameters to request body fields`,
 		},
 		{
 			name: "MultiplePaths",
@@ -330,30 +362,20 @@ paths:
             application/json:
               schema:
                 type: object`,
-			expectViolation: true,
-			violationCount:  1,
+			expectedExit: 1,
+			expectedOutput: `[path-format] /invalid-path
+  Path must start with version prefix (e.g., /v1/)
+  Add a version prefix like /v1/`,
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			doc, err := libopenapi.NewDocument([]byte(test.spec))
-			require.NoError(t, err)
+			filePath := writeYAML(t, test.spec)
 
-			model, errs := doc.BuildV3Model()
-			require.Empty(t, errs)
+			var stdout bytes.Buffer
+			exitCode := lint.RunCmd(&stdout, []string{filePath})
 
-			rule := rules.NewPathFormatRule()
-			violations := rule.Validate(&model.Model)
-
-			if test.expectViolation {
-				require.NotEmpty(t, violations)
-				require.Len(t, violations, test.violationCount)
-				require.Equal(t, "path-format", violations[0].RuleName)
-				require.NotEmpty(t, violations[0].Location)
-				require.NotEmpty(t, violations[0].Message)
-				require.NotEmpty(t, violations[0].Suggestion)
-			} else {
-				require.Empty(t, violations)
-			}
+			assert.Equal(t, test.expectedExit, exitCode)
+			assert.Contains(t, stdout.String(), test.expectedOutput)
 		})
 	}
 }

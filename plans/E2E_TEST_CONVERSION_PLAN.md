@@ -316,13 +316,13 @@ go test ./...
 ```
 
 ### Success Criteria
-- [ ] `RunCmd` signature simplified to `func RunCmd(stdout io.Writer, args []string) int`
-- [ ] `main.go` updated
-- [ ] All 7 tests in `run_cmd_test.go` pass
-- [ ] All 5 tests in `integration_test.go` pass
-- [ ] `go test ./...` passes 100%
-- [ ] Build succeeds: `go build ./cmd/duhrpc-lint`
-- [ ] Manual testing shows errors in stdout
+- [x] `RunCmd` signature simplified to `func RunCmd(stdout io.Writer, args []string) int`
+- [x] `main.go` updated
+- [x] All 7 tests in `run_cmd_test.go` pass
+- [x] All 5 tests in `integration_test.go` pass
+- [x] `go test ./...` passes 100%
+- [x] Build succeeds: `go build ./cmd/duhrpc-lint`
+- [x] Manual testing shows errors in stdout
 
 ---
 
@@ -330,7 +330,7 @@ go test ./...
 
 ### Helper Functions Pattern
 
-After Phase 1 completes, create reusable test helpers in Phase 2:
+After Phase 1 completes, create a single helper function in Phase 2:
 
 ```go
 package rules_test
@@ -359,55 +359,49 @@ func writeYAML(t *testing.T, yaml string) string {
 
     return filePath
 }
-
-// runLint executes the linter and returns exit code and stdout
-func runLint(t *testing.T, filePath string) (int, string) {
-    t.Helper()
-    var stdout bytes.Buffer
-    exitCode := lint.RunCmd(&stdout, []string{filePath})
-    return exitCode, stdout.String()
-}
-
-// assertNoViolations verifies the spec is valid (exit 0, compliant message)
-func assertNoViolations(t *testing.T, exitCode int, stdout string) {
-    t.Helper()
-    assert.Equal(t, 0, exitCode)
-    assert.Contains(t, stdout, "✓")
-    assert.Contains(t, stdout, "compliant")
-}
-
-// assertViolation verifies violations were found (exit 1, rule name in output)
-func assertViolation(t *testing.T, exitCode int, stdout, ruleName string) {
-    t.Helper()
-    assert.Equal(t, 1, exitCode)
-    assert.Contains(t, stdout, "["+ruleName+"]")
-    assert.Contains(t, stdout, "ERRORS FOUND:")
-}
 ```
 
 ### Test Conversion Template
 
-**Table-driven test structure**:
+**Self-Documenting Table-driven test structure**:
 ```go
 for _, test := range []struct {
-    name          string
-    spec          string
-    wantViolation bool
+    name           string
+    spec           string
+    expectedExit   int
+    expectedOutput string
 }{
-    // test cases...
+    {
+        name: "ValidSpec",
+        spec: `openapi: 3.0.0...`,
+        expectedExit: 0,
+        expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
+    },
+    {
+        name: "InvalidSpec",
+        spec: `openapi: 3.0.0...`,
+        expectedExit: 1,
+        expectedOutput: `[rule-name] /path/to/violation
+  Error message explaining the problem
+  Suggestion on how to fix it`,
+    },
 } {
     t.Run(test.name, func(t *testing.T) {
         filePath := writeYAML(t, test.spec)
-        exitCode, stdout := runLint(t, filePath)
 
-        if test.wantViolation {
-            assertViolation(t, exitCode, stdout, "rule-name")
-        } else {
-            assertNoViolations(t, exitCode, stdout)
-        }
+        var stdout bytes.Buffer
+        exitCode := lint.RunCmd(&stdout, []string{filePath})
+
+        assert.Equal(t, test.expectedExit, exitCode)
+        assert.Contains(t, stdout.String(), test.expectedOutput)
     })
 }
 ```
+
+**Key Principles**:
+- **Self-documenting**: Full expected output visible in test case - no need to run linter to see format
+- **Simple assertions**: Just compare exit code and check output contains expected text
+- **Complete error messages**: Include the full violation output so tests document user experience
 
 ### Code Example: Before and After
 
@@ -502,7 +496,7 @@ paths:
 }
 ```
 
-**After (E2E Test)**:
+**After (E2E Test - Self-Documenting)**:
 ```go
 package rules_test
 
@@ -527,32 +521,12 @@ func writeYAML(t *testing.T, yaml string) string {
     return filePath
 }
 
-func runLint(t *testing.T, filePath string) (int, string) {
-    t.Helper()
-    var stdout bytes.Buffer
-    exitCode := lint.RunCmd(&stdout, []string{filePath})
-    return exitCode, stdout.String()
-}
-
-func assertNoViolations(t *testing.T, exitCode int, stdout string) {
-    t.Helper()
-    assert.Equal(t, 0, exitCode)
-    assert.Contains(t, stdout, "✓")
-    assert.Contains(t, stdout, "compliant")
-}
-
-func assertViolation(t *testing.T, exitCode int, stdout, ruleName string) {
-    t.Helper()
-    assert.Equal(t, 1, exitCode)
-    assert.Contains(t, stdout, "["+ruleName+"]")
-    assert.Contains(t, stdout, "ERRORS FOUND:")
-}
-
 func TestPathFormatRule(t *testing.T) {
     for _, test := range []struct {
-        name          string
-        spec          string
-        wantViolation bool
+        name           string
+        spec           string
+        expectedExit   int
+        expectedOutput string
     }{
         {
             name: "ValidPathV1",
@@ -576,7 +550,8 @@ paths:
             application/json:
               schema:
                 type: object`,
-            wantViolation: false,
+            expectedExit:   0,
+            expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
         },
         {
             name: "MissingVersion",
@@ -600,18 +575,20 @@ paths:
             application/json:
               schema:
                 type: object`,
-            wantViolation: true,
+            expectedExit: 1,
+            expectedOutput: `[path-format] /users.create
+  Path must start with version prefix (e.g., /v1/)
+  Add a version prefix like /v1/`,
         },
     } {
         t.Run(test.name, func(t *testing.T) {
             filePath := writeYAML(t, test.spec)
-            exitCode, stdout := runLint(t, filePath)
 
-            if test.wantViolation {
-                assertViolation(t, exitCode, stdout, "path-format")
-            } else {
-                assertNoViolations(t, exitCode, stdout)
-            }
+            var stdout bytes.Buffer
+            exitCode := lint.RunCmd(&stdout, []string{filePath})
+
+            assert.Equal(t, test.expectedExit, exitCode)
+            assert.Contains(t, stdout.String(), test.expectedOutput)
         })
     }
 }
@@ -619,65 +596,62 @@ paths:
 
 ### Key Differences Highlighted
 
-1. **Imports**: Removed libopenapi, added bytes, os, filepath
-2. **Helper functions**: Added writeYAML, runLint, assertion helpers
-3. **Test struct**: Simplified from `expectViolation`/`violationCount` to `wantViolation`
+1. **Imports**: Removed libopenapi/rules, added bytes, os, filepath, lint
+2. **Single helper**: Only `writeYAML()` needed - no assertion helpers
+3. **Test struct**: Changed to `expectedExit` and `expectedOutput` fields
 4. **YAML specs**: Remain complete, valid OpenAPI documents
-5. **Test execution**: Changed from parsing+validation to file write+RunCmd
-6. **Assertions**: Changed from checking violation structs to checking exit codes and output strings
-7. **Simplified stdout**: No stderr to check, all output in stdout
+5. **Expected output**: Full violation messages visible in test cases - self-documenting!
+6. **Test execution**: File write + RunCmd instead of parsing + rule.Validate()
+7. **Simple assertions**: Just exit code and output contains - no complex logic
+8. **No abstraction**: Direct, readable test body - easier to understand
 
 ---
 
-## Phase 2: path_format_test.go
+## Phase 2: path_format_test.go ✅ COMPLETE
 
 **File**: `internal/rules/path_format_test.go`
-**Lines**: 359
+**Lines**: 382 (after conversion)
 **Test function**: `TestPathFormatRule`
 **Number of test cases**: 12
 **Validation command**: `go test ./internal/rules -run TestPathFormatRule -v`
 
-### Changes Required
+### Changes Completed
 
-1. **Update imports**:
-   ```go
-   import (
-       "bytes"
-       "os"
-       "path/filepath"
-       "testing"
+1. **Updated imports** ✅:
+   - Removed: `github.com/duh-rpc/duhrpc-lint/internal/rules`, `github.com/pb33f/libopenapi`, `require`
+   - Added: `bytes`, `os`, `path/filepath`, `github.com/duh-rpc/duhrpc-lint`, `assert`
 
-       "github.com/duh-rpc/duhrpc-lint"
-       "github.com/stretchr/testify/assert"
-   )
-   ```
+2. **Added writeYAML helper function** ✅ - Single helper for writing YAML to temp files
 
-2. **Add helper functions** (writeYAML, runLint, assertNoViolations, assertViolation)
-
-3. **Update struct definition**:
+3. **Updated struct definition** ✅:
    ```go
    for _, test := range []struct {
-       name          string
-       spec          string
-       wantViolation bool
+       name           string
+       spec           string
+       expectedExit   int
+       expectedOutput string
    }{
    ```
 
-4. **Convert test cases** - ensure each YAML spec is complete and valid except for the specific violation
+4. **Converted all 12 test cases** ✅ - Each includes full expected output visible in test
 
-5. **Replace test body**:
+5. **Replaced test body** ✅:
    ```go
    t.Run(test.name, func(t *testing.T) {
        filePath := writeYAML(t, test.spec)
-       exitCode, stdout := runLint(t, filePath)
 
-       if test.wantViolation {
-           assertViolation(t, exitCode, stdout, "path-format")
-       } else {
-           assertNoViolations(t, exitCode, stdout)
-       }
+       var stdout bytes.Buffer
+       exitCode := lint.RunCmd(&stdout, []string{filePath})
+
+       assert.Equal(t, test.expectedExit, exitCode)
+       assert.Contains(t, stdout.String(), test.expectedOutput)
    })
    ```
+
+### Results
+- ✅ All 12 tests pass
+- ✅ Tests are self-documenting - full error messages visible in test cases
+- ✅ No need to run linter to understand output format
 
 ---
 
@@ -691,32 +665,32 @@ paths:
 
 ### Changes Required
 
-1. **Copy helper functions** from Phase 2
+1. **Copy writeYAML helper** from Phase 2
 
 2. **Update imports**: Same as Phase 2
 
 3. **Convert struct definition**:
    ```go
    for _, test := range []struct {
-       name          string
-       spec          string
-       wantViolation bool
+       name           string
+       spec           string
+       expectedExit   int
+       expectedOutput string
    }{
    ```
 
-4. **Convert test cases** - all specs should be complete OpenAPI documents
+4. **Convert test cases** - Include full expected output for each test
 
 5. **Replace test body**:
    ```go
    t.Run(test.name, func(t *testing.T) {
        filePath := writeYAML(t, test.spec)
-       exitCode, stdout := runLint(t, filePath)
 
-       if test.wantViolation {
-           assertViolation(t, exitCode, stdout, "http-method")
-       } else {
-           assertNoViolations(t, exitCode, stdout)
-       }
+       var stdout bytes.Buffer
+       exitCode := lint.RunCmd(&stdout, []string{filePath})
+
+       assert.Equal(t, test.expectedExit, exitCode)
+       assert.Contains(t, stdout.String(), test.expectedOutput)
    })
    ```
 
@@ -732,30 +706,32 @@ paths:
 
 ### Changes Required
 
-1. **Copy helper functions** from Phase 2
+1. **Copy writeYAML helper** from Phase 2
 
 2. **Update imports**: Same as Phase 2
 
 3. **Convert struct definition**:
    ```go
    for _, test := range []struct {
-       name          string
-       spec          string
-       wantViolation bool
+       name           string
+       spec           string
+       expectedExit   int
+       expectedOutput string
    }{
    ```
 
-4. **Replace test body**:
+4. **Convert test cases** - Include full expected output for each test
+
+5. **Replace test body**:
    ```go
    t.Run(test.name, func(t *testing.T) {
        filePath := writeYAML(t, test.spec)
-       exitCode, stdout := runLint(t, filePath)
 
-       if test.wantViolation {
-           assertViolation(t, exitCode, stdout, "query-parameters")
-       } else {
-           assertNoViolations(t, exitCode, stdout)
-       }
+       var stdout bytes.Buffer
+       exitCode := lint.RunCmd(&stdout, []string{filePath})
+
+       assert.Equal(t, test.expectedExit, exitCode)
+       assert.Contains(t, stdout.String(), test.expectedOutput)
    })
    ```
 
