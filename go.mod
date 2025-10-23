@@ -8,6 +8,7 @@ require (
 	github.com/pb33f/libopenapi v0.28.1
 	github.com/spf13/cobra v1.10.1
 	github.com/stretchr/testify v1.11.1
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
@@ -20,5 +21,4 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/spf13/pflag v1.0.9 // indirect
 	go.yaml.in/yaml/v4 v4.0.0-rc.2 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

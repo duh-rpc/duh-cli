@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/duh-rpc/duhrpc/internal/add"
 	init_ "github.com/duh-rpc/duhrpc/internal/init"
 	"github.com/duh-rpc/duhrpc/internal/lint"
 	"github.com/spf13/cobra"
@@ -90,7 +91,41 @@ Exit Codes:
 		},
 	}
 
-	rootCmd.AddCommand(lintCmd, initCmd)
+	addCmd := &cobra.Command{
+		Use:   "add <path> <name>",
+		Short: "Add a new DUH-RPC endpoint to an OpenAPI specification",
+		Long: `Add a new DUH-RPC endpoint to an OpenAPI specification.
+
+The add command creates a new endpoint with the specified path and name,
+generating request and response schemas with placeholder properties.
+
+The path must follow DUH-RPC format: /v{N}/{subject}.{method}
+For example: /v1/users.create
+
+The name is used to generate schema names: {Name}Request and {Name}Response
+For example: CreateUser generates CreateUserRequest and CreateUserResponse
+
+Use the -f flag to specify a custom OpenAPI file (defaults to 'openapi.yaml').
+
+Exit Codes:
+  0    Endpoint added successfully
+  2    Error (invalid path, file not found, path already exists, etc.)`,
+		Args: cobra.ExactArgs(2),
+		Run: func(cmd *cobra.Command, args []string) {
+			path := args[0]
+			name := args[1]
+			filePath, _ := cmd.Flags().GetString("file")
+
+			if err := add.Run(cmd.OutOrStdout(), filePath, path, name); err != nil {
+				_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Error: %v\n", err)
+				exitCode = 2
+				return
+			}
+		},
+	}
+	addCmd.Flags().StringP("file", "f", "openapi.yaml", "OpenAPI specification file to modify")
+
+	rootCmd.AddCommand(lintCmd, initCmd, addCmd)
 	rootCmd.SetOut(stdout)
 	rootCmd.SetErr(stdout)
 	rootCmd.SetArgs(args)
