@@ -1,18 +1,19 @@
 package rules_test
 
 import (
+	"bytes"
 	"testing"
 
-	"github.com/duh-rpc/duhrpc-lint/internal/rules"
-	"github.com/pb33f/libopenapi"
-	"github.com/stretchr/testify/require"
+	lint "github.com/duh-rpc/duhrpc-lint"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestContentTypeRule(t *testing.T) {
 	for _, test := range []struct {
-		name              string
-		spec              string
-		expectedViolations int
+		name           string
+		spec           string
+		expectedExit   int
+		expectedOutput string
 	}{
 		{
 			name: "ValidJSONContentType",
@@ -38,7 +39,8 @@ paths:
               schema:
                 type: object
 `,
-			expectedViolations: 0,
+			expectedExit:   0,
+			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
 		},
 		{
 			name: "ValidProtobufContentType",
@@ -68,7 +70,8 @@ paths:
               schema:
                 type: string
 `,
-			expectedViolations: 0,
+			expectedExit:   0,
+			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
 		},
 		{
 			name: "ValidOctetStreamContentType",
@@ -98,7 +101,8 @@ paths:
               schema:
                 type: string
 `,
-			expectedViolations: 0,
+			expectedExit:   0,
+			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
 		},
 		{
 			name: "InvalidXMLContentType",
@@ -124,7 +128,9 @@ paths:
               schema:
                 type: object
 `,
-			expectedViolations: 1,
+			expectedExit: 1,
+			expectedOutput: `[content-type] POST /v1/test.action
+  Invalid request body content type: application/xml`,
 		},
 		{
 			name: "InvalidTextHTMLContentType",
@@ -150,7 +156,9 @@ paths:
               schema:
                 type: string
 `,
-			expectedViolations: 1,
+			expectedExit: 1,
+			expectedOutput: `[content-type] POST /v1/test.action response 200
+  Invalid content type: text/html`,
 		},
 		{
 			name: "InvalidTextPlainContentType",
@@ -176,7 +184,9 @@ paths:
               schema:
                 type: string
 `,
-			expectedViolations: 1,
+			expectedExit: 1,
+			expectedOutput: `[content-type] POST /v1/test.action response 200
+  Invalid content type: text/plain`,
 		},
 		{
 			name: "MIMEParametersNotAllowed",
@@ -202,7 +212,9 @@ paths:
               schema:
                 type: object
 `,
-			expectedViolations: 1,
+			expectedExit: 1,
+			expectedOutput: `[content-type] POST /v1/test.action
+  MIME parameters not allowed in request body content type`,
 		},
 		{
 			name: "MissingApplicationJSON",
@@ -228,7 +240,9 @@ paths:
               schema:
                 type: string
 `,
-			expectedViolations: 1,
+			expectedExit: 1,
+			expectedOutput: `[content-type] POST /v1/test.action
+  Request body must include application/json content type`,
 		},
 		{
 			name: "MultipleInvalidContentTypes",
@@ -254,7 +268,8 @@ paths:
               schema:
                 type: string
 `,
-			expectedViolations: 2,
+			expectedExit: 1,
+			expectedOutput: `[content-type]`,
 		},
 		{
 			name: "CaseInsensitiveContentType",
@@ -280,29 +295,18 @@ paths:
               schema:
                 type: object
 `,
-			expectedViolations: 0,
+			expectedExit:   0,
+			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			doc, err := libopenapi.NewDocument([]byte(test.spec))
-			require.NoError(t, err)
+			filePath := writeYAML(t, test.spec)
 
-			model, errs := doc.BuildV3Model()
-			require.Empty(t, errs)
+			var stdout bytes.Buffer
+			exitCode := lint.RunCmd(&stdout, []string{filePath})
 
-			rule := rules.NewContentTypeRule()
-			violations := rule.Validate(&model.Model)
-
-			require.Len(t, violations, test.expectedViolations)
-
-			if test.expectedViolations > 0 {
-				for _, v := range violations {
-					require.Equal(t, "content-type", v.RuleName)
-					require.NotEmpty(t, v.Message)
-					require.NotEmpty(t, v.Suggestion)
-					require.NotEmpty(t, v.Location)
-				}
-			}
+			assert.Equal(t, test.expectedExit, exitCode)
+			assert.Contains(t, stdout.String(), test.expectedOutput)
 		})
 	}
 }

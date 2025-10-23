@@ -1,20 +1,19 @@
 package rules_test
 
 import (
+	"bytes"
 	"testing"
 
-	"github.com/duh-rpc/duhrpc-lint/internal/rules"
-	"github.com/pb33f/libopenapi"
+	lint "github.com/duh-rpc/duhrpc-lint"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestSuccessResponseRule(t *testing.T) {
 	for _, test := range []struct {
-		name          string
-		spec          string
-		wantViolation bool
-		wantMessage   string
+		name           string
+		spec           string
+		expectedExit   int
+		expectedOutput string
 	}{
 		{
 			name: "Valid200ResponseWithObjectSchema",
@@ -25,6 +24,12 @@ info:
 paths:
   /v1/users.create:
     post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
       responses:
         200:
           description: Success
@@ -32,7 +37,8 @@ paths:
             application/json:
               schema:
                 type: object`,
-			wantViolation: false,
+			expectedExit:   0,
+			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
 		},
 		{
 			name: "Valid200ResponseWithArraySchema",
@@ -43,6 +49,12 @@ info:
 paths:
   /v1/users.list:
     post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
       responses:
         200:
           description: Success
@@ -50,7 +62,8 @@ paths:
             application/json:
               schema:
                 type: array`,
-			wantViolation: false,
+			expectedExit:   0,
+			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
 		},
 		{
 			name: "Valid200ResponseWithStringSchema",
@@ -61,14 +74,21 @@ info:
 paths:
   /v1/users.get:
     post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
       responses:
         200:
           description: Success
           content:
-            text/plain:
+            application/json:
               schema:
                 type: string`,
-			wantViolation: false,
+			expectedExit:   0,
+			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
 		},
 		{
 			name: "Missing200Response",
@@ -79,11 +99,28 @@ info:
 paths:
   /v1/users.create:
     post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
       responses:
-        201:
-          description: Created`,
-			wantViolation: true,
-			wantMessage:   "missing a 200",
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [code, message]
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string`,
+			expectedExit: 1,
+			expectedOutput: `[success-response] POST /v1/users.create
+  Operation is missing a 200 (success) response`,
 		},
 		{
 			name: "200ResponseWithoutContent",
@@ -94,11 +131,18 @@ info:
 paths:
   /v1/users.delete:
     post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
       responses:
         200:
           description: Success`,
-			wantViolation: true,
-			wantMessage:   "missing content",
+			expectedExit: 1,
+			expectedOutput: `[success-response] POST /v1/users.delete
+  200 response is missing content`,
 		},
 		{
 			name: "200ResponseWithContentButNoSchema",
@@ -109,6 +153,12 @@ info:
 paths:
   /v1/users.create:
     post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
       responses:
         200:
           description: Success
@@ -116,8 +166,9 @@ paths:
             application/json:
               example:
                 foo: bar`,
-			wantViolation: true,
-			wantMessage:   "missing a schema",
+			expectedExit: 1,
+			expectedOutput: `[success-response] POST /v1/users.create
+  200 response content is missing a schema`,
 		},
 		{
 			name: "MultipleMediaTypesWithSchema",
@@ -128,6 +179,12 @@ info:
 paths:
   /v1/users.create:
     post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
       responses:
         200:
           description: Success
@@ -135,29 +192,22 @@ paths:
             application/json:
               schema:
                 type: object
-            application/xml:
+            application/protobuf:
               schema:
-                type: object`,
-			wantViolation: false,
+                type: string
+                format: binary`,
+			expectedExit:   0,
+			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			doc, err := libopenapi.NewDocument([]byte(test.spec))
-			require.NoError(t, err)
+			filePath := writeYAML(t, test.spec)
 
-			model, errs := doc.BuildV3Model()
-			require.Empty(t, errs)
+			var stdout bytes.Buffer
+			exitCode := lint.RunCmd(&stdout, []string{filePath})
 
-			rule := rules.NewSuccessResponseRule()
-			violations := rule.Validate(&model.Model)
-
-			if test.wantViolation {
-				require.NotEmpty(t, violations)
-				assert.Contains(t, violations[0].Message, test.wantMessage)
-				assert.Equal(t, "success-response", violations[0].RuleName)
-			} else {
-				assert.Empty(t, violations)
-			}
+			assert.Equal(t, test.expectedExit, exitCode)
+			assert.Contains(t, stdout.String(), test.expectedOutput)
 		})
 	}
 }

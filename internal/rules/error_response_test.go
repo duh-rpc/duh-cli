@@ -1,18 +1,19 @@
 package rules_test
 
 import (
+	"bytes"
 	"testing"
 
-	"github.com/duh-rpc/duhrpc-lint/internal/rules"
-	"github.com/pb33f/libopenapi"
-	"github.com/stretchr/testify/require"
+	lint "github.com/duh-rpc/duhrpc-lint"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestErrorResponseRule(t *testing.T) {
 	for _, test := range []struct {
-		name               string
-		spec               string
-		expectedViolations int
+		name           string
+		spec           string
+		expectedExit   int
+		expectedOutput string
 	}{
 		{
 			name: "ValidInlineErrorSchema",
@@ -50,7 +51,8 @@ paths:
                   message:
                     type: string
 `,
-			expectedViolations: 0,
+			expectedExit:   0,
+			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
 		},
 		{
 			name: "ValidWithDetailsField",
@@ -90,7 +92,8 @@ paths:
                   details:
                     type: object
 `,
-			expectedViolations: 0,
+			expectedExit:   0,
+			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
 		},
 		{
 			name: "MissingRequiredFields",
@@ -125,7 +128,9 @@ paths:
                   error:
                     type: string
 `,
-			expectedViolations: 1,
+			expectedExit: 1,
+			expectedOutput: `[error-response-schema] POST /v1/test.action response 400 (application/json)
+  error schema must have required fields: code and message`,
 		},
 		{
 			name: "WrongFieldTypes",
@@ -163,7 +168,9 @@ paths:
                   message:
                     type: integer
 `,
-			expectedViolations: 1,
+			expectedExit: 1,
+			expectedOutput: `[error-response-schema] POST /v1/test.action response 500 (application/json)
+  code field must be type integer`,
 		},
 		{
 			name: "MissingObjectType",
@@ -200,7 +207,9 @@ paths:
                   message:
                     type: string
 `,
-			expectedViolations: 1,
+			expectedExit: 1,
+			expectedOutput: `[error-response-schema] POST /v1/test.action response 400 (application/json)
+  error schema must have explicit type 'object'`,
 		},
 		{
 			name: "WrongDetailsType",
@@ -240,7 +249,9 @@ paths:
                   details:
                     type: string
 `,
-			expectedViolations: 1,
+			expectedExit: 1,
+			expectedOutput: `[error-response-schema] POST /v1/test.action response 400 (application/json)
+  details field must be type object`,
 		},
 		{
 			name: "MultipleErrorStatusCodes",
@@ -290,7 +301,8 @@ paths:
                   message:
                     type: string
 `,
-			expectedViolations: 0,
+			expectedExit:   0,
+			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
 		},
 		{
 			name: "AllErrorStatusCodes",
@@ -400,29 +412,18 @@ paths:
                   message:
                     type: string
 `,
-			expectedViolations: 0,
+			expectedExit:   0,
+			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			doc, err := libopenapi.NewDocument([]byte(test.spec))
-			require.NoError(t, err)
+			filePath := writeYAML(t, test.spec)
 
-			model, errs := doc.BuildV3Model()
-			require.Empty(t, errs)
+			var stdout bytes.Buffer
+			exitCode := lint.RunCmd(&stdout, []string{filePath})
 
-			rule := rules.NewErrorResponseRule()
-			violations := rule.Validate(&model.Model)
-
-			require.Len(t, violations, test.expectedViolations)
-
-			if test.expectedViolations > 0 {
-				for _, v := range violations {
-					require.Equal(t, "error-response-schema", v.RuleName)
-					require.NotEmpty(t, v.Message)
-					require.NotEmpty(t, v.Suggestion)
-					require.NotEmpty(t, v.Location)
-				}
-			}
+			assert.Equal(t, test.expectedExit, exitCode)
+			assert.Contains(t, stdout.String(), test.expectedOutput)
 		})
 	}
 }
@@ -475,16 +476,13 @@ components:
           type: object
 `
 
-	doc, err := libopenapi.NewDocument([]byte(spec))
-	require.NoError(t, err)
+	filePath := writeYAML(t, spec)
 
-	model, errs := doc.BuildV3Model()
-	require.Empty(t, errs)
+	var stdout bytes.Buffer
+	exitCode := lint.RunCmd(&stdout, []string{filePath})
 
-	rule := rules.NewErrorResponseRule()
-	violations := rule.Validate(&model.Model)
-
-	require.Len(t, violations, 0)
+	assert.Equal(t, 0, exitCode)
+	assert.Contains(t, stdout.String(), "✓ spec.yaml is DUH-RPC compliant")
 }
 
 func TestErrorResponseRuleWithAllOf(t *testing.T) {
@@ -532,14 +530,11 @@ components:
           type: string
 `
 
-	doc, err := libopenapi.NewDocument([]byte(spec))
-	require.NoError(t, err)
+	filePath := writeYAML(t, spec)
 
-	model, errs := doc.BuildV3Model()
-	require.Empty(t, errs)
+	var stdout bytes.Buffer
+	exitCode := lint.RunCmd(&stdout, []string{filePath})
 
-	rule := rules.NewErrorResponseRule()
-	violations := rule.Validate(&model.Model)
-
-	require.Len(t, violations, 0)
+	assert.Equal(t, 0, exitCode)
+	assert.Contains(t, stdout.String(), "✓ spec.yaml is DUH-RPC compliant")
 }
