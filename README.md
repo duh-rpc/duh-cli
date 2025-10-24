@@ -82,6 +82,19 @@ duh generate client api/openapi.yaml
 duh generate client -o pkg/client/client.go -p client
 ```
 
+### Generate Server Stubs
+
+```bash
+# Use default openapi.yaml, output to server.go
+duh generate server
+
+# Specify custom spec file
+duh generate server api/openapi.yaml
+
+# Custom output location and package
+duh generate server -o pkg/server/server.go -p server
+```
+
 ### Command-line Options
 
 ```bash

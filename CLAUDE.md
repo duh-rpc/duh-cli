@@ -21,6 +21,9 @@ A paragraph describing what this change intends to acheive
 - Each test function stands on its own (no table-driven tests for the main test logic)
 - Test MUST always be in the test package `package XXX_test` and not `package XXX`
 - Test names should be in camelCase and start with a capital letter (e.g., `TestGenerateClientWithDefaults`)
+- **Test file location**: Tests should be located in the `internal/` subdirectory alongside the code they're testing
+  - For example, tests for `internal/generate/client.go` should be in `internal/generate/client_test.go`
+  - NOT in the root directory (e.g., avoid `generate_test.go` at root)
 
 ### Functional Testing Example
 ```go

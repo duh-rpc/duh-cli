@@ -198,7 +198,54 @@ Exit Codes:
 	clientCmd.Flags().StringP("output", "o", "", "Output file path (default: client.go)")
 	clientCmd.Flags().StringP("package", "p", "", "Package name for generated code (default: api)")
 
-	generateCmd.AddCommand(clientCmd)
+	serverCmd := &cobra.Command{
+		Use:   "server [openapi-file]",
+		Short: "Generate server stub code from OpenAPI specification",
+		Long: `Generate server stub code from OpenAPI specification.
+
+The server command generates Go HTTP server stubs using the standard library
+net/http package for implementing DUH-RPC endpoints defined in the OpenAPI
+specification.
+
+If no file path is provided, defaults to 'openapi.yaml' in the current directory.
+If no output is specified, defaults to 'server.go' in the current directory.
+If no package is specified, defaults to 'api'.
+
+Exit Codes:
+  0    Server generated successfully
+  2    Error (file not found, parse error, generation failed, etc.)`,
+		Args: cobra.MaximumNArgs(1),
+		Run: func(cmd *cobra.Command, args []string) {
+			const defaultFile = "openapi.yaml"
+			const defaultOutput = "server.go"
+			const defaultPackage = "api"
+
+			filePath := defaultFile
+			if len(args) > 0 {
+				filePath = args[0]
+			}
+
+			outputPath, _ := cmd.Flags().GetString("output")
+			if outputPath == "" {
+				outputPath = defaultOutput
+			}
+
+			packageName, _ := cmd.Flags().GetString("package")
+			if packageName == "" {
+				packageName = defaultPackage
+			}
+
+			if err := generate.RunServer(cmd.OutOrStdout(), filePath, outputPath, packageName); err != nil {
+				_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Error: %v\n", err)
+				exitCode = 2
+				return
+			}
+		},
+	}
+	serverCmd.Flags().StringP("output", "o", "", "Output file path (default: server.go)")
+	serverCmd.Flags().StringP("package", "p", "", "Package name for generated code (default: api)")
+
+	generateCmd.AddCommand(clientCmd, serverCmd)
 
 	rootCmd.AddCommand(lintCmd, initCmd, addCmd, generateCmd)
 	rootCmd.SetOut(stdout)
