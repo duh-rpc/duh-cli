@@ -1,4 +1,4 @@
-package generate
+package oapi
 
 import (
 	"fmt"

@@ -1,4 +1,4 @@
-package generate
+package oapi
 
 import (
 	"fmt"
@@ -7,24 +7,23 @@ import (
 	"github.com/oapi-codegen/oapi-codegen/v2/pkg/codegen"
 )
 
-// RunServer generates HTTP server stub code from an OpenAPI specification.
-func RunServer(w io.Writer, filePath, outputPath, packageName string) error {
+func RunModels(w io.Writer, filePath, outputPath, packageName string) error {
 	spec, err := Load(filePath)
 	if err != nil {
 		return err
 	}
 
 	config, err := NewConfig(packageName, codegen.GenerateOptions{
-		StdHTTPServer: true,
+		Models: true,
 	})
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create config: %w", err)
 	}
 
 	if err := Generate(spec, config, outputPath); err != nil {
 		return err
 	}
 
-	_, _ = fmt.Fprintf(w, "✓ Generated server code at %s\n", outputPath)
+	_, _ = fmt.Fprintf(w, "✓ Generated models code at %s\n", outputPath)
 	return nil
 }

@@ -1,4 +1,4 @@
-package generate_test
+package oapi_test
 
 import (
 	"bytes"

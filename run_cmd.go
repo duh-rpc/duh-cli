@@ -5,7 +5,7 @@ import (
 	"io"
 
 	"github.com/duh-rpc/duh-cli/internal/add"
-	"github.com/duh-rpc/duh-cli/internal/generate"
+	"github.com/duh-rpc/duh-cli/internal/generate/oapi"
 	init_ "github.com/duh-rpc/duh-cli/internal/init"
 	"github.com/duh-rpc/duh-cli/internal/lint"
 	"github.com/spf13/cobra"
@@ -188,7 +188,7 @@ Exit Codes:
 				packageName = defaultPackage
 			}
 
-			if err := generate.RunClient(cmd.OutOrStdout(), filePath, outputPath, packageName); err != nil {
+			if err := oapi.RunClient(cmd.OutOrStdout(), filePath, outputPath, packageName); err != nil {
 				_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Error: %v\n", err)
 				exitCode = 2
 				return
@@ -235,7 +235,7 @@ Exit Codes:
 				packageName = defaultPackage
 			}
 
-			if err := generate.RunServer(cmd.OutOrStdout(), filePath, outputPath, packageName); err != nil {
+			if err := oapi.RunServer(cmd.OutOrStdout(), filePath, outputPath, packageName); err != nil {
 				_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Error: %v\n", err)
 				exitCode = 2
 				return
@@ -282,7 +282,7 @@ Exit Codes:
 				packageName = defaultPackage
 			}
 
-			if err := generate.RunModels(cmd.OutOrStdout(), filePath, outputPath, packageName); err != nil {
+			if err := oapi.RunModels(cmd.OutOrStdout(), filePath, outputPath, packageName); err != nil {
 				_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Error: %v\n", err)
 				exitCode = 2
 				return
@@ -331,7 +331,7 @@ Exit Codes:
 				packageName = defaultPackage
 			}
 
-			if err := generate.RunAll(cmd.OutOrStdout(), filePath, outputDir, packageName); err != nil {
+			if err := oapi.RunAll(cmd.OutOrStdout(), filePath, outputDir, packageName); err != nil {
 				_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Error: %v\n", err)
 				exitCode = 2
 				return

@@ -1,4 +1,4 @@
-package generate
+package oapi
 
 import (
 	"github.com/oapi-codegen/oapi-codegen/v2/pkg/codegen"
