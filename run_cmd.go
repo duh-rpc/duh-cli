@@ -5,6 +5,7 @@ import (
 	"io"
 
 	"github.com/duh-rpc/duh-cli/internal/add"
+	"github.com/duh-rpc/duh-cli/internal/generate"
 	init_ "github.com/duh-rpc/duh-cli/internal/init"
 	"github.com/duh-rpc/duh-cli/internal/lint"
 	"github.com/spf13/cobra"
@@ -131,7 +132,75 @@ Exit Codes:
 	}
 	addCmd.Flags().StringP("file", "f", "openapi.yaml", "OpenAPI specification file to modify")
 
-	rootCmd.AddCommand(lintCmd, initCmd, addCmd)
+	generateCmd := &cobra.Command{
+		Use:   "generate",
+		Short: "Generate Go code from OpenAPI specifications",
+		Long: `Generate Go code from OpenAPI specifications.
+
+The generate command uses oapi-codegen to create HTTP clients, server stubs,
+and type models from DUH-RPC compliant OpenAPI specifications.
+
+Available subcommands:
+  client    Generate HTTP client code
+  server    Generate server stub code
+  models    Generate type models
+  all       Generate all components
+
+Use "duh generate [command] --help" for more information about a command.`,
+		Run: func(cmd *cobra.Command, args []string) {
+			_ = cmd.Help()
+		},
+	}
+
+	clientCmd := &cobra.Command{
+		Use:   "client [openapi-file]",
+		Short: "Generate HTTP client code from OpenAPI specification",
+		Long: `Generate HTTP client code from OpenAPI specification.
+
+The client command generates a Go HTTP client for calling DUH-RPC endpoints
+defined in the OpenAPI specification.
+
+If no file path is provided, defaults to 'openapi.yaml' in the current directory.
+If no output is specified, defaults to 'client.go' in the current directory.
+If no package is specified, defaults to 'api'.
+
+Exit Codes:
+  0    Client generated successfully
+  2    Error (file not found, parse error, generation failed, etc.)`,
+		Args: cobra.MaximumNArgs(1),
+		Run: func(cmd *cobra.Command, args []string) {
+			const defaultFile = "openapi.yaml"
+			const defaultOutput = "client.go"
+			const defaultPackage = "api"
+
+			filePath := defaultFile
+			if len(args) > 0 {
+				filePath = args[0]
+			}
+
+			outputPath, _ := cmd.Flags().GetString("output")
+			if outputPath == "" {
+				outputPath = defaultOutput
+			}
+
+			packageName, _ := cmd.Flags().GetString("package")
+			if packageName == "" {
+				packageName = defaultPackage
+			}
+
+			if err := generate.RunClient(cmd.OutOrStdout(), filePath, outputPath, packageName); err != nil {
+				_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Error: %v\n", err)
+				exitCode = 2
+				return
+			}
+		},
+	}
+	clientCmd.Flags().StringP("output", "o", "", "Output file path (default: client.go)")
+	clientCmd.Flags().StringP("package", "p", "", "Package name for generated code (default: api)")
+
+	generateCmd.AddCommand(clientCmd)
+
+	rootCmd.AddCommand(lintCmd, initCmd, addCmd, generateCmd)
 	rootCmd.SetOut(stdout)
 	rootCmd.SetErr(stdout)
 	rootCmd.SetArgs(args)

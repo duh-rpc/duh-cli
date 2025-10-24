@@ -14,7 +14,7 @@ import (
 func TestInitDefaultPath(t *testing.T) {
 	tempDir := t.TempDir()
 	originalDir, _ := os.Getwd()
-	defer os.Chdir(originalDir)
+	defer func() { _ = os.Chdir(originalDir) }()
 
 	require.NoError(t, os.Chdir(tempDir))
 

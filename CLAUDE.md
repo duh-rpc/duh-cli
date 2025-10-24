@@ -14,13 +14,39 @@ A paragraph describing what this change intends to acheive
 
 ## Testing Patterns
 
+### Functional Testing Style
+- **ALL TESTS MUST BE FUNCTIONAL** - Tests must call `duh.RunCmd()` and test through the CLI interface
+- Tests MUST NOT call internal package functions directly
+- Tests verify exit codes and stdout/stderr output
+- Each test function stands on its own (no table-driven tests for the main test logic)
 - Test MUST always be in the test package `package XXX_test` and not `package XXX`
-- Test names should be in camelCase and start with a capital letter (e.g., `ListAllEnrollments`)
-- Table-driven tests are preferred for parameter validation
+- Test names should be in camelCase and start with a capital letter (e.g., `TestGenerateClientWithDefaults`)
+
+### Functional Testing Example
+```go
+func TestGenerateClientWithDefaults(t *testing.T) {
+    tempDir := t.TempDir()
+    specPath := filepath.Join(tempDir, "openapi.yaml")
+    outputPath := filepath.Join(tempDir, "client.go")
+
+    require.NoError(t, os.WriteFile(specPath, []byte(validSpec), 0644))
+
+    var stdout bytes.Buffer
+    exitCode := duh.RunCmd(&stdout, []string{"generate", "client", specPath, "-o", outputPath})
+
+    require.Equal(t, 0, exitCode)
+    assert.Contains(t, stdout.String(), "✓")
+
+    _, err := os.Stat(outputPath)
+    require.NoError(t, err)
+}
+```
+
+### Additional Testing Guidelines
 - Use integers to indicate multiples. For example, `listPageOne` becomes `listPage1` or simply `page1`.
 - Avoid logging what the test is doing, instead prefer comments. For example, avoid `t.Log("Enrolling customers...")`
 - Avoid the DRY (Don't Repeat Yourself) principle in tests, be explicit when testing repetitive behaviors.
-- Use `for _, test := range []struct {` style test when testing error cases.
+- Table-driven tests MAY be used for sub-tests with `t.Run()` when testing multiple error cases (see `internal/lint/lint_test.go` for examples)
 - Do NOT use `if (condition) { t.Error() }` for assertions. Use `github.com/stretchr/testify/require` and `github.com/stretchr/testify/assert`
 - Do NOT use `require.Contains(t, err.Error(), test.wantErr)` use
   `require.ErrorContains(t, err, test.wantErr)` instead.

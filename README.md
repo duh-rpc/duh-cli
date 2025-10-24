@@ -69,6 +69,19 @@ ERRORS FOUND:
 Summary: 2 violations found in api-spec.yaml
 ```
 
+### Generate HTTP Client
+
+```bash
+# Use default openapi.yaml, output to client.go
+duh generate client
+
+# Specify custom spec file
+duh generate client api/openapi.yaml
+
+# Custom output location and package
+duh generate client -o pkg/client/client.go -p client
+```
+
 ### Command-line Options
 
 ```bash
