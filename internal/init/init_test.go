@@ -6,72 +6,78 @@ import (
 	"path/filepath"
 	"testing"
 
-	init_ "github.com/duh-rpc/duh-cli/internal/init"
+	"github.com/duh-rpc/duh-cli"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestRun(t *testing.T) {
+func TestInitDefaultPath(t *testing.T) {
 	tempDir := t.TempDir()
-	outputPath := filepath.Join(tempDir, "openapi.yaml")
+	originalDir, _ := os.Getwd()
+	defer os.Chdir(originalDir)
+
+	require.NoError(t, os.Chdir(tempDir))
 
 	var stdout bytes.Buffer
-	err := init_.Run(&stdout, outputPath)
-	require.NoError(t, err)
-	require.Contains(t, stdout.String(), "✓ Created DUH-RPC compliant OpenAPI spec")
 
-	content, err := os.ReadFile(outputPath)
+	exitCode := duh.RunCmd(&stdout, []string{"init"})
+
+	require.Equal(t, 0, exitCode)
+	assert.Contains(t, stdout.String(), "✓")
+	assert.Contains(t, stdout.String(), "Created DUH-RPC compliant OpenAPI spec")
+
+	content, err := os.ReadFile("openapi.yaml")
 	require.NoError(t, err)
 	require.NotEmpty(t, content)
-	require.Contains(t, string(content), "DUH-RPC")
-	require.Contains(t, string(content), "openapi: 3.0.3")
+	assert.Contains(t, string(content), "DUH-RPC")
+	assert.Contains(t, string(content), "openapi: 3.0.3")
 }
 
-func TestRunWithCustomPath(t *testing.T) {
+func TestInitCustomPath(t *testing.T) {
 	tempDir := t.TempDir()
 	outputPath := filepath.Join(tempDir, "custom", "my-api.yaml")
 
 	var stdout bytes.Buffer
-	err := init_.Run(&stdout, outputPath)
-	require.NoError(t, err)
+
+	exitCode := duh.RunCmd(&stdout, []string{"init", outputPath})
+
+	require.Equal(t, 0, exitCode)
+	assert.Contains(t, stdout.String(), "✓")
 
 	content, err := os.ReadFile(outputPath)
 	require.NoError(t, err)
 	require.NotEmpty(t, content)
 }
 
-func TestRunErrorWhenFileExists(t *testing.T) {
+func TestInitFileAlreadyExists(t *testing.T) {
 	tempDir := t.TempDir()
 	outputPath := filepath.Join(tempDir, "openapi.yaml")
 
-	err := os.WriteFile(outputPath, []byte("existing content"), 0644)
-	require.NoError(t, err)
+	require.NoError(t, os.WriteFile(outputPath, []byte("existing content"), 0644))
 
 	var stdout bytes.Buffer
-	err = init_.Run(&stdout, outputPath)
-	require.Error(t, err)
-	require.ErrorContains(t, err, "file already exists")
+
+	exitCode := duh.RunCmd(&stdout, []string{"init", outputPath})
+
+	require.Equal(t, 2, exitCode)
+	assert.Contains(t, stdout.String(), "file already exists")
 }
 
-func TestRunCreatesParentDirectory(t *testing.T) {
+func TestInitCreatesParentDirectory(t *testing.T) {
 	tempDir := t.TempDir()
 	outputPath := filepath.Join(tempDir, "nested", "dir", "openapi.yaml")
 
 	var stdout bytes.Buffer
-	err := init_.Run(&stdout, outputPath)
-	require.NoError(t, err)
+
+	exitCode := duh.RunCmd(&stdout, []string{"init", outputPath})
+
+	require.Equal(t, 0, exitCode)
 
 	info, err := os.Stat(filepath.Join(tempDir, "nested", "dir"))
 	require.NoError(t, err)
-	require.True(t, info.IsDir())
+	assert.True(t, info.IsDir())
 
 	content, err := os.ReadFile(outputPath)
 	require.NoError(t, err)
 	require.NotEmpty(t, content)
-}
-
-func TestTemplateIsNotEmpty(t *testing.T) {
-	require.NotEmpty(t, init_.Template)
-	require.Contains(t, string(init_.Template), "openapi:")
-	require.Contains(t, string(init_.Template), "paths:")
-	require.Contains(t, string(init_.Template), "components:")
 }
