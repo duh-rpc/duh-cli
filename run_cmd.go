@@ -29,20 +29,26 @@ func RunCmd(stdout io.Writer, args []string) int {
 	rootCmd.SetVersionTemplate("duh version {{.Version}}\n")
 
 	lintCmd := &cobra.Command{
-		Use:   "lint <openapi-file>",
+		Use:   "lint [openapi-file]",
 		Short: "Validate OpenAPI specs for DUH-RPC compliance",
 		Long: `Validate OpenAPI specs for DUH-RPC compliance.
 
 The lint command checks OpenAPI 3.0 specifications against DUH-RPC requirements
 and reports any violations found.
 
+If no file path is provided, defaults to 'openapi.yaml' in the current directory.
+
 Exit Codes:
   0    Validation passed (spec is DUH-RPC compliant)
   1    Validation failed (violations found)
   2    Error (file not found, parse error, etc.)`,
-		Args: cobra.ExactArgs(1),
+		Args: cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			filePath := args[0]
+			const defaultFile = "openapi.yaml"
+			filePath := defaultFile
+			if len(args) > 0 {
+				filePath = args[0]
+			}
 
 			doc, err := lint.Load(filePath)
 			if err != nil {

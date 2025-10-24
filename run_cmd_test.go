@@ -2,7 +2,6 @@ package duh_test
 
 import (
 	"bytes"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -42,13 +41,30 @@ func TestRunCmdFileNotFound(t *testing.T) {
 }
 
 func TestRunCmdNoArguments(t *testing.T) {
+	tempDir := t.TempDir()
+	originalDir, err := os.Getwd()
+	require.NoError(t, err)
+
+	const defaultFile = "openapi.yaml"
+	validSpecPath := filepath.Join(originalDir, "internal/lint/testdata/valid-spec.yaml")
+	validSpec, err := os.ReadFile(validSpecPath)
+	require.NoError(t, err)
+
+	err = os.Chdir(tempDir)
+	require.NoError(t, err)
+	defer func() {
+		_ = os.Chdir(originalDir)
+	}()
+
+	err = os.WriteFile(defaultFile, validSpec, 0644)
+	require.NoError(t, err)
+
 	var stdout bytes.Buffer
 	exitCode := lint.RunCmd(&stdout, []string{"lint"})
 
-	assert.Equal(t, 2, exitCode)
-	output := strings.ToLower(stdout.String())
-	fmt.Println(output)
-	require.Contains(t, output, "error: accepts 1 arg")
+	assert.Equal(t, 0, exitCode)
+	assert.Contains(t, stdout.String(), "✓")
+	assert.Contains(t, stdout.String(), "compliant")
 }
 
 func TestRunCmdMultipleArguments(t *testing.T) {
@@ -57,7 +73,81 @@ func TestRunCmdMultipleArguments(t *testing.T) {
 
 	assert.Equal(t, 2, exitCode)
 	output := strings.ToLower(stdout.String())
-	require.Contains(t, output, "error: accepts 1 arg")
+	require.Contains(t, output, "error: accepts at most 1 arg")
+}
+
+func TestLintWithDefaultFile(t *testing.T) {
+	tempDir := t.TempDir()
+	originalDir, err := os.Getwd()
+	require.NoError(t, err)
+
+	const defaultFile = "openapi.yaml"
+	validSpecPath := filepath.Join(originalDir, "internal/lint/testdata/valid-spec.yaml")
+	validSpec, err := os.ReadFile(validSpecPath)
+	require.NoError(t, err)
+
+	err = os.Chdir(tempDir)
+	require.NoError(t, err)
+	defer func() {
+		_ = os.Chdir(originalDir)
+	}()
+
+	err = os.WriteFile(defaultFile, validSpec, 0644)
+	require.NoError(t, err)
+
+	var stdout bytes.Buffer
+	exitCode := lint.RunCmd(&stdout, []string{"lint"})
+
+	assert.Equal(t, 0, exitCode)
+	assert.Contains(t, stdout.String(), "✓")
+	assert.Contains(t, stdout.String(), "DUH-RPC compliant")
+}
+
+func TestLintWithDefaultFileNotFound(t *testing.T) {
+	tempDir := t.TempDir()
+	originalDir, err := os.Getwd()
+	require.NoError(t, err)
+
+	err = os.Chdir(tempDir)
+	require.NoError(t, err)
+	defer func() {
+		_ = os.Chdir(originalDir)
+	}()
+
+	var stdout bytes.Buffer
+	exitCode := lint.RunCmd(&stdout, []string{"lint"})
+
+	assert.Equal(t, 2, exitCode)
+	assert.Contains(t, stdout.String(), "Error:")
+	assert.Contains(t, stdout.String(), "file not found")
+	assert.Contains(t, stdout.String(), "openapi.yaml")
+}
+
+func TestLintWithExplicitFile(t *testing.T) {
+	tempDir := t.TempDir()
+	originalDir, err := os.Getwd()
+	require.NoError(t, err)
+
+	validSpecPath := filepath.Join(originalDir, "internal/lint/testdata/valid-spec.yaml")
+	validSpec, err := os.ReadFile(validSpecPath)
+	require.NoError(t, err)
+
+	err = os.Chdir(tempDir)
+	require.NoError(t, err)
+	defer func() {
+		_ = os.Chdir(originalDir)
+	}()
+
+	const customFile = "custom-spec.yaml"
+	err = os.WriteFile(customFile, validSpec, 0644)
+	require.NoError(t, err)
+
+	var stdout bytes.Buffer
+	exitCode := lint.RunCmd(&stdout, []string{"lint", customFile})
+
+	assert.Equal(t, 0, exitCode)
+	assert.Contains(t, stdout.String(), "✓")
+	assert.Contains(t, stdout.String(), "DUH-RPC compliant")
 }
 
 func TestInitCommandWithDefaultPath(t *testing.T) {
