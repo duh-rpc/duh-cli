@@ -108,6 +108,24 @@ duh generate models api/openapi.yaml
 duh generate models -o pkg/types/models.go -p types
 ```
 
+### Generate All Components
+
+```bash
+# Generate all three files in current directory
+duh generate all
+
+# Generate all in specific directory
+duh generate all --output-dir pkg/api
+
+# Custom package name for all files
+duh generate all --output-dir api -p myapi
+```
+
+Generated code uses:
+- **Client**: HTTP client for calling DUH-RPC endpoints
+- **Server**: Standard library (net/http) server stubs
+- **Models**: Type definitions for request/response schemas
+
 ### Command-line Options
 
 ```bash

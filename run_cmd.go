@@ -292,7 +292,56 @@ Exit Codes:
 	modelsCmd.Flags().StringP("output", "o", "", "Output file path (default: models.go)")
 	modelsCmd.Flags().StringP("package", "p", "", "Package name for generated code (default: api)")
 
-	generateCmd.AddCommand(clientCmd, serverCmd, modelsCmd)
+	allCmd := &cobra.Command{
+		Use:   "all [openapi-file]",
+		Short: "Generate client, server, and models from OpenAPI specification",
+		Long: `Generate client, server, and models from OpenAPI specification.
+
+The all command generates all three components (HTTP client, server stubs,
+and type models) from the OpenAPI specification in a single invocation.
+
+By default, generates client.go, server.go, and models.go in the current
+directory. Use --output-dir to specify a different directory.
+
+All generated files will use the same package name (default: api).
+
+If no file path is provided, defaults to 'openapi.yaml' in the current directory.
+
+Exit Codes:
+  0    All components generated successfully
+  2    Error (file not found, parse error, generation failed, etc.)`,
+		Args: cobra.MaximumNArgs(1),
+		Run: func(cmd *cobra.Command, args []string) {
+			const defaultFile = "openapi.yaml"
+			const defaultOutputDir = "."
+			const defaultPackage = "api"
+
+			filePath := defaultFile
+			if len(args) > 0 {
+				filePath = args[0]
+			}
+
+			outputDir, _ := cmd.Flags().GetString("output-dir")
+			if outputDir == "" {
+				outputDir = defaultOutputDir
+			}
+
+			packageName, _ := cmd.Flags().GetString("package")
+			if packageName == "" {
+				packageName = defaultPackage
+			}
+
+			if err := generate.RunAll(cmd.OutOrStdout(), filePath, outputDir, packageName); err != nil {
+				_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Error: %v\n", err)
+				exitCode = 2
+				return
+			}
+		},
+	}
+	allCmd.Flags().String("output-dir", "", "Output directory for generated files (default: current directory)")
+	allCmd.Flags().StringP("package", "p", "", "Package name for generated code (default: api)")
+
+	generateCmd.AddCommand(clientCmd, serverCmd, modelsCmd, allCmd)
 
 	rootCmd.AddCommand(lintCmd, initCmd, addCmd, generateCmd)
 	rootCmd.SetOut(stdout)
