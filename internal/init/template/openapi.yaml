@@ -67,7 +67,7 @@ paths:
                 $ref: '#/components/schemas/Error'
 
   # Example 2: Retrieval endpoint with identifier in request body
-  /v1/users.get-by-id:
+  /v1/users.get:
     post:  # Even for retrievals, DUH-RPC uses POST
       summary: Get user by ID
       description: Retrieves a user's details by their unique identifier
@@ -78,6 +78,10 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/GetUserRequest'
+          application/protobuf:
+            schema:
+              type: string
+              format: binary
       responses:
         '200':
           description: User found and returned
@@ -85,6 +89,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserResponse'
+            application/protobuf:
+              schema:
+                type: string
+                format: binary
         '400':
           description: Invalid user ID format
           content:
@@ -104,68 +112,33 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  # Example 3: Version 2 API with different endpoint pattern
-  /v2/products.create:
+  # Example 3: List endpoint with pagination
+  /v1/users.list:
     post:
-      summary: Create a new product
-      description: Creates a new product in the catalog (v2 API with enhanced features)
-      operationId: createProductV2
+      summary: List users with pagination
+      description: Retrieves a paginated list of users
+      operationId: listUsers
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateProductRequest'
-          # Demonstrating binary data support
-          application/octet-stream:
+              $ref: '#/components/schemas/ListUsersRequest'
+          application/protobuf:
             schema:
               type: string
               format: binary
       responses:
         '200':
-          description: Product created successfully
+          description: Users retrieved successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProductResponse'
-        '400':
-          description: Invalid product data
-          content:
-            application/json:
+                $ref: '#/components/schemas/ListUsersResponse'
+            application/protobuf:
               schema:
-                $ref: '#/components/schemas/Error'
-        '452':
-          description: Business rule violation - custom status code
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  # Example 4: List endpoint with pagination
-  /v2/products.list:
-    post:
-      summary: List products with pagination
-      description: Retrieves a paginated list of products
-      operationId: listProducts
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ListProductsRequest'
-      responses:
-        '200':
-          description: Products retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ListProductsResponse'
+                type: string
+                format: binary
         '400':
           description: Invalid pagination parameters
           content:
@@ -179,27 +152,35 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  # Example 5: Update endpoint demonstrating additional status codes
-  /v1/orders.update:
+  # Example 4: Update endpoint demonstrating additional status codes
+  /v1/users.update:
     post:
-      summary: Update an order
-      description: Updates an existing order with new information
-      operationId: updateOrder
+      summary: Update a user
+      description: Updates an existing user with new information
+      operationId: updateUser
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateOrderRequest'
+              $ref: '#/components/schemas/UpdateUserRequest'
+          application/protobuf:
+            schema:
+              type: string
+              format: binary
       responses:
         '200':
-          description: Order updated successfully
+          description: User updated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OrderResponse'
+                $ref: '#/components/schemas/UpdateUserResponse'
+            application/protobuf:
+              schema:
+                type: string
+                format: binary
         '400':
-          description: Invalid order data
+          description: Invalid user data
           content:
             application/json:
               schema:
@@ -217,13 +198,13 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         '404':
-          description: Order not found
+          description: User not found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
         '453':
-          description: Custom business error - order already shipped
+          description: Custom business error - user account locked
           content:
             application/json:
               schema:
@@ -332,57 +313,8 @@ components:
           format: date-time
           example: "2024-01-15T10:30:00Z"
 
-    # Product-related schemas
-    CreateProductRequest:
-      type: object
-      required:
-        - name
-        - price
-      properties:
-        name:
-          type: string
-          example: "Premium Widget"
-        description:
-          type: string
-          example: "A high-quality widget for all your needs"
-        price:
-          type: number
-          format: double
-          minimum: 0
-          example: 29.99
-        sku:
-          type: string
-          example: "WIDGET-001"
-
-    ProductResponse:
-      type: object
-      required:
-        - productId
-        - name
-        - price
-      properties:
-        productId:
-          type: string
-          example: "prod_xyz789"
-        name:
-          type: string
-          example: "Premium Widget"
-        description:
-          type: string
-          example: "A high-quality widget for all your needs"
-        price:
-          type: number
-          format: double
-          example: 29.99
-        sku:
-          type: string
-          example: "WIDGET-001"
-        createdAt:
-          type: string
-          format: date-time
-          example: "2024-01-15T10:30:00Z"
-
-    ListProductsRequest:
+    # User list schemas
+    ListUsersRequest:
       type: object
       properties:
         limit:
@@ -398,90 +330,76 @@ components:
           example: 0
         sortBy:
           type: string
-          enum: [name, price, createdAt]
+          enum: [name, email, createdAt]
           default: createdAt
           example: "name"
 
-    ListProductsResponse:
+    ListUsersResponse:
       type: object
       required:
-        - products
+        - users
         - total
       properties:
-        products:
+        users:
           type: array
           items:
-            $ref: '#/components/schemas/ProductResponse'
+            $ref: '#/components/schemas/UserResponse'
         total:
           type: integer
-          description: Total number of products
+          description: Total number of users
           example: 150
         hasMore:
           type: boolean
           description: Whether more results are available
           example: true
 
-    # Order-related schemas
-    UpdateOrderRequest:
+    # User update schemas
+    UpdateUserRequest:
       type: object
       required:
-        - orderId
+        - userId
       properties:
-        orderId:
+        userId:
           type: string
-          example: "ord_def456"
+          example: "usr_abc123"
+        name:
+          type: string
+          example: "Jane Doe"
+        email:
+          type: string
+          format: email
+          example: "jane@example.com"
+        age:
+          type: integer
+          minimum: 0
+          example: 35
         status:
           type: string
-          enum: [pending, processing, shipped, delivered, cancelled]
-          example: "processing"
-        shippingAddress:
-          type: object
-          properties:
-            street:
-              type: string
-              example: "123 Main St"
-            city:
-              type: string
-              example: "Springfield"
-            state:
-              type: string
-              example: "IL"
-            zipCode:
-              type: string
-              example: "62701"
+          enum: [active, inactive, suspended]
+          example: "active"
 
-    OrderResponse:
+    UpdateUserResponse:
       type: object
       required:
-        - orderId
-        - status
-        - total
+        - userId
+        - email
+        - name
       properties:
-        orderId:
+        userId:
           type: string
-          example: "ord_def456"
+          example: "usr_abc123"
+        email:
+          type: string
+          example: "jane@example.com"
+        name:
+          type: string
+          example: "Jane Doe"
+        age:
+          type: integer
+          example: 35
         status:
           type: string
-          example: "processing"
-        total:
-          type: number
-          format: double
-          example: 159.97
-        items:
-          type: array
-          items:
-            type: object
-            properties:
-              productId:
-                type: string
-                example: "prod_xyz789"
-              quantity:
-                type: integer
-                example: 2
-              price:
-                type: number
-                format: double
-                example: 29.99
+          example: "active"
         createdAt:
           type: string
           format: date-time
