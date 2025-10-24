@@ -95,6 +95,19 @@ duh generate server api/openapi.yaml
 duh generate server -o pkg/server/server.go -p server
 ```
 
+### Generate Type Models
+
+```bash
+# Use default openapi.yaml, output to models.go
+duh generate models
+
+# Specify custom spec file
+duh generate models api/openapi.yaml
+
+# Custom output location and package
+duh generate models -o pkg/types/models.go -p types
+```
+
 ### Command-line Options
 
 ```bash

@@ -245,7 +245,54 @@ Exit Codes:
 	serverCmd.Flags().StringP("output", "o", "", "Output file path (default: server.go)")
 	serverCmd.Flags().StringP("package", "p", "", "Package name for generated code (default: api)")
 
-	generateCmd.AddCommand(clientCmd, serverCmd)
+	modelsCmd := &cobra.Command{
+		Use:   "models [openapi-file]",
+		Short: "Generate type models from OpenAPI specification",
+		Long: `Generate type models from OpenAPI specification.
+
+The models command generates Go type definitions for request and response
+schemas defined in the OpenAPI specification, without generating client
+or server code.
+
+If no file path is provided, defaults to 'openapi.yaml' in the current directory.
+If no output is specified, defaults to 'models.go' in the current directory.
+If no package is specified, defaults to 'api'.
+
+Exit Codes:
+  0    Models generated successfully
+  2    Error (file not found, parse error, generation failed, etc.)`,
+		Args: cobra.MaximumNArgs(1),
+		Run: func(cmd *cobra.Command, args []string) {
+			const defaultFile = "openapi.yaml"
+			const defaultOutput = "models.go"
+			const defaultPackage = "api"
+
+			filePath := defaultFile
+			if len(args) > 0 {
+				filePath = args[0]
+			}
+
+			outputPath, _ := cmd.Flags().GetString("output")
+			if outputPath == "" {
+				outputPath = defaultOutput
+			}
+
+			packageName, _ := cmd.Flags().GetString("package")
+			if packageName == "" {
+				packageName = defaultPackage
+			}
+
+			if err := generate.RunModels(cmd.OutOrStdout(), filePath, outputPath, packageName); err != nil {
+				_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Error: %v\n", err)
+				exitCode = 2
+				return
+			}
+		},
+	}
+	modelsCmd.Flags().StringP("output", "o", "", "Output file path (default: models.go)")
+	modelsCmd.Flags().StringP("package", "p", "", "Package name for generated code (default: api)")
+
+	generateCmd.AddCommand(clientCmd, serverCmd, modelsCmd)
 
 	rootCmd.AddCommand(lintCmd, initCmd, addCmd, generateCmd)
 	rootCmd.SetOut(stdout)
