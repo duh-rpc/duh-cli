@@ -9,8 +9,8 @@ import (
 	"github.com/oapi-codegen/oapi-codegen/v2/pkg/codegen"
 )
 
-// RunAll generates client, server, and models code from an OpenAPI specification.
-func RunAll(w io.Writer, filePath, outputDir, packageName string) error {
+// RunOapi generates client, server, and models code from an OpenAPI specification.
+func RunOapi(w io.Writer, filePath, outputDir, packageName string) error {
 	spec, err := Load(filePath)
 	if err != nil {
 		return err

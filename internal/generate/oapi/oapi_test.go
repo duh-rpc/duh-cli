@@ -11,14 +11,27 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestGenerateAllWithDefaults(t *testing.T) {
+const validSpec = `openapi: 3.0.0
+info:
+  title: Test API
+  version: 1.0.0
+paths:
+  /test:
+    get:
+      operationId: getTest
+      responses:
+        200:
+          description: Success
+`
+
+func TestGenerateOapiWithDefaults(t *testing.T) {
 	tempDir := t.TempDir()
 	specPath := filepath.Join(tempDir, "openapi.yaml")
 
 	require.NoError(t, os.WriteFile(specPath, []byte(validSpec), 0644))
 
 	var stdout bytes.Buffer
-	exitCode := duh.RunCmd(&stdout, []string{"generate", "all", specPath, "--output-dir", tempDir})
+	exitCode := duh.RunCmd(&stdout, []string{"generate", "oapi", specPath, "--output-dir", tempDir})
 
 	require.Equal(t, 0, exitCode)
 	assert.Contains(t, stdout.String(), "✓")
@@ -48,7 +61,7 @@ func TestGenerateAllWithDefaults(t *testing.T) {
 	assert.Contains(t, string(modelsContent), "package api")
 }
 
-func TestGenerateAllWithCustomOutputDir(t *testing.T) {
+func TestGenerateOapiWithCustomOutputDir(t *testing.T) {
 	tempDir := t.TempDir()
 	specPath := filepath.Join(tempDir, "openapi.yaml")
 	outputDir := filepath.Join(tempDir, "api")
@@ -56,7 +69,7 @@ func TestGenerateAllWithCustomOutputDir(t *testing.T) {
 	require.NoError(t, os.WriteFile(specPath, []byte(validSpec), 0644))
 
 	var stdout bytes.Buffer
-	exitCode := duh.RunCmd(&stdout, []string{"generate", "all", specPath, "--output-dir", outputDir})
+	exitCode := duh.RunCmd(&stdout, []string{"generate", "oapi", specPath, "--output-dir", outputDir})
 
 	require.Equal(t, 0, exitCode)
 	assert.Contains(t, stdout.String(), outputDir)
@@ -71,14 +84,14 @@ func TestGenerateAllWithCustomOutputDir(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestGenerateAllWithCustomPackage(t *testing.T) {
+func TestGenerateOapiWithCustomPackage(t *testing.T) {
 	tempDir := t.TempDir()
 	specPath := filepath.Join(tempDir, "openapi.yaml")
 
 	require.NoError(t, os.WriteFile(specPath, []byte(validSpec), 0644))
 
 	var stdout bytes.Buffer
-	exitCode := duh.RunCmd(&stdout, []string{"generate", "all", specPath, "--output-dir", tempDir, "-p", "myapi"})
+	exitCode := duh.RunCmd(&stdout, []string{"generate", "oapi", specPath, "--output-dir", tempDir, "-p", "myapi"})
 
 	require.Equal(t, 0, exitCode)
 
@@ -95,7 +108,7 @@ func TestGenerateAllWithCustomPackage(t *testing.T) {
 	assert.Contains(t, string(modelsContent), "package myapi")
 }
 
-func TestGenerateAllCreatesDirectory(t *testing.T) {
+func TestGenerateOapiCreatesDirectory(t *testing.T) {
 	tempDir := t.TempDir()
 	specPath := filepath.Join(tempDir, "openapi.yaml")
 	outputDir := filepath.Join(tempDir, "nested", "api")
@@ -103,7 +116,7 @@ func TestGenerateAllCreatesDirectory(t *testing.T) {
 	require.NoError(t, os.WriteFile(specPath, []byte(validSpec), 0644))
 
 	var stdout bytes.Buffer
-	exitCode := duh.RunCmd(&stdout, []string{"generate", "all", specPath, "--output-dir", outputDir})
+	exitCode := duh.RunCmd(&stdout, []string{"generate", "oapi", specPath, "--output-dir", outputDir})
 
 	require.Equal(t, 0, exitCode)
 

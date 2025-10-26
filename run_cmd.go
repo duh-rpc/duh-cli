@@ -141,10 +141,7 @@ The generate command uses oapi-codegen to create HTTP clients, server stubs,
 and type models from DUH-RPC compliant OpenAPI specifications.
 
 Available subcommands:
-  client    Generate HTTP client code
-  server    Generate server stub code
-  models    Generate type models
-  all       Generate all components
+  oapi      Generate client, server, and models
 
 Use "duh generate [command] --help" for more information about a command.`,
 		Run: func(cmd *cobra.Command, args []string) {
@@ -152,152 +149,12 @@ Use "duh generate [command] --help" for more information about a command.`,
 		},
 	}
 
-	clientCmd := &cobra.Command{
-		Use:   "client [openapi-file]",
-		Short: "Generate HTTP client code from OpenAPI specification",
-		Long: `Generate HTTP client code from OpenAPI specification.
-
-The client command generates a Go HTTP client for calling DUH-RPC endpoints
-defined in the OpenAPI specification.
-
-If no file path is provided, defaults to 'openapi.yaml' in the current directory.
-If no output is specified, defaults to 'client.go' in the current directory.
-If no package is specified, defaults to 'api'.
-
-Exit Codes:
-  0    Client generated successfully
-  2    Error (file not found, parse error, generation failed, etc.)`,
-		Args: cobra.MaximumNArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
-			const defaultFile = "openapi.yaml"
-			const defaultOutput = "client.go"
-			const defaultPackage = "api"
-
-			filePath := defaultFile
-			if len(args) > 0 {
-				filePath = args[0]
-			}
-
-			outputPath, _ := cmd.Flags().GetString("output")
-			if outputPath == "" {
-				outputPath = defaultOutput
-			}
-
-			packageName, _ := cmd.Flags().GetString("package")
-			if packageName == "" {
-				packageName = defaultPackage
-			}
-
-			if err := oapi.RunClient(cmd.OutOrStdout(), filePath, outputPath, packageName); err != nil {
-				_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Error: %v\n", err)
-				exitCode = 2
-				return
-			}
-		},
-	}
-	clientCmd.Flags().StringP("output", "o", "", "Output file path (default: client.go)")
-	clientCmd.Flags().StringP("package", "p", "", "Package name for generated code (default: api)")
-
-	serverCmd := &cobra.Command{
-		Use:   "server [openapi-file]",
-		Short: "Generate server stub code from OpenAPI specification",
-		Long: `Generate server stub code from OpenAPI specification.
-
-The server command generates Go HTTP server stubs using the standard library
-net/http package for implementing DUH-RPC endpoints defined in the OpenAPI
-specification.
-
-If no file path is provided, defaults to 'openapi.yaml' in the current directory.
-If no output is specified, defaults to 'server.go' in the current directory.
-If no package is specified, defaults to 'api'.
-
-Exit Codes:
-  0    Server generated successfully
-  2    Error (file not found, parse error, generation failed, etc.)`,
-		Args: cobra.MaximumNArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
-			const defaultFile = "openapi.yaml"
-			const defaultOutput = "server.go"
-			const defaultPackage = "api"
-
-			filePath := defaultFile
-			if len(args) > 0 {
-				filePath = args[0]
-			}
-
-			outputPath, _ := cmd.Flags().GetString("output")
-			if outputPath == "" {
-				outputPath = defaultOutput
-			}
-
-			packageName, _ := cmd.Flags().GetString("package")
-			if packageName == "" {
-				packageName = defaultPackage
-			}
-
-			if err := oapi.RunServer(cmd.OutOrStdout(), filePath, outputPath, packageName); err != nil {
-				_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Error: %v\n", err)
-				exitCode = 2
-				return
-			}
-		},
-	}
-	serverCmd.Flags().StringP("output", "o", "", "Output file path (default: server.go)")
-	serverCmd.Flags().StringP("package", "p", "", "Package name for generated code (default: api)")
-
-	modelsCmd := &cobra.Command{
-		Use:   "models [openapi-file]",
-		Short: "Generate type models from OpenAPI specification",
-		Long: `Generate type models from OpenAPI specification.
-
-The models command generates Go type definitions for request and response
-schemas defined in the OpenAPI specification, without generating client
-or server code.
-
-If no file path is provided, defaults to 'openapi.yaml' in the current directory.
-If no output is specified, defaults to 'models.go' in the current directory.
-If no package is specified, defaults to 'api'.
-
-Exit Codes:
-  0    Models generated successfully
-  2    Error (file not found, parse error, generation failed, etc.)`,
-		Args: cobra.MaximumNArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
-			const defaultFile = "openapi.yaml"
-			const defaultOutput = "models.go"
-			const defaultPackage = "api"
-
-			filePath := defaultFile
-			if len(args) > 0 {
-				filePath = args[0]
-			}
-
-			outputPath, _ := cmd.Flags().GetString("output")
-			if outputPath == "" {
-				outputPath = defaultOutput
-			}
-
-			packageName, _ := cmd.Flags().GetString("package")
-			if packageName == "" {
-				packageName = defaultPackage
-			}
-
-			if err := oapi.RunModels(cmd.OutOrStdout(), filePath, outputPath, packageName); err != nil {
-				_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Error: %v\n", err)
-				exitCode = 2
-				return
-			}
-		},
-	}
-	modelsCmd.Flags().StringP("output", "o", "", "Output file path (default: models.go)")
-	modelsCmd.Flags().StringP("package", "p", "", "Package name for generated code (default: api)")
-
-	allCmd := &cobra.Command{
-		Use:   "all [openapi-file]",
+	oapiCmd := &cobra.Command{
+		Use:   "oapi [openapi-file]",
 		Short: "Generate client, server, and models from OpenAPI specification",
 		Long: `Generate client, server, and models from OpenAPI specification.
 
-The all command generates all three components (HTTP client, server stubs,
+The oapi command generates all three components (HTTP client, server stubs,
 and type models) from the OpenAPI specification in a single invocation.
 
 By default, generates client.go, server.go, and models.go in the current
@@ -331,17 +188,17 @@ Exit Codes:
 				packageName = defaultPackage
 			}
 
-			if err := oapi.RunAll(cmd.OutOrStdout(), filePath, outputDir, packageName); err != nil {
+			if err := oapi.RunOapi(cmd.OutOrStdout(), filePath, outputDir, packageName); err != nil {
 				_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Error: %v\n", err)
 				exitCode = 2
 				return
 			}
 		},
 	}
-	allCmd.Flags().String("output-dir", "", "Output directory for generated files (default: current directory)")
-	allCmd.Flags().StringP("package", "p", "", "Package name for generated code (default: api)")
+	oapiCmd.Flags().String("output-dir", "", "Output directory for generated files (default: current directory)")
+	oapiCmd.Flags().StringP("package", "p", "", "Package name for generated code (default: api)")
 
-	generateCmd.AddCommand(clientCmd, serverCmd, modelsCmd, allCmd)
+	generateCmd.AddCommand(oapiCmd)
 
 	rootCmd.AddCommand(lintCmd, initCmd, addCmd, generateCmd)
 	rootCmd.SetOut(stdout)
