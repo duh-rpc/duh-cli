@@ -457,23 +457,23 @@ make lint          # No lint errors
 ## Success Criteria
 
 ### Phase 1 Complete When:
-- [ ] `github.com/duh-rpc/openapi-proto.go` added to go.mod
-- [ ] `MockProtoConverter` removed from converter.go
-- [ ] `NewProtoConverter()` creates real converter
-- [ ] `run_cmd.go` uses `NewProtoConverter()` instead of `NewMockProtoConverter()`
-- [ ] Code compiles without errors
+- [x] `github.com/duh-rpc/openapi-proto.go` added to go.mod
+- [x] `MockProtoConverter` removed from converter.go
+- [x] `NewProtoConverter()` creates real converter
+- [x] `run_cmd.go` uses `NewProtoConverter()` instead of `NewMockProtoConverter()`
+- [x] Code compiles without errors
 
 ### Phase 2 Complete When:
-- [ ] All proto tests updated to verify non-empty messages
-- [ ] Tests use simple string contains checks (not regex parsing)
-- [ ] Error case test added for invalid protobuf field names
-- [ ] All tests in `internal/generate/duh/proto_test.go` pass
-- [ ] No test checks for empty message syntax `{}`
+- [x] All proto tests updated to verify non-empty messages
+- [x] Tests use simple string contains checks (not regex parsing)
+- [x] Error case test added for invalid protobuf field names
+- [x] All tests in `internal/generate/duh/proto_test.go` pass
+- [x] No test checks for empty message syntax `{}`
 
 ### Phase 3 Complete When:
-- [ ] Manual integration test succeeds
-- [ ] Generated proto files contain actual field definitions
-- [ ] No references to `MockProtoConverter` in code (only in historical plans)
+- [x] Manual integration test succeeds
+- [x] Generated proto files contain actual field definitions
+- [x] No references to `MockProtoConverter` in code (only in historical plans)
 
 ### Overall Success:
 ```bash

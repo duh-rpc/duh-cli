@@ -3,6 +3,7 @@ module github.com/duh-rpc/duh-cli
 go 1.24.7
 
 require (
+	github.com/duh-rpc/openapi-proto.go v0.1.0
 	github.com/getkin/kin-openapi v0.133.0
 	github.com/oapi-codegen/oapi-codegen/v2 v2.5.0
 	github.com/pb33f/libopenapi v0.28.1

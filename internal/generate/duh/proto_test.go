@@ -131,9 +131,13 @@ func TestProtoFileStructure(t *testing.T) {
 
 	assert.Contains(t, content, "package duh.api.v1")
 
-	assert.Contains(t, content, "message CreateUserRequest {}")
-	assert.Contains(t, content, "message UserResponse {}")
-	assert.Contains(t, content, "message Error {}")
+	assert.Contains(t, content, "message CreateUserRequest")
+	assert.Contains(t, content, "message UserResponse")
+	assert.Contains(t, content, "message Error")
+
+	assert.NotContains(t, content, "message CreateUserRequest {}")
+	assert.NotContains(t, content, "message UserResponse {}")
+	assert.NotContains(t, content, "message Error {}")
 
 	lines := strings.Split(content, "\n")
 	messageCount := 0
@@ -180,22 +184,59 @@ func TestProtoSchemaExtraction(t *testing.T) {
 
 	content := string(protoContent)
 
-	assert.Contains(t, content, "message CreateUserRequest {}")
-	assert.Contains(t, content, "message GetUserRequest {}")
-	assert.Contains(t, content, "message UserResponse {}")
-	assert.Contains(t, content, "message Error {}")
+	assert.Contains(t, content, "message CreateUserRequest")
+	assert.Contains(t, content, "message GetUserRequest")
+	assert.Contains(t, content, "message UserResponse")
+	assert.Contains(t, content, "message Error")
 
 	seenSchemas := make(map[string]int)
 	lines := strings.Split(content, "\n")
 	for _, line := range lines {
 		trimmed := strings.TrimSpace(line)
 		if strings.HasPrefix(trimmed, "message ") {
-			schemaName := strings.TrimSuffix(strings.TrimPrefix(trimmed, "message "), " {}")
-			seenSchemas[schemaName]++
+			parts := strings.Fields(trimmed)
+			if len(parts) >= 2 {
+				schemaName := parts[1]
+				seenSchemas[schemaName]++
+			}
 		}
 	}
 
 	for schema, count := range seenSchemas {
 		assert.Equal(t, 1, count, "Schema %s should appear exactly once, but appeared %d times", schema, count)
 	}
+}
+
+func TestProtoGenerationErrorCases(t *testing.T) {
+	invalidFieldSpec := `openapi: 3.0.0
+info:
+  title: Test API
+  version: 1.0.0
+paths:
+  /v1/test:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvalidSchema'
+      responses:
+        '200':
+          description: Success
+components:
+  schemas:
+    InvalidSchema:
+      type: object
+      properties:
+        1invalid:
+          type: string
+`
+
+	specPath, stdout := setupTest(t, invalidFieldSpec)
+
+	exitCode := duh.RunCmd(stdout, []string{"generate", "duh", specPath})
+
+	require.Equal(t, 2, exitCode)
+	output := stdout.String()
+	require.NotEmpty(t, output)
 }
