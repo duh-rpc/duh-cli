@@ -62,6 +62,18 @@ func Run(w io.Writer, specPath, packageName, outputDir, protoPath, protoImport, 
 		filesGenerated = append(filesGenerated, "iterator.go")
 	}
 
+	clientCode, err := generator.RenderClient(data)
+	if err != nil {
+		return fmt.Errorf("failed to render client.go: %w", err)
+	}
+
+	clientPath := filepath.Join(outputDir, "client.go")
+	if err := writeFile(clientPath, clientCode); err != nil {
+		return fmt.Errorf("failed to write client.go: %w", err)
+	}
+
+	filesGenerated = append(filesGenerated, "client.go")
+
 	_, _ = fmt.Fprintf(w, "✓ Generated %d file(s) in %s\n", len(filesGenerated), outputDir)
 	for _, file := range filesGenerated {
 		_, _ = fmt.Fprintf(w, "  - %s\n", file)

@@ -160,7 +160,7 @@ func (p *Parser) detectListOperations(ops []Operation) ([]ListOperation, error) 
 				Operation:     op,
 				IteratorName:  op.MethodName + "Iter",
 				FetcherName:   strings.TrimSuffix(itemType, "Response") + "PageFetcher",
-				ItemType:      itemType,
+				ItemType:      "*pb." + itemType,
 				ResponseField: fieldName,
 			})
 		}
@@ -222,7 +222,8 @@ func (p *Parser) findFirstArrayField(schema *base.SchemaProxy) (fieldName, itemT
 					if itemSchema.IsReference() {
 						ref := itemSchema.GetReference()
 						itemType = extractSchemaName(ref)
-						return propName, itemType, true
+						capitalizedFieldName := capitalizeFirst(propName)
+						return capitalizedFieldName, itemType, true
 					}
 				}
 			}
@@ -230,6 +231,13 @@ func (p *Parser) findFirstArrayField(schema *base.SchemaProxy) (fieldName, itemT
 	}
 
 	return "", "", false
+}
+
+func capitalizeFirst(s string) string {
+	if len(s) == 0 {
+		return s
+	}
+	return strings.ToUpper(s[:1]) + s[1:]
 }
 
 func (p *Parser) getSchemas(path string) (*base.SchemaProxy, *base.SchemaProxy, error) {

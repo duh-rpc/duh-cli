@@ -1181,12 +1181,12 @@ Ensure you have write permissions to the output directory
 - [x] Generic types work correctly
 
 ### Phase 4 (Client)
-- [ ] Client template renders without errors
-- [ ] Generated client.go compiles with iterator.go
-- [ ] ClientInterface has all operations
-- [ ] Iterator methods generated for list operations
-- [ ] PageFetcher structs created correctly
-- [ ] WithTLS/WithNoTLS helpers present
+- [x] Client template renders without errors
+- [x] Generated client.go compiles with iterator.go
+- [x] ClientInterface has all operations
+- [x] Iterator methods generated for list operations
+- [x] PageFetcher structs created correctly
+- [x] WithTLS/WithNoTLS helpers present
 
 ### Phase 5 (Proto & Orchestration)
 - [ ] Mock proto converter generates valid proto
