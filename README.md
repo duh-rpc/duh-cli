@@ -2,6 +2,11 @@
 
 Command-line tools for working with DUH-RPC specifications.
 
+[![Go Version](https://img.shields.io/github/go-mod/go-version/duh-rpc/duh-cli)](https://golang.org/dl/)
+[![CI Status](https://github.com/duh-rpc/duh-cli/workflows/CI/badge.svg)](https://github.com/duh-rpc/duh-cli/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Go Report Card](https://goreportcard.com/badge/github.com/duh-rpc/duh-cli)](https://goreportcard.com/report/github.com/duh-rpc/duh-cli)
+
 ## Overview
 
 `duh` is a command-line tool for working with DUH-RPC specifications. It provides commands for validating OpenAPI YAML specifications against DUH-RPC conventions, ensuring your API specifications follow the Document-Unified HTTP RPC pattern with clear error messages and actionable suggestions when violations are found.
