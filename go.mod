@@ -2,8 +2,6 @@ module github.com/duh-rpc/duh-cli
 
 go 1.24.7
 
-toolchain go1.24.9
-
 require (
 	github.com/getkin/kin-openapi v0.133.0
 	github.com/oapi-codegen/oapi-codegen/v2 v2.5.0
