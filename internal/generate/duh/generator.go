@@ -35,6 +35,17 @@ func (g *Generator) RenderServer(data *TemplateData) ([]byte, error) {
 	return g.FormatCode(buf.Bytes())
 }
 
+func (g *Generator) RenderIterator(data *TemplateData) ([]byte, error) {
+	data.Timestamp = g.timestamp
+
+	var buf bytes.Buffer
+	if err := g.templates.ExecuteTemplate(&buf, "iterator.go.tmpl", data); err != nil {
+		return nil, err
+	}
+
+	return g.FormatCode(buf.Bytes())
+}
+
 func (g *Generator) FormatCode(code []byte) ([]byte, error) {
 	return format.Source(code)
 }

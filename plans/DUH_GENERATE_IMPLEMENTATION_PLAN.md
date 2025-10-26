@@ -1175,10 +1175,10 @@ Ensure you have write permissions to the output directory
 - [x] Individual handlers generated correctly
 
 ### Phase 3 (Iterator)
-- [ ] Iterator template renders without errors
-- [ ] Generated iterator.go compiles independently
-- [ ] Iterator only generated when HasListOps=true
-- [ ] Generic types work correctly
+- [x] Iterator template renders without errors
+- [x] Generated iterator.go compiles independently
+- [x] Iterator only generated when HasListOps=true
+- [x] Generic types work correctly
 
 ### Phase 4 (Client)
 - [ ] Client template renders without errors

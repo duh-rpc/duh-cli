@@ -46,8 +46,26 @@ func Run(w io.Writer, specPath, packageName, outputDir, protoPath, protoImport, 
 		return fmt.Errorf("failed to write server.go: %w", err)
 	}
 
-	_, _ = fmt.Fprintf(w, "✓ Generated 1 file in %s\n", outputDir)
-	_, _ = fmt.Fprintf(w, "  - server.go\n")
+	filesGenerated := []string{"server.go"}
+
+	if data.HasListOps {
+		iteratorCode, err := generator.RenderIterator(data)
+		if err != nil {
+			return fmt.Errorf("failed to render iterator.go: %w", err)
+		}
+
+		iteratorPath := filepath.Join(outputDir, "iterator.go")
+		if err := writeFile(iteratorPath, iteratorCode); err != nil {
+			return fmt.Errorf("failed to write iterator.go: %w", err)
+		}
+
+		filesGenerated = append(filesGenerated, "iterator.go")
+	}
+
+	_, _ = fmt.Fprintf(w, "✓ Generated %d file(s) in %s\n", len(filesGenerated), outputDir)
+	for _, file := range filesGenerated {
+		_, _ = fmt.Fprintf(w, "  - %s\n", file)
+	}
 
 	return nil
 }
