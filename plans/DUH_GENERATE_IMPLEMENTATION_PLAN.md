@@ -354,7 +354,7 @@ Create server.go template and generator infrastructure. This is the simplest tem
 **Template Structure** (based on server.go reference):
 - File header: generation comment (no build tag)
 - Package declaration
-- Imports (context, fmt, net/http, duh-go, proto)
+- Imports (context, fmt, net/http, duh.go, proto)
 - RPC path constants
 - ServiceInterface definition
 - MiddlewareFunc type
@@ -583,7 +583,7 @@ Create client.go template. This depends on iterator types, so iterator.go must b
 **Template Structure** (based on client.go reference):
 - File header: generation comment
 - Package declaration
-- Imports (bytes, context, crypto/tls, errors, fmt, net/http, duh-go, proto, clock, set)
+- Imports (bytes, context, crypto/tls, errors, fmt, net/http, duh.go, proto, clock, set)
 - ClientInterface definition
 - ClientConfig struct
 - Client struct

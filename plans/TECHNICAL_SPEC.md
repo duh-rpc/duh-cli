@@ -68,7 +68,7 @@ This technical specification was created during the research and planning phase 
 
 ### DUH-RPC Specification Analysis
 
-**Source:** https://github.com/duh-rpc/duh-go
+**Source:** https://github.com/duh-rpc/duh.go
 
 **Core DUH-RPC Conventions:**
 

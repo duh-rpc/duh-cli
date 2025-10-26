@@ -1,7 +1,4 @@
-# DUH-RPC OpenAPI Specification Rules
-
-**Version:** 1.0
-**Last Updated:** 2025-10-22
+# DUH-RPC OpenAPI Specification Reference
 
 ## Introduction
 
@@ -564,5 +561,5 @@ Summary: 1 violation found in openapi.yaml
 
 ## Additional Resources
 
-- **DUH-RPC Specification:** [github.com/duh-rpc/duh-go](https://github.com/duh-rpc/duh-go)
+- **DUH-RPC Specification:** [github.com/duh-rpc/duh.go](https://github.com/duh-rpc/duh.go)
 - **OpenAPI 3.0 Specification:** [spec.openapis.org/oas/v3.0.3](https://spec.openapis.org/oas/v3.0.3.html)

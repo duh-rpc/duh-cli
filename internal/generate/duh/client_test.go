@@ -92,13 +92,13 @@ func (x *UserResponse) ProtoReflect() protoreflect.Message {
 
 go 1.24
 
-require github.com/duh-rpc/duh-go v0.0.0
+require github.com/duh-rpc/duh.go v0.0.0
 require github.com/kapetan-io/tackle v0.0.0
 require google.golang.org/protobuf v0.0.0
 `
 	require.NoError(t, os.WriteFile(filepath.Join(tempDir, "go.mod"), []byte(goMod), 0644))
 
-	cmd := exec.Command("go", "mod", "edit", "-replace", "github.com/duh-rpc/duh-go=github.com/duh-rpc/duh-go@v0.9.1")
+	cmd := exec.Command("go", "mod", "edit", "-replace", "github.com/duh-rpc/duh.go=github.com/duh-rpc/duh.go@v0.10.1")
 	cmd.Dir = tempDir
 	output, err := cmd.CombinedOutput()
 	require.NoError(t, err, string(output))
@@ -210,13 +210,13 @@ func (x *UserResponse) ProtoReflect() protoreflect.Message {
 
 go 1.24
 
-require github.com/duh-rpc/duh-go v0.0.0
+require github.com/duh-rpc/duh.go v0.0.0
 require github.com/kapetan-io/tackle v0.0.0
 require google.golang.org/protobuf v0.0.0
 `
 	require.NoError(t, os.WriteFile(filepath.Join(tempDir, "go.mod"), []byte(goMod), 0644))
 
-	cmd := exec.Command("go", "mod", "edit", "-replace", "github.com/duh-rpc/duh-go=github.com/duh-rpc/duh-go@v0.9.1")
+	cmd := exec.Command("go", "mod", "edit", "-replace", "github.com/duh-rpc/duh.go=github.com/duh-rpc/duh.go@v0.10.1")
 	cmd.Dir = tempDir
 	output, err := cmd.CombinedOutput()
 	require.NoError(t, err, string(output))
@@ -309,13 +309,13 @@ func (x *UserResponse) ProtoReflect() protoreflect.Message {
 
 go 1.24
 
-require github.com/duh-rpc/duh-go v0.0.0
+require github.com/duh-rpc/duh.go v0.0.0
 require github.com/kapetan-io/tackle v0.0.0
 require google.golang.org/protobuf v0.0.0
 `
 	require.NoError(t, os.WriteFile(filepath.Join(tempDir, "go.mod"), []byte(goMod), 0644))
 
-	cmd := exec.Command("go", "mod", "edit", "-replace", "github.com/duh-rpc/duh-go=github.com/duh-rpc/duh-go@v0.9.1")
+	cmd := exec.Command("go", "mod", "edit", "-replace", "github.com/duh-rpc/duh.go=github.com/duh-rpc/duh.go@v0.10.1")
 	cmd.Dir = tempDir
 	output, err := cmd.CombinedOutput()
 	require.NoError(t, err, string(output))
