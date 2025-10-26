@@ -114,7 +114,43 @@ After implementation, users can:
 
 **Template Development:** Model templates after reference files, using embedded text/template with go:embed, render with structured TemplateData.
 
-**Testing:** Each phase fully tested before proceeding to next phase (TDD approach).
+**Testing:** Each phase fully tested before proceeding to next phase using functional e2e tests through CLI.
+
+### Key Implementation Patterns (Established in Phase 1 & 6)
+
+**Barebones Orchestration:**
+- Create `duh.Run()` early that only uses implemented components
+- Expand `duh.Run()` incrementally as each phase completes
+- Phase 1 & 6: `duh.Run()` validates, parses, and outputs summary
+- Phase 2-5: Add file generation to `duh.Run()` incrementally
+
+**Functional Testing Only:**
+- **NO unit tests** - all tests call `duh.RunCmd()` through CLI
+- Tests verify file creation, compilation, and structure via CLI
+- Use `setupTest(t, spec)` helper for common test setup
+- Specs must be valid DUH-RPC compliant with proper error schemas
+- Tests located in `internal/generate/duh/generate_test.go`
+
+**Example Test Pattern:**
+```go
+func TestGenerateDuhCreatesServerFile(t *testing.T) {
+    specPath, stdout := setupTest(t, validSpec)
+    exitCode := duh.RunCmd(stdout, []string{"generate", "duh", specPath})
+
+    require.Equal(t, 0, exitCode)
+    assert.Contains(t, stdout.String(), "✓")
+
+    _, err := os.Stat(filepath.Join(tempDir, "server.go"))
+    require.NoError(t, err)
+}
+```
+
+**Benefits of This Approach:**
+- Tests verify actual CLI behavior users will experience
+- Tests catch integration issues early
+- No mocking needed - tests use real components
+- Each phase adds tests as features are implemented
+- Command works end-to-end from Phase 6 onward
 
 ---
 
@@ -308,6 +344,8 @@ go test ./internal/generate/duh -v
 ### Overview
 Create server.go template and generator infrastructure. This is the simplest template (no dependencies on iterator). Establishes template embedding pattern and rendering pipeline.
 
+**Implementation Note:** Update `duh.Run()` to generate server.go. Tests will drive implementation by calling CLI and verifying file creation/compilation.
+
 ### Changes Required
 
 #### 1. Template File
@@ -378,43 +416,55 @@ var templateFS embed.FS
 
 ### Testing Requirements
 
-**File**: `internal/generate/duh/generator_test.go`
+**File**: `internal/generate/duh/server_test.go` (new file)
 
 ```go
-func TestRenderServer(t *testing.T)
-func TestFormatCode(t *testing.T)
+func TestGenerateDuhCreatesServerFile(t *testing.T)
 func TestGeneratedServerCompiles(t *testing.T)
+func TestGeneratedServerStructure(t *testing.T)
+func TestServerWithMultipleOperations(t *testing.T)
 ```
 
-**Test Objectives:**
-- Render server template with mock TemplateData (2 operations, one list)
-- Verify output contains expected constants, interface methods, handlers
-- Verify code formats successfully with gofmt
-- Verify generated code contains package declaration, imports, RPC constants
-- Write to temp file, verify syntax with go/parser
-
-**File**: `internal/generate/duh/server_test.go` (functional)
-
-```go
-func TestGenerateServerCode(t *testing.T)
-```
+**Test Approach:**
+- ALL tests are functional e2e tests calling `duh.RunCmd()`
+- Tests verify file creation, compilation, and structure through CLI
+- Use valid DUH-RPC specs with proper error schemas
 
 **Test Objectives:**
-- Create complete generation pipeline: parse config, parse spec, render server
-- Write server.go to temp directory with go.mod
-- Verify file exists and compiles (go build)
-- Check generated code structure matches reference
+1. **TestGenerateDuhCreatesServerFile**:
+   - Run `duh generate duh openapi.yaml`
+   - Verify exit code 0
+   - Verify server.go file exists in output directory
+   - Verify success message contains "server.go"
+
+2. **TestGeneratedServerCompiles**:
+   - Generate server.go via CLI
+   - Run `go build` in output directory with go.mod and proto stubs
+   - Verify compilation succeeds
+
+3. **TestGeneratedServerStructure**:
+   - Generate server.go via CLI
+   - Read file content
+   - Verify contains: package declaration, RPC constants, ServiceInterface, Handler struct, ServeHTTP method
+   - Verify no build tags present
+
+4. **TestServerWithMultipleOperations**:
+   - Use spec with 3+ operations
+   - Verify all operation constants generated
+   - Verify all methods in ServiceInterface
+   - Verify all cases in ServeHTTP switch
 
 **Context:**
-- Use inline spec with 2-3 operations
-- Mock TemplateData if spec parsing not ready yet
-- Verify no build tags in output
+- Update `duh.Run()` to call generator and write server.go
+- Tests drive the implementation through CLI interface
+- Each test verifies a different aspect of the generated code
 
 ### Validation Commands
 
 ```bash
-go test ./internal/generate/duh -v -run TestRenderServer
+go test ./internal/generate/duh -v -run TestGenerateDuhCreatesServerFile
 go test ./internal/generate/duh -v -run TestGeneratedServerCompiles
+go test ./internal/generate/duh -v -run Server
 ```
 
 ---
@@ -423,6 +473,8 @@ go test ./internal/generate/duh -v -run TestGeneratedServerCompiles
 
 ### Overview
 Create iterator.go template. This is independent of client/server. Only generated when HasListOps is true.
+
+**Implementation Note:** Update `duh.Run()` to conditionally generate iterator.go. Tests will verify file is created only when list operations exist.
 
 ### Changes Required
 
@@ -465,43 +517,53 @@ func (g *Generator) RenderIterator(data *TemplateData) ([]byte, error)
 
 ### Testing Requirements
 
-**File**: `internal/generate/duh/generator_test.go` (add tests)
+**File**: `internal/generate/duh/iterator_test.go` (new file)
 
 ```go
-func TestRenderIterator(t *testing.T)
-func TestIteratorOnlyWhenListOps(t *testing.T)
+func TestGenerateDuhCreatesIteratorWithListOps(t *testing.T)
+func TestGenerateDuhSkipsIteratorWithoutListOps(t *testing.T)
 func TestGeneratedIteratorCompiles(t *testing.T)
+func TestIteratorStructure(t *testing.T)
 ```
 
-**Test Objectives:**
-- Render iterator template with TemplateData where HasListOps=true
-- Verify output contains Page, Iterator, PageFetcher, GenericIterator
-- Verify iterator NOT generated when HasListOps=false
-- Verify generated code compiles independently
-
-**File**: `internal/generate/duh/iterator_test.go` (functional)
-
-```go
-func TestGenerateIteratorCode(t *testing.T)
-func TestNoIteratorWithoutListOps(t *testing.T)
-```
+**Test Approach:**
+- ALL tests are functional e2e tests calling `duh.RunCmd()`
+- Tests verify conditional iterator generation through CLI
+- Use two spec variants: one with list ops, one without
 
 **Test Objectives:**
-- Generate iterator.go for spec with list operation
-- Verify file created and compiles
-- Verify iterator.go NOT created for spec without list operations
-- Check generated code matches reference structure
+1. **TestGenerateDuhCreatesIteratorWithListOps**:
+   - Run CLI with spec containing list operation
+   - Verify iterator.go file exists
+   - Verify success message mentions iterator.go
+
+2. **TestGenerateDuhSkipsIteratorWithoutListOps**:
+   - Run CLI with spec without list operations
+   - Verify iterator.go file does NOT exist
+   - Verify success message does not mention iterator.go
+
+3. **TestGeneratedIteratorCompiles**:
+   - Generate all files via CLI (spec with list ops)
+   - Verify iterator.go compiles independently
+   - Verify contains: Page, Iterator, PageFetcher, GenericIterator types
+
+4. **TestIteratorStructure**:
+   - Generate iterator.go via CLI
+   - Verify no build tags present
+   - Verify generic implementation (not operation-specific)
+   - Verify context cancellation in Next() method
 
 **Context:**
-- Use two inline specs: one with list op, one without
-- Verify conditional generation logic
+- Update `duh.Run()` to conditionally generate iterator.go
+- Tests drive conditional logic through CLI interface
+- Reuse existing test helper and spec constants from config_test.go
 
 ### Validation Commands
 
 ```bash
-go test ./internal/generate/duh -v -run TestRenderIterator
-go test ./internal/generate/duh -v -run TestGeneratedIteratorCompiles
-go test ./internal/generate/duh -v -run TestNoIteratorWithoutListOps
+go test ./internal/generate/duh -v -run TestGenerateDuhCreatesIteratorWithListOps
+go test ./internal/generate/duh -v -run TestGenerateDuhSkipsIteratorWithoutListOps
+go test ./internal/generate/duh -v -run Iterator
 ```
 
 ---
@@ -510,6 +572,8 @@ go test ./internal/generate/duh -v -run TestNoIteratorWithoutListOps
 
 ### Overview
 Create client.go template. This depends on iterator types, so iterator.go must be generated first for list operations.
+
+**Implementation Note:** Update `duh.Run()` to generate client.go. Tests will verify client compiles with iterator.go when list operations exist.
 
 ### Changes Required
 
@@ -559,45 +623,61 @@ func (g *Generator) RenderClient(data *TemplateData) ([]byte, error)
 
 ### Testing Requirements
 
-**File**: `internal/generate/duh/generator_test.go` (add tests)
+**File**: `internal/generate/duh/client_test.go` (new file)
 
 ```go
-func TestRenderClient(t *testing.T)
-func TestClientWithIterators(t *testing.T)
-func TestClientWithoutIterators(t *testing.T)
+func TestGenerateDuhCreatesClientFile(t *testing.T)
 func TestGeneratedClientCompiles(t *testing.T)
-```
-
-**Test Objectives:**
-- Render client template with TemplateData (multiple operations, some list)
-- Verify ClientInterface has all expected methods
-- Verify iterator methods only generated for list operations
-- Verify WithTLS/WithNoTLS helpers present
-- Verify generated code compiles with iterator.go
-
-**File**: `internal/generate/duh/client_test.go` (functional)
-
-```go
-func TestGenerateClientCode(t *testing.T)
 func TestClientIteratorIntegration(t *testing.T)
+func TestClientWithoutIterator(t *testing.T)
+func TestClientStructure(t *testing.T)
 ```
 
+**Test Approach:**
+- ALL tests are functional e2e tests calling `duh.RunCmd()`
+- Tests verify client generation and iterator integration through CLI
+- Use specs with and without list operations
+
 **Test Objectives:**
-- Generate client.go for spec with list operations
-- Verify client + iterator compile together (go build on directory)
-- Check PageFetcher and Iterator method generated correctly
-- Verify client without list ops compiles (no iterator dependency)
+1. **TestGenerateDuhCreatesClientFile**:
+   - Run CLI with valid spec
+   - Verify client.go file exists
+   - Verify success message mentions client.go
+   - Verify file contains ClientInterface, NewClient, WithTLS/WithNoTLS
+
+2. **TestGeneratedClientCompiles**:
+   - Generate all files via CLI
+   - Create stub proto files for compilation
+   - Run `go build` in output directory
+   - Verify compilation succeeds
+
+3. **TestClientIteratorIntegration**:
+   - Generate with spec containing list operations
+   - Verify client.go contains iterator methods (e.g., ListUsersIter)
+   - Verify client.go contains PageFetcher structs
+   - Verify client + iterator compile together
+
+4. **TestClientWithoutIterator**:
+   - Generate with spec without list operations
+   - Verify client compiles without iterator.go
+   - Verify no iterator methods in client
+
+5. **TestClientStructure**:
+   - Verify ClientInterface has all RPC methods
+   - Verify hard-coded connection pool sizes
+   - Verify WithTLS/WithNoTLS helper functions present
 
 **Context:**
-- Use inline spec with mixed operations (create, get, list, update)
-- Generate both client.go and iterator.go, verify they compile together
+- Update `duh.Run()` to generate client.go
+- Tests verify integration with iterator.go when present
+- Client compiles with or without iterator depending on list ops
 
 ### Validation Commands
 
 ```bash
-go test ./internal/generate/duh -v -run TestRenderClient
+go test ./internal/generate/duh -v -run TestGenerateDuhCreatesClientFile
 go test ./internal/generate/duh -v -run TestGeneratedClientCompiles
-go test ./internal/generate/duh -v -run TestClientIteratorIntegration
+go test ./internal/generate/duh -v -run Client
 ```
 
 ---
@@ -605,7 +685,9 @@ go test ./internal/generate/duh -v -run TestClientIteratorIntegration
 ## Phase 5: Proto Generation and Orchestration
 
 ### Overview
-Implement ProtoConverter mock and main orchestration function that ties all pieces together.
+Implement ProtoConverter mock and finalize orchestration. This completes `duh.Run()` to generate all files and output final success message.
+
+**Implementation Note:** Update `duh.Run()` to generate proto file and output complete success message listing all generated files.
 
 ### Changes Required
 
@@ -699,55 +781,62 @@ Or without list operations:
 
 ### Testing Requirements
 
-**File**: `internal/generate/duh/converter_test.go`
+**File**: `internal/generate/duh/proto_test.go` (new file)
 
 ```go
-func TestMockProtoConverter(t *testing.T)
-func TestExtractSchemaNames(t *testing.T)
-func TestGenerateProtoFile(t *testing.T)
+func TestGenerateDuhCreatesProtoFile(t *testing.T)
+func TestProtoFileStructure(t *testing.T)
+func TestProtoWithCustomPath(t *testing.T)
+func TestProtoSchemaExtraction(t *testing.T)
 ```
 
-**Test Objectives:**
-- Extract schema names from inline OpenAPI spec
-- Generate proto with correct syntax, package, empty messages
-- Verify schema names appear as message declarations
-
-**File**: `internal/generate/duh/duh_test.go`
-
-```go
-func TestRunFullPipeline(t *testing.T)
-func TestRunWithListOperations(t *testing.T)
-func TestRunWithoutListOperations(t *testing.T)
-func TestRunValidationFailure(t *testing.T)
-func TestRunMissingGoMod(t *testing.T)
-```
+**Test Approach:**
+- ALL tests are functional e2e tests calling `duh.RunCmd()`
+- Tests verify proto generation through CLI
+- Tests verify proto file structure and content
 
 **Test Objectives:**
-- Run full generation pipeline with valid spec
-- Verify all files created (client, server, iterator, proto)
-- Verify files compile together (go build)
-- Verify iterator not created when no list ops
-- Verify validation errors stop generation (no files created)
-- Verify error when go.mod missing
+1. **TestGenerateDuhCreatesProtoFile**:
+   - Run CLI with valid spec
+   - Verify proto file exists at configured path
+   - Verify proto file contains: syntax, package, message declarations
+   - Verify success message mentions proto file
+
+2. **TestProtoFileStructure**:
+   - Generate proto file via CLI
+   - Verify syntax declaration (proto3)
+   - Verify package declaration matches config
+   - Verify all schema names appear as messages
+   - Verify messages are empty (mock implementation)
+
+3. **TestProtoWithCustomPath**:
+   - Use --proto-path flag with custom path
+   - Verify proto file created at custom location
+   - Verify proto import path updated correctly
+
+4. **TestProtoSchemaExtraction**:
+   - Use spec with multiple schemas
+   - Verify all schema names extracted
+   - Verify no duplicates in proto file
 
 **Context:**
-- Use temp directory with go.mod
-- Copy/create test OpenAPI spec
-- Run full pipeline, check all outputs
+- Update `duh.Run()` to generate proto file via MockProtoConverter
+- Tests verify proto generation and configuration
+- MockProtoConverter creates empty messages (production use until real converter ready)
 
 ### Validation Commands
 
 ```bash
-go test ./internal/generate/duh -v
-go test ./internal/generate/duh -run TestRunFullPipeline -v
+go test ./internal/generate/duh -v -run TestGenerateDuhCreatesProtoFile
+go test ./internal/generate/duh -v -run Proto
 ```
 
 ---
 
-## Phase 6: Command Integration
+## Phase 6: Command Integration (COMPLETED)
 
 ### Overview
-Wire up the generator to the CLI command structure in run_cmd.go.
+Wire up the generator to the CLI command structure in run_cmd.go. Create barebones `duh.Run()` that uses Phase 1 components and establish functional testing pattern.
 
 ### Changes Required
 
@@ -802,34 +891,41 @@ Exit Codes:
 - Follow pattern from oapiCmd (lines 152-200)
 - Add duhCmd to generateCmd: `generateCmd.AddCommand(oapiCmd, duhCmd)`
 
-### Testing Requirements
+### Testing Requirements (COMPLETED)
 
-**File**: `internal/generate/duh/command_test.go`
+**File**: `internal/generate/duh/config_test.go` (renamed from generate_test.go)
 
+**Implemented Tests:**
 ```go
-func TestDuhCommandWithDefaults(t *testing.T)
-func TestDuhCommandWithCustomFlags(t *testing.T)
-func TestDuhCommandValidation(t *testing.T)
-func TestDuhCommandMissingGoMod(t *testing.T)
+func TestGenerateDuhParsesSimpleSpec(t *testing.T)           // ✓ PASSING
+func TestGenerateDuhParsesListOperation(t *testing.T)        // ✓ PASSING
+func TestGenerateDuhWithCustomPackage(t *testing.T)          // ✓ PASSING
+func TestGenerateDuhRejectsMainPackage(t *testing.T)         // ✓ PASSING
+func TestGenerateDuhRejectsInvalidPackage(t *testing.T)      // ✓ PASSING
+func TestGenerateDuhDetectsModulePath(t *testing.T)          // ✓ PASSING
+func TestGenerateDuhMissingGoMod(t *testing.T)               // ✓ PASSING
 ```
 
-**Test Objectives:**
-- Run command via duh.RunCmd() with minimal args
-- Verify default values applied
-- Test custom package name, output dir, proto flags
-- Verify validation errors propagate correctly
-- Verify helpful error when go.mod missing
+**Test Coverage:**
+- ✓ Command registered and accessible via CLI
+- ✓ Default flag values applied correctly
+- ✓ Custom flags (package, output-dir, proto-*) parsed correctly
+- ✓ Validation errors return exit code 2
+- ✓ Module path detection from go.mod
+- ✓ Error messages are clear and helpful
 
-**Context:**
-- Functional tests using duh.RunCmd(&stdout, []string{"generate", "duh", ...})
-- Create temp directories, go.mod, OpenAPI specs
-- Verify exit codes and stdout messages
+**Pattern Established:**
+- Helper function `setupTest(t, spec)` for common setup
+- Use valid DUH-RPC compliant specs with proper error schemas
+- Verify exit codes and stdout output
+- All tests functional e2e through CLI
 
 ### Validation Commands
 
 ```bash
-go test ./internal/generate/duh -v -run TestDuhCommand
-go build ./...
+go test ./internal/generate/duh -v        # ✓ All 7 tests passing
+go build ./...                            # ✓ Builds successfully
+go vet ./...                              # ✓ No issues
 ```
 
 ---
@@ -837,20 +933,22 @@ go build ./...
 ## Phase 7: End-to-End Integration Testing
 
 ### Overview
-Comprehensive functional tests that exercise the entire system through the CLI.
+Comprehensive functional tests that exercise the entire system through the CLI. These tests verify the complete pipeline with realistic specs and full compilation.
 
 ### Testing Requirements
 
-**File**: `internal/generate/duh/integration_test.go`
+**File**: `internal/generate/duh/integration_test.go` (new file)
 
 ```go
 func TestEndToEndGeneration(t *testing.T)
 func TestGeneratedCodeCompiles(t *testing.T)
+func TestGeneratedCodeStructure(t *testing.T)
 func TestListOperationIterator(t *testing.T)
 func TestMultipleOperations(t *testing.T)
 func TestProtoImportPaths(t *testing.T)
 func TestTimestampInHeaders(t *testing.T)
 func TestNonAtomicGeneration(t *testing.T)
+func TestFullPipelineWithDependencies(t *testing.T)
 ```
 
 **Test Objectives:**
@@ -918,24 +1016,56 @@ cd output && go build .
 
 ## Testing Strategy Summary
 
-### Unit Testing
-- **Config**: Validation, module path detection, proto import construction
-- **Naming**: Operation name generation, camel case conversion
-- **Parser**: Operation extraction, list detection, schema type resolution
-- **Generator**: Template rendering, code formatting, conditional generation
-- **Converter**: Schema extraction, proto file generation
+### Functional Testing Only
+**ALL TESTS MUST BE FUNCTIONAL E2E TESTS** - No unit tests allowed. All tests call `duh.RunCmd()` and test through the CLI interface.
 
-### Functional Testing
-- **Each Phase**: Standalone functional test verifying generated code compiles
-- **Integration**: End-to-end tests through CLI interface
-- **Error Cases**: Validation failures, missing dependencies, invalid configs
+### Testing Pattern (As Implemented in Phase 1 & 6)
+- **Location**: Tests in `internal/generate/duh/` alongside implementation
+- **Style**: Call `duh.RunCmd(&stdout, []string{"generate", "duh", ...})`
+- **Verification**: Check exit codes (0=success, 2=error) and stdout output
+- **Specs**: Use valid DUH-RPC compliant specs with proper error schemas
+- **Setup**: Use helper function `setupTest(t, spec)` for common setup
+- **Assertions**: Use require for critical (exit code), assert for non-critical (output content)
 
-### Testing Pattern
-- Use `duh.RunCmd()` for functional tests
-- Inline specs as const strings (unless >30 lines)
-- Temp directories via `t.TempDir()`
-- require for critical assertions, assert for non-critical
-- No explanatory messages in assertions
+### Test File Organization
+Tests are organized by feature/phase to keep files manageable:
+- `config_test.go` - Configuration, validation, module detection (Phase 1 & 6)
+- `server_test.go` - Server generation and compilation (Phase 2)
+- `iterator_test.go` - Iterator generation (conditional) (Phase 3)
+- `client_test.go` - Client generation and iterator integration (Phase 4)
+- `proto_test.go` - Proto file generation (Phase 5)
+- `integration_test.go` - End-to-end full pipeline tests (Phase 7)
+
+Each file contains functional e2e tests calling `duh.RunCmd()` through CLI
+
+### Example Test Pattern
+```go
+func TestGenerateDuhCreatesServerFile(t *testing.T) {
+    specPath, stdout := setupTest(t, validSpec)
+
+    exitCode := duh.RunCmd(stdout, []string{"generate", "duh", specPath})
+
+    require.Equal(t, 0, exitCode)
+    assert.Contains(t, stdout.String(), "✓")
+
+    // Verify file exists
+    _, err := os.Stat(filepath.Join(tempDir, "server.go"))
+    require.NoError(t, err)
+
+    // Verify it compiles
+    output, err := exec.Command("go", "build", "./...").CombinedOutput()
+    require.NoError(t, err, string(output))
+}
+```
+
+### What Each Phase Tests
+- **Phase 1**: Config validation, module detection, operation parsing
+- **Phase 2**: Server file generation and compilation
+- **Phase 3**: Iterator file generation (conditional on list ops)
+- **Phase 4**: Client file generation and compilation
+- **Phase 5**: Proto file generation, full pipeline integration
+- **Phase 6**: Command flags, error handling (COMPLETED)
+- **Phase 7**: End-to-end with real specs, structure validation
 
 ---
 
@@ -1028,13 +1158,13 @@ Ensure you have write permissions to the output directory
 
 ## Success Criteria
 
-### Phase 1 (Foundation)
-- [ ] Config loads from flags with defaults
-- [ ] Module path extracted from go.mod
-- [ ] Operation names generated correctly (all test cases pass)
-- [ ] Operations extracted from OpenAPI spec
-- [ ] List operations detected with 3-criteria test
-- [ ] All unit tests pass
+### Phase 1 (Foundation) - COMPLETED
+- [x] Config loads from flags with defaults
+- [x] Module path extracted from go.mod
+- [x] Operation names generated correctly (all test cases pass)
+- [x] Operations extracted from OpenAPI spec
+- [x] List operations detected with 3-criteria test
+- [x] All functional tests pass (26 tests)
 
 ### Phase 2 (Server)
 - [ ] Server template renders without errors
@@ -1066,11 +1196,11 @@ Ensure you have write permissions to the output directory
 - [ ] Success message accurate
 
 ### Phase 6 (Command)
-- [ ] Command registered under generate
-- [ ] Flags parsed correctly
-- [ ] Default values applied
-- [ ] Error messages helpful
-- [ ] Exit codes correct
+- [x] Command registered under generate
+- [x] Flags parsed correctly
+- [x] Default values applied
+- [x] Error messages helpful
+- [x] Exit codes correct
 
 ### Phase 7 (Integration)
 - [ ] Generated code from real spec compiles
