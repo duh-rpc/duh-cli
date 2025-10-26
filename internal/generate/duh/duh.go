@@ -3,6 +3,8 @@ package duh
 import (
 	"fmt"
 	"io"
+	"os"
+	"path/filepath"
 
 	"github.com/duh-rpc/duh-cli/internal/lint"
 )
@@ -29,23 +31,31 @@ func Run(w io.Writer, specPath, packageName, outputDir, protoPath, protoImport, 
 		return err
 	}
 
-	_, _ = fmt.Fprintf(w, "✓ Parsed specification successfully\n")
-	_, _ = fmt.Fprintf(w, "  Module: %s\n", data.ModulePath)
-	_, _ = fmt.Fprintf(w, "  Package: %s\n", data.Package)
-	_, _ = fmt.Fprintf(w, "  Proto import: %s\n", data.ProtoImport)
-	_, _ = fmt.Fprintf(w, "  Proto package: %s\n", data.ProtoPackage)
-	_, _ = fmt.Fprintf(w, "  Timestamp: %s\n", data.Timestamp)
-	_, _ = fmt.Fprintf(w, "  Operations: %d\n", len(data.Operations))
-
-	for _, op := range data.Operations {
-		_, _ = fmt.Fprintf(w, "    - %s (%s) %s -> %s\n", op.MethodName, op.ConstName, op.RequestType, op.ResponseType)
+	generator, err := NewGenerator()
+	if err != nil {
+		return fmt.Errorf("failed to create generator: %w", err)
 	}
 
-	_, _ = fmt.Fprintf(w, "  List operations: %d\n", len(data.ListOps))
-
-	for _, listOp := range data.ListOps {
-		_, _ = fmt.Fprintf(w, "    - %s (iterator: %s, fetcher: %s)\n", listOp.MethodName, listOp.IteratorName, listOp.FetcherName)
+	serverCode, err := generator.RenderServer(data)
+	if err != nil {
+		return fmt.Errorf("failed to render server.go: %w", err)
 	}
+
+	serverPath := filepath.Join(outputDir, "server.go")
+	if err := writeFile(serverPath, serverCode); err != nil {
+		return fmt.Errorf("failed to write server.go: %w", err)
+	}
+
+	_, _ = fmt.Fprintf(w, "✓ Generated 1 file in %s\n", outputDir)
+	_, _ = fmt.Fprintf(w, "  - server.go\n")
 
 	return nil
+}
+
+func writeFile(path string, content []byte) error {
+	dir := filepath.Dir(path)
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return err
+	}
+	return os.WriteFile(path, content, 0644)
 }

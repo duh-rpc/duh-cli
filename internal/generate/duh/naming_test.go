@@ -1,6 +1,8 @@
 package duh_test
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
 	duh "github.com/duh-rpc/duh-cli"
@@ -258,14 +260,22 @@ components:
           type: string
 `
 
+func getServerContent(t *testing.T, specPath string) string {
+	tempDir := filepath.Dir(specPath)
+	serverContent, err := os.ReadFile(filepath.Join(tempDir, "server.go"))
+	require.NoError(t, err)
+	return string(serverContent)
+}
+
 func TestGenerateOperationNameUsersCreate(t *testing.T) {
 	specPath, stdout := setupTest(t, usersCreateSpec)
 
 	exitCode := duh.RunCmd(stdout, []string{"generate", "duh", specPath})
 
 	require.Equal(t, 0, exitCode)
-	assert.Contains(t, stdout.String(), "UsersCreate")
-	assert.Contains(t, stdout.String(), "RPCUsersCreate")
+	content := getServerContent(t, specPath)
+	assert.Contains(t, content, "UsersCreate")
+	assert.Contains(t, content, "RPCUsersCreate")
 }
 
 func TestGenerateOperationNameUserProfilesGetById(t *testing.T) {
@@ -274,8 +284,9 @@ func TestGenerateOperationNameUserProfilesGetById(t *testing.T) {
 	exitCode := duh.RunCmd(stdout, []string{"generate", "duh", specPath})
 
 	require.Equal(t, 0, exitCode)
-	assert.Contains(t, stdout.String(), "UserProfilesGetById")
-	assert.Contains(t, stdout.String(), "RPCUserProfilesGetById")
+	content := getServerContent(t, specPath)
+	assert.Contains(t, content, "UserProfilesGetById")
+	assert.Contains(t, content, "RPCUserProfilesGetById")
 }
 
 func TestGenerateOperationNameWithUnderscores(t *testing.T) {
@@ -284,7 +295,8 @@ func TestGenerateOperationNameWithUnderscores(t *testing.T) {
 	exitCode := duh.RunCmd(stdout, []string{"generate", "duh", specPath})
 
 	require.Equal(t, 0, exitCode)
-	assert.Contains(t, stdout.String(), "UserProfilesGetById")
+	content := getServerContent(t, specPath)
+	assert.Contains(t, content, "UserProfilesGetById")
 }
 
 func TestGenerateOperationNameInvalidPathNoVersion(t *testing.T) {
@@ -309,7 +321,8 @@ func TestGenerateConstNamePrefixesRPC(t *testing.T) {
 	exitCode := duh.RunCmd(stdout, []string{"generate", "duh", specPath})
 
 	require.Equal(t, 0, exitCode)
-	assert.Contains(t, stdout.String(), "RPCUsersCreate")
+	content := getServerContent(t, specPath)
+	assert.Contains(t, content, "RPCUsersCreate")
 }
 
 func TestToCamelCaseWithHyphens(t *testing.T) {
@@ -318,7 +331,8 @@ func TestToCamelCaseWithHyphens(t *testing.T) {
 	exitCode := duh.RunCmd(stdout, []string{"generate", "duh", specPath})
 
 	require.Equal(t, 0, exitCode)
-	assert.Contains(t, stdout.String(), "UserProfilesGetById")
+	content := getServerContent(t, specPath)
+	assert.Contains(t, content, "UserProfilesGetById")
 }
 
 func TestToCamelCaseWithUnderscores(t *testing.T) {
@@ -327,5 +341,6 @@ func TestToCamelCaseWithUnderscores(t *testing.T) {
 	exitCode := duh.RunCmd(stdout, []string{"generate", "duh", specPath})
 
 	require.Equal(t, 0, exitCode)
-	assert.Contains(t, stdout.String(), "UserProfilesGetById")
+	content := getServerContent(t, specPath)
+	assert.Contains(t, content, "UserProfilesGetById")
 }

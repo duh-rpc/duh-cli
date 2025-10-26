@@ -1167,12 +1167,12 @@ Ensure you have write permissions to the output directory
 - [x] All functional tests pass (26 tests)
 
 ### Phase 2 (Server)
-- [ ] Server template renders without errors
-- [ ] Generated server.go compiles independently
-- [ ] RPC constants match spec paths
-- [ ] ServiceInterface has all operations
-- [ ] Switch/case routing includes all paths
-- [ ] Individual handlers generated correctly
+- [x] Server template renders without errors
+- [x] Generated server.go compiles independently
+- [x] RPC constants match spec paths
+- [x] ServiceInterface has all operations
+- [x] Switch/case routing includes all paths
+- [x] Individual handlers generated correctly
 
 ### Phase 3 (Iterator)
 - [ ] Iterator template renders without errors

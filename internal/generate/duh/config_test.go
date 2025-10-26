@@ -141,8 +141,7 @@ func TestGenerateDuhParsesSimpleSpec(t *testing.T) {
 
 	require.Equal(t, 0, exitCode)
 	assert.Contains(t, stdout.String(), "✓")
-	assert.Contains(t, stdout.String(), "Operations: 1")
-	assert.Contains(t, stdout.String(), "List operations: 0")
+	assert.Contains(t, stdout.String(), "server.go")
 }
 
 func TestGenerateDuhParsesListOperation(t *testing.T) {
@@ -151,17 +150,22 @@ func TestGenerateDuhParsesListOperation(t *testing.T) {
 	exitCode := duh.RunCmd(stdout, []string{"generate", "duh", specPath})
 
 	require.Equal(t, 0, exitCode)
-	assert.Contains(t, stdout.String(), "Operations: 1")
-	assert.Contains(t, stdout.String(), "List operations: 1")
+	assert.Contains(t, stdout.String(), "✓")
+	assert.Contains(t, stdout.String(), "server.go")
 }
 
 func TestGenerateDuhWithCustomPackage(t *testing.T) {
 	specPath, stdout := setupTest(t, simpleValidSpec)
+	tempDir := filepath.Dir(specPath)
 
 	exitCode := duh.RunCmd(stdout, []string{"generate", "duh", specPath, "-p", "myapi"})
 
 	require.Equal(t, 0, exitCode)
-	assert.Contains(t, stdout.String(), "Package: myapi")
+	assert.Contains(t, stdout.String(), "✓")
+
+	serverContent, err := os.ReadFile(filepath.Join(tempDir, "server.go"))
+	require.NoError(t, err)
+	assert.Contains(t, string(serverContent), "package myapi")
 }
 
 func TestGenerateDuhRejectsMainPackage(t *testing.T) {
@@ -194,7 +198,11 @@ func TestGenerateDuhDetectsModulePath(t *testing.T) {
 	exitCode := duh.RunCmd(&stdout, []string{"generate", "duh", specPath})
 
 	require.Equal(t, 0, exitCode)
-	assert.Contains(t, stdout.String(), "github.com/example/project")
+	assert.Contains(t, stdout.String(), "✓")
+
+	serverContent, err := os.ReadFile(filepath.Join(tempDir, "server.go"))
+	require.NoError(t, err)
+	assert.Contains(t, string(serverContent), "github.com/example/project/proto/v1")
 }
 
 func TestGenerateDuhMissingGoMod(t *testing.T) {

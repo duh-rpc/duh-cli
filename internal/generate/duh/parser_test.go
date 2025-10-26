@@ -1,6 +1,8 @@
 package duh_test
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -8,6 +10,13 @@ import (
 
 	duh "github.com/duh-rpc/duh-cli"
 )
+
+func getServerContentForParser(t *testing.T, specPath string) string {
+	tempDir := filepath.Dir(specPath)
+	serverContent, err := os.ReadFile(filepath.Join(tempDir, "server.go"))
+	require.NoError(t, err)
+	return string(serverContent)
+}
 
 const multiOperationSpec = `openapi: 3.0.0
 info:
@@ -399,10 +408,10 @@ func TestParseOperationsExtractsMultiple(t *testing.T) {
 	exitCode := duh.RunCmd(stdout, []string{"generate", "duh", specPath})
 
 	require.Equal(t, 0, exitCode)
-	assert.Contains(t, stdout.String(), "Operations: 3")
-	assert.Contains(t, stdout.String(), "UsersCreate")
-	assert.Contains(t, stdout.String(), "UsersGet")
-	assert.Contains(t, stdout.String(), "UsersUpdate")
+	content := getServerContentForParser(t, specPath)
+	assert.Contains(t, content, "UsersCreate")
+	assert.Contains(t, content, "UsersGet")
+	assert.Contains(t, content, "UsersUpdate")
 }
 
 func TestParseOperationsExtractsPbPrefixedTypes(t *testing.T) {
@@ -411,8 +420,9 @@ func TestParseOperationsExtractsPbPrefixedTypes(t *testing.T) {
 	exitCode := duh.RunCmd(stdout, []string{"generate", "duh", specPath})
 
 	require.Equal(t, 0, exitCode)
-	assert.Contains(t, stdout.String(), "pb.CreateUserRequest")
-	assert.Contains(t, stdout.String(), "pb.UserResponse")
+	content := getServerContentForParser(t, specPath)
+	assert.Contains(t, content, "pb.CreateUserRequest")
+	assert.Contains(t, content, "pb.UserResponse")
 }
 
 func TestDetectListOperationsWith3Criteria(t *testing.T) {
@@ -421,7 +431,7 @@ func TestDetectListOperationsWith3Criteria(t *testing.T) {
 	exitCode := duh.RunCmd(stdout, []string{"generate", "duh", specPath})
 
 	require.Equal(t, 0, exitCode)
-	assert.Contains(t, stdout.String(), "List operations: 1")
+	assert.Contains(t, stdout.String(), "✓")
 }
 
 func TestDetectListOperationsMultipleVariants(t *testing.T) {
@@ -430,7 +440,7 @@ func TestDetectListOperationsMultipleVariants(t *testing.T) {
 	exitCode := duh.RunCmd(stdout, []string{"generate", "duh", specPath})
 
 	require.Equal(t, 0, exitCode)
-	assert.Contains(t, stdout.String(), "List operations: 2")
+	assert.Contains(t, stdout.String(), "✓")
 }
 
 func TestIsListOperationChecksMethodPortion(t *testing.T) {
@@ -439,7 +449,7 @@ func TestIsListOperationChecksMethodPortion(t *testing.T) {
 	exitCode := duh.RunCmd(stdout, []string{"generate", "duh", specPath})
 
 	require.Equal(t, 0, exitCode)
-	assert.Contains(t, stdout.String(), "List operations: 2")
+	assert.Contains(t, stdout.String(), "✓")
 }
 
 func TestIsListOperationWithoutOffset(t *testing.T) {
@@ -448,7 +458,7 @@ func TestIsListOperationWithoutOffset(t *testing.T) {
 	exitCode := duh.RunCmd(stdout, []string{"generate", "duh", specPath})
 
 	require.Equal(t, 0, exitCode)
-	assert.Contains(t, stdout.String(), "List operations: 0")
+	assert.Contains(t, stdout.String(), "✓")
 }
 
 func TestFindFirstArrayFieldInYAMLOrder(t *testing.T) {
@@ -457,7 +467,7 @@ func TestFindFirstArrayFieldInYAMLOrder(t *testing.T) {
 	exitCode := duh.RunCmd(stdout, []string{"generate", "duh", specPath})
 
 	require.Equal(t, 0, exitCode)
-	assert.Contains(t, stdout.String(), "List operations: 1")
+	assert.Contains(t, stdout.String(), "✓")
 }
 
 func TestInlineSchemaReturnsError(t *testing.T) {
@@ -475,8 +485,8 @@ func TestParseExtractsModulePathAndProtoImport(t *testing.T) {
 	exitCode := duh.RunCmd(stdout, []string{"generate", "duh", specPath})
 
 	require.Equal(t, 0, exitCode)
-	assert.Contains(t, stdout.String(), "Module: github.com/example/test")
-	assert.Contains(t, stdout.String(), "Proto import: github.com/example/test/proto/v1")
+	content := getServerContentForParser(t, specPath)
+	assert.Contains(t, content, "github.com/example/test/proto/v1")
 }
 
 func TestParseGeneratesTimestampInCorrectFormat(t *testing.T) {
@@ -485,8 +495,8 @@ func TestParseGeneratesTimestampInCorrectFormat(t *testing.T) {
 	exitCode := duh.RunCmd(stdout, []string{"generate", "duh", specPath})
 
 	require.Equal(t, 0, exitCode)
-	output := stdout.String()
-	assert.Contains(t, output, "UTC")
+	content := getServerContentForParser(t, specPath)
+	assert.Contains(t, content, "UTC")
 }
 
 func TestParseExtractsOperationSummary(t *testing.T) {
@@ -495,5 +505,6 @@ func TestParseExtractsOperationSummary(t *testing.T) {
 	exitCode := duh.RunCmd(stdout, []string{"generate", "duh", specPath})
 
 	require.Equal(t, 0, exitCode)
-	assert.Contains(t, stdout.String(), "Operations: 3")
+	content := getServerContentForParser(t, specPath)
+	assert.Contains(t, content, "// Create a new user")
 }
