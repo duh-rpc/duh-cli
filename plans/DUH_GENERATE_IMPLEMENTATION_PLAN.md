@@ -1189,11 +1189,11 @@ Ensure you have write permissions to the output directory
 - [x] WithTLS/WithNoTLS helpers present
 
 ### Phase 5 (Proto & Orchestration)
-- [ ] Mock proto converter generates valid proto
-- [ ] Schema names extracted correctly
-- [ ] Full pipeline runs end-to-end
-- [ ] All files generated in correct locations
-- [ ] Success message accurate
+- [x] Mock proto converter generates valid proto
+- [x] Schema names extracted correctly
+- [x] Full pipeline runs end-to-end
+- [x] All files generated in correct locations
+- [x] Success message accurate
 
 ### Phase 6 (Command)
 - [x] Command registered under generate

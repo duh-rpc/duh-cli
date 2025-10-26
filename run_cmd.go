@@ -229,7 +229,9 @@ Exit Codes:
 			protoImport, _ := cmd.Flags().GetString("proto-import")
 			protoPackage, _ := cmd.Flags().GetString("proto-package")
 
-			if err := duh.Run(cmd.OutOrStdout(), filePath, packageName, outputDir, protoPath, protoImport, protoPackage); err != nil {
+			converter := duh.NewMockProtoConverter()
+
+			if err := duh.Run(cmd.OutOrStdout(), filePath, packageName, outputDir, protoPath, protoImport, protoPackage, converter); err != nil {
 				_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Error: %v\n", err)
 				exitCode = 2
 				return

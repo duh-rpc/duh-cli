@@ -9,7 +9,7 @@ import (
 	"github.com/duh-rpc/duh-cli/internal/lint"
 )
 
-func Run(w io.Writer, specPath, packageName, outputDir, protoPath, protoImport, protoPackage string) error {
+func Run(w io.Writer, specPath, packageName, outputDir, protoPath, protoImport, protoPackage string, converter ProtoConverter) error {
 	spec, err := lint.Load(specPath)
 	if err != nil {
 		return err
@@ -73,6 +73,23 @@ func Run(w io.Writer, specPath, packageName, outputDir, protoPath, protoImport, 
 	}
 
 	filesGenerated = append(filesGenerated, "client.go")
+
+	specContent, err := os.ReadFile(specPath)
+	if err != nil {
+		return fmt.Errorf("failed to read OpenAPI spec: %w", err)
+	}
+
+	protoCode, err := converter.Convert(specContent, data.ProtoPackage)
+	if err != nil {
+		return fmt.Errorf("failed to convert OpenAPI to proto: %w", err)
+	}
+
+	protoFilePath := filepath.Join(outputDir, protoPath)
+	if err := writeFile(protoFilePath, protoCode); err != nil {
+		return fmt.Errorf("failed to write proto file: %w", err)
+	}
+
+	filesGenerated = append(filesGenerated, protoPath)
 
 	_, _ = fmt.Fprintf(w, "✓ Generated %d file(s) in %s\n", len(filesGenerated), outputDir)
 	for _, file := range filesGenerated {
