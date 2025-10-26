@@ -1203,18 +1203,18 @@ Ensure you have write permissions to the output directory
 - [x] Exit codes correct
 
 ### Phase 7 (Integration)
-- [ ] Generated code from real spec compiles
-- [ ] Generated structure matches reference files
-- [ ] Multiple operation types handled
-- [ ] Proto imports correct
-- [ ] Non-atomic behavior verified
+- [x] Generated code from real spec compiles
+- [x] Generated structure matches reference files
+- [x] Multiple operation types handled
+- [x] Proto imports correct
+- [x] Non-atomic behavior verified
 
 ### Overall
-- [ ] All tests pass: `go test ./internal/generate/duh -v`
-- [ ] Code passes vet: `go vet ./...`
-- [ ] Binary builds: `go build -o duh .`
+- [x] All tests pass: `go test ./internal/generate/duh -v`
+- [x] Code passes vet: `go vet ./...`
+- [x] Binary builds: `go build -o duh .`
 - [ ] Manual test succeeds: `./duh generate duh openapi.yaml && cd output && go build .`
-- [ ] CLAUDE.md guidelines followed
+- [x] CLAUDE.md guidelines followed
 
 ---
 
