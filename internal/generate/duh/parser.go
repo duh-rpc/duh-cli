@@ -11,14 +11,16 @@ import (
 )
 
 type Parser struct {
-	spec   *v3.Document
-	config *Config
+	spec           *v3.Document
+	config         *Config
+	isFullTemplate bool
 }
 
-func NewParser(spec *v3.Document, config *Config) *Parser {
+func NewParser(spec *v3.Document, config *Config, isFullTemplate bool) *Parser {
 	return &Parser{
-		spec:   spec,
-		config: config,
+		spec:           spec,
+		config:         config,
+		isFullTemplate: isFullTemplate,
 	}
 }
 
@@ -41,14 +43,16 @@ func (p *Parser) Parse() (*TemplateData, error) {
 	timestamp := time.Now().UTC().Format("2006-01-02 15:04:05 UTC")
 
 	return &TemplateData{
-		Package:      p.config.PackageName,
-		ModulePath:   modulePath,
-		ProtoImport:  p.config.ConstructProtoImport(modulePath),
-		ProtoPackage: p.config.DeriveProtoPackage(),
-		Operations:   operations,
-		ListOps:      listOps,
-		HasListOps:   len(listOps) > 0,
-		Timestamp:    timestamp,
+		Package:        p.config.PackageName,
+		ModulePath:     modulePath,
+		ProtoImport:    p.config.ConstructProtoImport(modulePath),
+		ProtoPackage:   p.config.DeriveProtoPackage(),
+		Operations:     operations,
+		ListOps:        listOps,
+		HasListOps:     len(listOps) > 0,
+		Timestamp:      timestamp,
+		IsFullTemplate: p.isFullTemplate,
+		GoModule:       modulePath,
 	}, nil
 }
 

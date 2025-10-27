@@ -1,14 +1,30 @@
 package duh
 
-type TemplateData struct {
-	Package      string
-	ModulePath   string
+import "io"
+
+type RunConfig struct {
+	Writer       io.Writer
+	SpecPath     string
+	PackageName  string
+	OutputDir    string
+	ProtoPath    string
 	ProtoImport  string
 	ProtoPackage string
-	Operations   []Operation
-	ListOps      []ListOperation
-	HasListOps   bool
-	Timestamp    string
+	FullFlag     bool
+	Converter    ProtoConverter
+}
+
+type TemplateData struct {
+	Package        string
+	ModulePath     string
+	ProtoImport    string
+	ProtoPackage   string
+	Operations     []Operation
+	ListOps        []ListOperation
+	HasListOps     bool
+	Timestamp      string
+	IsFullTemplate bool
+	GoModule       string
 }
 
 type Operation struct {

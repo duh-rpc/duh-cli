@@ -210,6 +210,16 @@ pagination iterators, server with routing, and protobuf definitions.
 By default, generates client.go, server.go, iterator.go (if list operations),
 and proto file. Use flags to customize output.
 
+With --full flag, additionally generates editable scaffolding files:
+  - daemon.go: Service orchestration with TLS/HTTP support
+  - service.go: Service implementation (full or stub based on spec)
+  - api_test.go: Integration tests (full suite or minimal example)
+  - Makefile: Build automation with test, lint, and proto targets
+
+If the OpenAPI spec matches 'duh init' template (users.create, users.get,
+users.list, users.update), full implementations are generated. Otherwise,
+stub implementations with TODO comments are generated for you to fill in.
+
 If no file path is provided, defaults to 'openapi.yaml' in the current directory.
 
 Exit Codes:
@@ -228,10 +238,19 @@ Exit Codes:
 			protoPath, _ := cmd.Flags().GetString("proto-path")
 			protoImport, _ := cmd.Flags().GetString("proto-import")
 			protoPackage, _ := cmd.Flags().GetString("proto-package")
+			fullFlag, _ := cmd.Flags().GetBool("full")
 
-			converter := duh.NewProtoConverter()
-
-			if err := duh.Run(cmd.OutOrStdout(), filePath, packageName, outputDir, protoPath, protoImport, protoPackage, converter); err != nil {
+			if err := duh.Run(duh.RunConfig{
+				Writer:       cmd.OutOrStdout(),
+				SpecPath:     filePath,
+				PackageName:  packageName,
+				OutputDir:    outputDir,
+				ProtoPath:    protoPath,
+				ProtoImport:  protoImport,
+				ProtoPackage: protoPackage,
+				FullFlag:     fullFlag,
+				Converter:    duh.NewProtoConverter(),
+			}); err != nil {
 				_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Error: %v\n", err)
 				exitCode = 2
 				return
@@ -243,6 +262,7 @@ Exit Codes:
 	duhCmd.Flags().String("proto-path", "proto/v1/api.proto", "Proto file path")
 	duhCmd.Flags().String("proto-import", "", "Proto import override (optional)")
 	duhCmd.Flags().String("proto-package", "", "Proto package override (optional)")
+	duhCmd.Flags().Bool("full", false, "Generate additional editable scaffolding files")
 
 	generateCmd.AddCommand(oapiCmd, duhCmd)
 

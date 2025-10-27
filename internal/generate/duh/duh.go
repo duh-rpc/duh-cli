@@ -2,30 +2,31 @@ package duh
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 
 	"github.com/duh-rpc/duh-cli/internal/lint"
 )
 
-func Run(w io.Writer, specPath, packageName, outputDir, protoPath, protoImport, protoPackage string, converter ProtoConverter) error {
-	spec, err := lint.Load(specPath)
+func Run(config RunConfig) error {
+	spec, err := lint.Load(config.SpecPath)
 	if err != nil {
 		return err
 	}
 
-	result := lint.Validate(spec, specPath)
+	result := lint.Validate(spec, config.SpecPath)
 	if !result.Valid() {
 		return fmt.Errorf("OpenAPI validation failed")
 	}
 
-	config, err := NewConfig(packageName, outputDir, protoPath, protoImport, protoPackage)
+	isFullTemplate := IsInitTemplateSpec(spec)
+
+	genConfig, err := NewConfig(config.PackageName, config.OutputDir, config.ProtoPath, config.ProtoImport, config.ProtoPackage)
 	if err != nil {
 		return err
 	}
 
-	parser := NewParser(spec, config)
+	parser := NewParser(spec, genConfig, isFullTemplate)
 	data, err := parser.Parse()
 	if err != nil {
 		return err
@@ -41,7 +42,7 @@ func Run(w io.Writer, specPath, packageName, outputDir, protoPath, protoImport, 
 		return fmt.Errorf("failed to render server.go: %w", err)
 	}
 
-	serverPath := filepath.Join(outputDir, "server.go")
+	serverPath := filepath.Join(config.OutputDir, "server.go")
 	if err := writeFile(serverPath, serverCode); err != nil {
 		return fmt.Errorf("failed to write server.go: %w", err)
 	}
@@ -54,7 +55,7 @@ func Run(w io.Writer, specPath, packageName, outputDir, protoPath, protoImport, 
 			return fmt.Errorf("failed to render iterator.go: %w", err)
 		}
 
-		iteratorPath := filepath.Join(outputDir, "iterator.go")
+		iteratorPath := filepath.Join(config.OutputDir, "iterator.go")
 		if err := writeFile(iteratorPath, iteratorCode); err != nil {
 			return fmt.Errorf("failed to write iterator.go: %w", err)
 		}
@@ -67,33 +68,83 @@ func Run(w io.Writer, specPath, packageName, outputDir, protoPath, protoImport, 
 		return fmt.Errorf("failed to render client.go: %w", err)
 	}
 
-	clientPath := filepath.Join(outputDir, "client.go")
+	clientPath := filepath.Join(config.OutputDir, "client.go")
 	if err := writeFile(clientPath, clientCode); err != nil {
 		return fmt.Errorf("failed to write client.go: %w", err)
 	}
 
 	filesGenerated = append(filesGenerated, "client.go")
 
-	specContent, err := os.ReadFile(specPath)
+	specContent, err := os.ReadFile(config.SpecPath)
 	if err != nil {
 		return fmt.Errorf("failed to read OpenAPI spec: %w", err)
 	}
 
-	protoCode, err := converter.Convert(specContent, data.ProtoPackage)
+	protoCode, err := config.Converter.Convert(specContent, data.ProtoPackage)
 	if err != nil {
 		return fmt.Errorf("failed to convert OpenAPI to proto: %w", err)
 	}
 
-	protoFilePath := filepath.Join(outputDir, protoPath)
+	protoFilePath := filepath.Join(config.OutputDir, config.ProtoPath)
 	if err := writeFile(protoFilePath, protoCode); err != nil {
 		return fmt.Errorf("failed to write proto file: %w", err)
 	}
 
-	filesGenerated = append(filesGenerated, protoPath)
+	filesGenerated = append(filesGenerated, config.ProtoPath)
 
-	_, _ = fmt.Fprintf(w, "✓ Generated %d file(s) in %s\n", len(filesGenerated), outputDir)
+	if config.FullFlag {
+		daemonCode, err := generator.RenderDaemon(data)
+		if err != nil {
+			return fmt.Errorf("failed to render daemon.go: %w", err)
+		}
+
+		daemonPath := filepath.Join(config.OutputDir, "daemon.go")
+		if err := writeFile(daemonPath, daemonCode); err != nil {
+			return fmt.Errorf("failed to write daemon.go: %w", err)
+		}
+
+		filesGenerated = append(filesGenerated, "daemon.go")
+
+		serviceCode, err := generator.RenderService(data)
+		if err != nil {
+			return fmt.Errorf("failed to render service.go: %w", err)
+		}
+
+		servicePath := filepath.Join(config.OutputDir, "service.go")
+		if err := writeFile(servicePath, serviceCode); err != nil {
+			return fmt.Errorf("failed to write service.go: %w", err)
+		}
+
+		filesGenerated = append(filesGenerated, "service.go")
+
+		apiTestCode, err := generator.RenderApiTest(data)
+		if err != nil {
+			return fmt.Errorf("failed to render api_test.go: %w", err)
+		}
+
+		apiTestPath := filepath.Join(config.OutputDir, "api_test.go")
+		if err := writeFile(apiTestPath, apiTestCode); err != nil {
+			return fmt.Errorf("failed to write api_test.go: %w", err)
+		}
+
+		filesGenerated = append(filesGenerated, "api_test.go")
+
+		makefileCode, err := generator.RenderMakefile(data)
+		if err != nil {
+			return fmt.Errorf("failed to render Makefile: %w", err)
+		}
+
+		makefilePath := "Makefile"
+		if err := writeFile(makefilePath, makefileCode); err != nil {
+			return fmt.Errorf("failed to write Makefile: %w", err)
+		}
+
+		filesGenerated = append(filesGenerated, "Makefile")
+	}
+
+	_, _ = fmt.Fprintf(config.Writer, "✓ Generated %d file(s) in %s\n", len(filesGenerated), config.OutputDir)
 	for _, file := range filesGenerated {
-		_, _ = fmt.Fprintf(w, "  - %s\n", file)
+		_, _ = fmt.Fprintf(config.Writer, "  - %s\n", file)
 	}
 
 	return nil
