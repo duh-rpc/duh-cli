@@ -208,7 +208,10 @@ The duh command generates DUH-RPC specific code including HTTP client with
 pagination iterators, server with routing, and protobuf definitions.
 
 By default, generates client.go, server.go, iterator.go (if list operations),
-and proto file. Use flags to customize output.
+proto file, buf.yaml, and buf.gen.yaml. Use flags to customize output.
+
+After generation, run 'buf generate' to generate Go code from proto files,
+then run 'go mod tidy' to update dependencies.
 
 With --full flag, additionally generates editable scaffolding files:
   - daemon.go: Service orchestration with TLS/HTTP support

@@ -34,7 +34,7 @@ func TestGenerateDuhWithFullFlagAndInitSpec(t *testing.T) {
 	exitCode := duh.RunCmd(&stdout, args)
 
 	require.Equal(t, 0, exitCode)
-	assert.Contains(t, stdout.String(), "Generated 9 file(s)")
+	assert.Contains(t, stdout.String(), "Generated 10 file(s)")
 
 	_, err = os.Stat("buf.yaml")
 	require.NoError(t, err)
@@ -99,7 +99,7 @@ func TestGenerateDuhWithFullFlagAndCustomSpec(t *testing.T) {
 	exitCode := duh.RunCmd(&stdout, args)
 
 	require.Equal(t, 0, exitCode)
-	assert.Contains(t, stdout.String(), "Generated 8 file(s)")
+	assert.Contains(t, stdout.String(), "Generated 9 file(s)")
 
 	serviceContent, err := os.ReadFile("service.go")
 	require.NoError(t, err)
@@ -134,10 +134,10 @@ func TestGenerateDuhWithoutFullFlag(t *testing.T) {
 	exitCode := duh.RunCmd(&stdout, args)
 
 	require.Equal(t, 0, exitCode)
-	assert.Contains(t, stdout.String(), "Generated 4 file(s)")
+	assert.Contains(t, stdout.String(), "Generated 6 file(s)")
 
 	_, err = os.Stat("buf.yaml")
-	require.Error(t, err)
+	require.NoError(t, err)
 
 	_, err = os.Stat("daemon.go")
 	require.Error(t, err)
@@ -212,8 +212,11 @@ func TestMakefileGoesToProjectRoot(t *testing.T) {
 	exitCode := duh.RunCmd(&stdout, args)
 	require.Equal(t, 0, exitCode)
 
-	_, err = os.Stat("Makefile")
+	_, err = os.Stat(filepath.Join("api", "Makefile"))
 	require.NoError(t, err)
+
+	_, err = os.Stat("Makefile")
+	require.Error(t, err)
 
 	apiFiles := []string{"daemon.go", "service.go", "api_test.go", "server.go", "client.go"}
 	for _, file := range apiFiles {
@@ -264,7 +267,7 @@ func TestFullGeneratedCodeFormat(t *testing.T) {
 	}
 }
 
-func TestBufYamlNotOverwrittenWhenExists(t *testing.T) {
+func TestBufFilesNotOverwrittenWhenExist(t *testing.T) {
 	tempDir := t.TempDir()
 	specPath := filepath.Join(tempDir, "openapi.yaml")
 
@@ -276,7 +279,9 @@ func TestBufYamlNotOverwrittenWhenExists(t *testing.T) {
 	))
 
 	const customBufYaml = "# MY CUSTOM BUF.YAML\nversion: v2\n"
+	const customBufGenYaml = "# MY CUSTOM BUF.GEN.YAML\nversion: v2\n"
 	require.NoError(t, os.WriteFile(filepath.Join(tempDir, "buf.yaml"), []byte(customBufYaml), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(tempDir, "buf.gen.yaml"), []byte(customBufGenYaml), 0644))
 
 	originalDir, err := os.Getwd()
 	require.NoError(t, err)
@@ -285,13 +290,18 @@ func TestBufYamlNotOverwrittenWhenExists(t *testing.T) {
 	require.NoError(t, os.Chdir(tempDir))
 
 	var stdout bytes.Buffer
-	args := []string{"generate", "duh", "openapi.yaml", "--full"}
+	args := []string{"generate", "duh", "openapi.yaml"}
 	exitCode := duh.RunCmd(&stdout, args)
 
 	require.Equal(t, 0, exitCode)
-	assert.Contains(t, stdout.String(), "Generated 8 file(s)")
+	assert.Contains(t, stdout.String(), "Generated 4 file(s)")
 
 	bufYamlContent, err := os.ReadFile("buf.yaml")
 	require.NoError(t, err)
 	assert.Equal(t, customBufYaml, string(bufYamlContent))
+
+	bufGenYamlContent, err := os.ReadFile("buf.gen.yaml")
+	require.NoError(t, err)
+	assert.Equal(t, customBufGenYaml, string(bufGenYamlContent))
 }
+

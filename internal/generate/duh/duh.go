@@ -92,21 +92,35 @@ func Run(config RunConfig) error {
 
 	filesGenerated = append(filesGenerated, config.ProtoPath)
 
-	if config.FullFlag {
-		bufYamlPath := filepath.Join(config.OutputDir, "buf.yaml")
-		if _, err := os.Stat(bufYamlPath); os.IsNotExist(err) {
-			bufYamlCode, err := generator.RenderBufYaml(data)
-			if err != nil {
-				return fmt.Errorf("failed to render buf.yaml: %w", err)
-			}
-
-			if err := writeFile(bufYamlPath, bufYamlCode); err != nil {
-				return fmt.Errorf("failed to write buf.yaml: %w", err)
-			}
-
-			filesGenerated = append(filesGenerated, "buf.yaml")
+	bufYamlPath := filepath.Join(config.OutputDir, "buf.yaml")
+	if _, err := os.Stat(bufYamlPath); os.IsNotExist(err) {
+		bufYamlCode, err := generator.RenderBufYaml(data)
+		if err != nil {
+			return fmt.Errorf("failed to render buf.yaml: %w", err)
 		}
 
+		if err := writeFile(bufYamlPath, bufYamlCode); err != nil {
+			return fmt.Errorf("failed to write buf.yaml: %w", err)
+		}
+
+		filesGenerated = append(filesGenerated, "buf.yaml")
+	}
+
+	bufGenYamlPath := filepath.Join(config.OutputDir, "buf.gen.yaml")
+	if _, err := os.Stat(bufGenYamlPath); os.IsNotExist(err) {
+		bufGenYamlCode, err := generator.RenderBufGenYaml(data)
+		if err != nil {
+			return fmt.Errorf("failed to render buf.gen.yaml: %w", err)
+		}
+
+		if err := writeFile(bufGenYamlPath, bufGenYamlCode); err != nil {
+			return fmt.Errorf("failed to write buf.gen.yaml: %w", err)
+		}
+
+		filesGenerated = append(filesGenerated, "buf.gen.yaml")
+	}
+
+	if config.FullFlag {
 		daemonCode, err := generator.RenderDaemon(data)
 		if err != nil {
 			return fmt.Errorf("failed to render daemon.go: %w", err)
@@ -148,7 +162,7 @@ func Run(config RunConfig) error {
 			return fmt.Errorf("failed to render Makefile: %w", err)
 		}
 
-		makefilePath := "Makefile"
+		makefilePath := filepath.Join(config.OutputDir, "Makefile")
 		if err := writeFile(makefilePath, makefileCode); err != nil {
 			return fmt.Errorf("failed to write Makefile: %w", err)
 		}
@@ -160,6 +174,10 @@ func Run(config RunConfig) error {
 	for _, file := range filesGenerated {
 		_, _ = fmt.Fprintf(config.Writer, "  - %s\n", file)
 	}
+
+	_, _ = fmt.Fprintf(config.Writer, "\nNext steps:\n")
+	_, _ = fmt.Fprintf(config.Writer, "  1. Run 'buf generate' to generate Go code from proto files\n")
+	_, _ = fmt.Fprintf(config.Writer, "  2. Run 'go mod tidy' to update dependencies\n")
 
 	return nil
 }

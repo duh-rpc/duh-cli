@@ -110,6 +110,15 @@ func (g *Generator) RenderBufYaml(data *TemplateData) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
+func (g *Generator) RenderBufGenYaml(data *TemplateData) ([]byte, error) {
+	var buf bytes.Buffer
+	if err := g.templates.ExecuteTemplate(&buf, "buf.gen.yaml.tmpl", data); err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
+}
+
 func (g *Generator) FormatCode(code []byte) ([]byte, error) {
 	return format.Source(code)
 }

@@ -277,7 +277,7 @@ func TestEndToEndGeneration(t *testing.T) {
 
 	require.Equal(t, 0, exitCode)
 	assert.Contains(t, stdout.String(), "✓")
-	assert.Contains(t, stdout.String(), "4 file(s)")
+	assert.Contains(t, stdout.String(), "6 file(s)")
 
 	_, err := os.Stat(filepath.Join(tempDir, "server.go"))
 	require.NoError(t, err)
@@ -286,6 +286,10 @@ func TestEndToEndGeneration(t *testing.T) {
 	_, err = os.Stat(filepath.Join(tempDir, "iterator.go"))
 	require.NoError(t, err)
 	_, err = os.Stat(filepath.Join(tempDir, "proto/v1/api.proto"))
+	require.NoError(t, err)
+	_, err = os.Stat(filepath.Join(tempDir, "buf.yaml"))
+	require.NoError(t, err)
+	_, err = os.Stat(filepath.Join(tempDir, "buf.gen.yaml"))
 	require.NoError(t, err)
 }
 
@@ -625,7 +629,7 @@ func TestFullPipelineWithDependencies(t *testing.T) {
 
 	require.Equal(t, 0, exitCode)
 	assert.Contains(t, stdout.String(), "✓")
-	assert.Contains(t, stdout.String(), "4 file(s)")
+	assert.Contains(t, stdout.String(), "6 file(s)")
 
 	serverContent, err := os.ReadFile(filepath.Join(tempDir, "server.go"))
 	require.NoError(t, err)
@@ -790,13 +794,17 @@ func TestNoListOperations(t *testing.T) {
 
 	require.Equal(t, 0, exitCode)
 	assert.Contains(t, stdout.String(), "✓")
-	assert.Contains(t, stdout.String(), "3 file(s)")
+	assert.Contains(t, stdout.String(), "5 file(s)")
 
 	_, err := os.Stat(filepath.Join(tempDir, "server.go"))
 	require.NoError(t, err)
 	_, err = os.Stat(filepath.Join(tempDir, "client.go"))
 	require.NoError(t, err)
 	_, err = os.Stat(filepath.Join(tempDir, "proto/v1/api.proto"))
+	require.NoError(t, err)
+	_, err = os.Stat(filepath.Join(tempDir, "buf.yaml"))
+	require.NoError(t, err)
+	_, err = os.Stat(filepath.Join(tempDir, "buf.gen.yaml"))
 	require.NoError(t, err)
 
 	_, err = os.Stat(filepath.Join(tempDir, "iterator.go"))
