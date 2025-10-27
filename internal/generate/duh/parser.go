@@ -43,6 +43,7 @@ func (p *Parser) Parse() (*TemplateData, error) {
 	timestamp := time.Now().UTC().Format("2006-01-02 15:04:05 UTC")
 
 	return &TemplateData{
+		PackageImport:  p.config.ConstructPackageImport(modulePath),
 		Package:        p.config.PackageName,
 		ModulePath:     modulePath,
 		ProtoImport:    p.config.ConstructProtoImport(modulePath),

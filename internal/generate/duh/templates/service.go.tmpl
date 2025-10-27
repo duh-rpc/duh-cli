@@ -8,13 +8,13 @@ import (
 {{if .IsFullTemplate}}	"sort"
 	"sync"
 
-	"github.com/duh-rpc/duh-go"
+	"github.com/duh-rpc/duh.go"
 	pb "{{.ProtoImport}}"
 	"github.com/google/uuid"
 	"github.com/kapetan-io/tackle/set"
 	"google.golang.org/protobuf/types/known/timestamppb"
 {{else}}
-	"github.com/duh-rpc/duh-go"
+	"github.com/duh-rpc/duh.go"
 	pb "{{.ProtoImport}}"
 {{end}})
 

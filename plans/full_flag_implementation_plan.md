@@ -337,7 +337,7 @@ func (s *Service) Shutdown(ctx context.Context) error {
 **Context for Implementation:**
 - Use existing operation iteration pattern from `templates/server.go.tmpl:22-27`
 - Reference `/Users/thrawn/Development/duh-poc/service.go` for full implementation
-- Include imports: context, log/slog, sync (for full impl), duh-go, proto import, uuid, set
+- Include imports: context, log/slog, sync (for full impl), duh.go, proto import, uuid, set
 
 #### 3. Test Template (Conditional)
 

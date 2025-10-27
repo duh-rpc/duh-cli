@@ -109,7 +109,7 @@ func TestGenerateDuhCreatesProtoFile(t *testing.T) {
 	content := string(protoContent)
 
 	assert.True(t, strings.HasPrefix(content, "syntax = \"proto3\""))
-	assert.Contains(t, content, "option go_package = \"github.com/example/test/proto/v1;duh.api.v1\";")
+	assert.Contains(t, content, "option go_package = \"github.com/example/test/proto/v1\";")
 	assert.Contains(t, content, "package duh.api.v1")
 	assert.Contains(t, content, "message CreateUserRequest")
 	assert.Contains(t, content, "message UserResponse")

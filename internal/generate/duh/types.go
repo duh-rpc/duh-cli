@@ -15,6 +15,7 @@ type RunConfig struct {
 }
 
 type TemplateData struct {
+	PackageImport  string
 	Package        string
 	ModulePath     string
 	ProtoImport    string
