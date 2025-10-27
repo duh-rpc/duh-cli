@@ -234,6 +234,44 @@ func TestListUsersPagination(t *testing.T) {
 	assert.False(t, page2.HasMore)
 }
 
+func TestListUsersIterator(t *testing.T) {
+	d, err := {{$.Package}}.SpawnDaemon(context.Background(), {{$.Package}}.DaemonConfig{})
+	require.NoError(t, err)
+	defer d.Shutdown(context.Background())
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	c := d.MustClient().(*api.Client)
+
+	const numUsers = 25
+	for i := 0; i < numUsers; i++ {
+		var resp pb.CreateUserResponse
+		err = c.CreateUser(ctx, &pb.CreateUserRequest{
+			Name:  "User" + string(rune('A'+i)),
+			Email: "user" + string(rune('a'+i)) + "@example.com",
+		}, &resp)
+		require.NoError(t, err)
+	}
+
+	iter := c.ListUsersIter(10, pb.SortBy_SORT_BY_UNSPECIFIED)
+	var page api.Page[*pb.UserResponse]
+
+	collected := make([]*pb.UserResponse, 0)
+	pages := 0
+
+	for iter.Next(ctx, &page) {
+		pages++
+		collected = append(collected, page.Items...)
+		assert.Equal(t, numUsers, page.Total)
+		assert.Equal(t, 10, page.PerPage)
+	}
+
+	require.NoError(t, iter.Err())
+	assert.Equal(t, 3, pages)
+	assert.Len(t, collected, numUsers)
+}
+
 func TestListUsersSorting(t *testing.T) {
 	d, err := {{$.Package}}.SpawnDaemon(context.Background(), {{$.Package}}.DaemonConfig{})
 	require.NoError(t, err)
