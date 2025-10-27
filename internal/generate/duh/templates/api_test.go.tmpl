@@ -13,7 +13,18 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-{{if .IsFullTemplate}}func TestCreateUser(t *testing.T) {
+{{if .IsFullTemplate}}{{- $createMethod := "" -}}
+{{- $getMethod := "" -}}
+{{- $listMethod := "" -}}
+{{- $updateMethod := "" -}}
+{{- range .Operations -}}
+  {{- if eq .Path "/v1/users.create" -}}{{- $createMethod = .MethodName -}}{{- end -}}
+  {{- if eq .Path "/v1/users.get" -}}{{- $getMethod = .MethodName -}}{{- end -}}
+  {{- if eq .Path "/v1/users.list" -}}{{- $listMethod = .MethodName -}}{{- end -}}
+  {{- if eq .Path "/v1/users.update" -}}{{- $updateMethod = .MethodName -}}{{- end -}}
+{{- end -}}
+
+func TestUsersCreate(t *testing.T) {
 	d, err := {{$.Package}}.SpawnDaemon(context.Background(), {{$.Package}}.DaemonConfig{})
 	require.NoError(t, err)
 	defer d.Shutdown(context.Background())
@@ -24,7 +35,7 @@ import (
 	c := d.MustClient()
 
 	var resp pb.CreateUserResponse
-	err = c.CreateUser(ctx, &pb.CreateUserRequest{
+	err = c.{{$createMethod}}(ctx, &pb.CreateUserRequest{
 		Name:  "Alice",
 		Email: "alice@example.com",
 		Age:   30,
@@ -36,7 +47,7 @@ import (
 	assert.NotNil(t, resp.CreatedAt)
 }
 
-func TestCreateUserValidation(t *testing.T) {
+func TestUsersCreateValidation(t *testing.T) {
 	d, err := {{$.Package}}.SpawnDaemon(context.Background(), {{$.Package}}.DaemonConfig{})
 	require.NoError(t, err)
 	defer d.Shutdown(context.Background())
@@ -68,14 +79,14 @@ func TestCreateUserValidation(t *testing.T) {
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			var resp pb.CreateUserResponse
-			err := c.CreateUser(ctx, test.request, &resp)
+			err := c.{{$createMethod}}(ctx, test.request, &resp)
 			require.Error(t, err)
 			require.ErrorContains(t, err, test.wantErr)
 		})
 	}
 }
 
-func TestCreateUserDuplicateEmail(t *testing.T) {
+func TestUsersCreateDuplicateEmail(t *testing.T) {
 	d, err := {{$.Package}}.SpawnDaemon(context.Background(), {{$.Package}}.DaemonConfig{})
 	require.NoError(t, err)
 	defer d.Shutdown(context.Background())
@@ -86,14 +97,14 @@ func TestCreateUserDuplicateEmail(t *testing.T) {
 	c := d.MustClient()
 
 	var resp1 pb.CreateUserResponse
-	err = c.CreateUser(ctx, &pb.CreateUserRequest{
+	err = c.{{$createMethod}}(ctx, &pb.CreateUserRequest{
 		Name:  "Alice",
 		Email: "alice@example.com",
 	}, &resp1)
 	require.NoError(t, err)
 
 	var resp2 pb.CreateUserResponse
-	err = c.CreateUser(ctx, &pb.CreateUserRequest{
+	err = c.{{$createMethod}}(ctx, &pb.CreateUserRequest{
 		Name:  "Alice2",
 		Email: "alice@example.com",
 	}, &resp2)
@@ -101,7 +112,7 @@ func TestCreateUserDuplicateEmail(t *testing.T) {
 	require.ErrorContains(t, err, "user with this email already exists")
 }
 
-func TestGetUserById(t *testing.T) {
+func TestUsersGet(t *testing.T) {
 	d, err := {{$.Package}}.SpawnDaemon(context.Background(), {{$.Package}}.DaemonConfig{})
 	require.NoError(t, err)
 	defer d.Shutdown(context.Background())
@@ -112,7 +123,7 @@ func TestGetUserById(t *testing.T) {
 	c := d.MustClient()
 
 	var created pb.CreateUserResponse
-	err = c.CreateUser(ctx, &pb.CreateUserRequest{
+	err = c.{{$createMethod}}(ctx, &pb.CreateUserRequest{
 		Name:  "Bob",
 		Email: "bob@example.com",
 		Age:   25,
@@ -120,7 +131,7 @@ func TestGetUserById(t *testing.T) {
 	require.NoError(t, err)
 
 	var resp pb.UserResponse
-	err = c.GetUserById(ctx, &pb.GetUserRequest{
+	err = c.{{$getMethod}}(ctx, &pb.GetUserRequest{
 		UserId: created.UserId,
 	}, &resp)
 	require.NoError(t, err)
@@ -130,7 +141,7 @@ func TestGetUserById(t *testing.T) {
 	assert.Equal(t, int32(25), resp.Age)
 }
 
-func TestGetUserByIdNotFound(t *testing.T) {
+func TestUsersGetNotFound(t *testing.T) {
 	d, err := {{$.Package}}.SpawnDaemon(context.Background(), {{$.Package}}.DaemonConfig{})
 	require.NoError(t, err)
 	defer d.Shutdown(context.Background())
@@ -141,14 +152,14 @@ func TestGetUserByIdNotFound(t *testing.T) {
 	c := d.MustClient()
 
 	var resp pb.UserResponse
-	err = c.GetUserById(ctx, &pb.GetUserRequest{
+	err = c.{{$getMethod}}(ctx, &pb.GetUserRequest{
 		UserId: "nonexistent-id",
 	}, &resp)
 	require.Error(t, err)
 	require.ErrorContains(t, err, "user not found")
 }
 
-func TestGetUserByIdValidation(t *testing.T) {
+func TestUsersGetValidation(t *testing.T) {
 	d, err := {{$.Package}}.SpawnDaemon(context.Background(), {{$.Package}}.DaemonConfig{})
 	require.NoError(t, err)
 	defer d.Shutdown(context.Background())
@@ -159,14 +170,14 @@ func TestGetUserByIdValidation(t *testing.T) {
 	c := d.MustClient()
 
 	var resp pb.UserResponse
-	err = c.GetUserById(ctx, &pb.GetUserRequest{
+	err = c.{{$getMethod}}(ctx, &pb.GetUserRequest{
 		UserId: "",
 	}, &resp)
 	require.Error(t, err)
 	require.ErrorContains(t, err, "user_id is required")
 }
 
-func TestListUsers(t *testing.T) {
+func TestUsersList(t *testing.T) {
 	d, err := {{$.Package}}.SpawnDaemon(context.Background(), {{$.Package}}.DaemonConfig{})
 	require.NoError(t, err)
 	defer d.Shutdown(context.Background())
@@ -179,7 +190,7 @@ func TestListUsers(t *testing.T) {
 	const numUsers = 5
 	for i := 0; i < numUsers; i++ {
 		var resp pb.CreateUserResponse
-		err = c.CreateUser(ctx, &pb.CreateUserRequest{
+		err = c.{{$createMethod}}(ctx, &pb.CreateUserRequest{
 			Name:  "User" + string(rune('A'+i)),
 			Email: "user" + string(rune('a'+i)) + "@example.com",
 		}, &resp)
@@ -187,13 +198,13 @@ func TestListUsers(t *testing.T) {
 	}
 
 	var resp pb.ListUsersResponse
-	err = c.ListUsers(ctx, &pb.ListUsersRequest{}, &resp)
+	err = c.{{$listMethod}}(ctx, &pb.ListUsersRequest{}, &resp)
 	require.NoError(t, err)
 	assert.Len(t, resp.Users, numUsers)
 	assert.Equal(t, int32(numUsers), resp.Total)
 }
 
-func TestListUsersPagination(t *testing.T) {
+func TestUsersListPagination(t *testing.T) {
 	d, err := {{$.Package}}.SpawnDaemon(context.Background(), {{$.Package}}.DaemonConfig{})
 	require.NoError(t, err)
 	defer d.Shutdown(context.Background())
@@ -206,7 +217,7 @@ func TestListUsersPagination(t *testing.T) {
 	const numUsers = 15
 	for i := 0; i < numUsers; i++ {
 		var resp pb.CreateUserResponse
-		err = c.CreateUser(ctx, &pb.CreateUserRequest{
+		err = c.{{$createMethod}}(ctx, &pb.CreateUserRequest{
 			Name:  "User" + string(rune('A'+i)),
 			Email: "user" + string(rune('a'+i)) + "@example.com",
 		}, &resp)
@@ -214,7 +225,7 @@ func TestListUsersPagination(t *testing.T) {
 	}
 
 	var page1 pb.ListUsersResponse
-	err = c.ListUsers(ctx, &pb.ListUsersRequest{
+	err = c.{{$listMethod}}(ctx, &pb.ListUsersRequest{
 		Limit:  10,
 		Offset: 0,
 	}, &page1)
@@ -224,7 +235,7 @@ func TestListUsersPagination(t *testing.T) {
 	assert.True(t, page1.HasMore)
 
 	var page2 pb.ListUsersResponse
-	err = c.ListUsers(ctx, &pb.ListUsersRequest{
+	err = c.{{$listMethod}}(ctx, &pb.ListUsersRequest{
 		Limit:  10,
 		Offset: 10,
 	}, &page2)
@@ -234,7 +245,7 @@ func TestListUsersPagination(t *testing.T) {
 	assert.False(t, page2.HasMore)
 }
 
-func TestListUsersIterator(t *testing.T) {
+func TestUsersListIterator(t *testing.T) {
 	d, err := {{$.Package}}.SpawnDaemon(context.Background(), {{$.Package}}.DaemonConfig{})
 	require.NoError(t, err)
 	defer d.Shutdown(context.Background())
@@ -247,7 +258,7 @@ func TestListUsersIterator(t *testing.T) {
 	const numUsers = 25
 	for i := 0; i < numUsers; i++ {
 		var resp pb.CreateUserResponse
-		err = c.CreateUser(ctx, &pb.CreateUserRequest{
+		err = c.{{$createMethod}}(ctx, &pb.CreateUserRequest{
 			Name:  "User" + string(rune('A'+i)),
 			Email: "user" + string(rune('a'+i)) + "@example.com",
 		}, &resp)
@@ -272,7 +283,7 @@ func TestListUsersIterator(t *testing.T) {
 	assert.Len(t, collected, numUsers)
 }
 
-func TestListUsersSorting(t *testing.T) {
+func TestUsersListSorting(t *testing.T) {
 	d, err := {{$.Package}}.SpawnDaemon(context.Background(), {{$.Package}}.DaemonConfig{})
 	require.NoError(t, err)
 	defer d.Shutdown(context.Background())
@@ -293,7 +304,7 @@ func TestListUsersSorting(t *testing.T) {
 
 	for _, u := range users {
 		var resp pb.CreateUserResponse
-		err = c.CreateUser(ctx, &pb.CreateUserRequest{
+		err = c.{{$createMethod}}(ctx, &pb.CreateUserRequest{
 			Name:  u.name,
 			Email: u.email,
 		}, &resp)
@@ -301,7 +312,7 @@ func TestListUsersSorting(t *testing.T) {
 	}
 
 	var resp pb.ListUsersResponse
-	err = c.ListUsers(ctx, &pb.ListUsersRequest{
+	err = c.{{$listMethod}}(ctx, &pb.ListUsersRequest{
 		SortBy: pb.SortBy_SORT_BY_NAME,
 	}, &resp)
 	require.NoError(t, err)
@@ -311,7 +322,7 @@ func TestListUsersSorting(t *testing.T) {
 	assert.Equal(t, "Charlie", resp.Users[2].Name)
 }
 
-func TestUpdateUser(t *testing.T) {
+func TestUsersUpdate(t *testing.T) {
 	d, err := {{$.Package}}.SpawnDaemon(context.Background(), {{$.Package}}.DaemonConfig{})
 	require.NoError(t, err)
 	defer d.Shutdown(context.Background())
@@ -322,7 +333,7 @@ func TestUpdateUser(t *testing.T) {
 	c := d.MustClient()
 
 	var created pb.CreateUserResponse
-	err = c.CreateUser(ctx, &pb.CreateUserRequest{
+	err = c.{{$createMethod}}(ctx, &pb.CreateUserRequest{
 		Name:  "Alice",
 		Email: "alice@example.com",
 		Age:   30,
@@ -330,7 +341,7 @@ func TestUpdateUser(t *testing.T) {
 	require.NoError(t, err)
 
 	var updated pb.UpdateUserResponse
-	err = c.UpdateUser(ctx, &pb.UpdateUserRequest{
+	err = c.{{$updateMethod}}(ctx, &pb.UpdateUserRequest{
 		UserId: created.UserId,
 		Name:   "Alice Updated",
 		Age:    31,
@@ -342,7 +353,7 @@ func TestUpdateUser(t *testing.T) {
 	assert.NotNil(t, updated.UpdatedAt)
 }
 
-func TestUpdateUserNotFound(t *testing.T) {
+func TestUsersUpdateNotFound(t *testing.T) {
 	d, err := {{$.Package}}.SpawnDaemon(context.Background(), {{$.Package}}.DaemonConfig{})
 	require.NoError(t, err)
 	defer d.Shutdown(context.Background())
@@ -353,7 +364,7 @@ func TestUpdateUserNotFound(t *testing.T) {
 	c := d.MustClient()
 
 	var resp pb.UpdateUserResponse
-	err = c.UpdateUser(ctx, &pb.UpdateUserRequest{
+	err = c.{{$updateMethod}}(ctx, &pb.UpdateUserRequest{
 		UserId: "nonexistent-id",
 		Name:   "Updated",
 	}, &resp)
@@ -361,7 +372,7 @@ func TestUpdateUserNotFound(t *testing.T) {
 	require.ErrorContains(t, err, "user not found")
 }
 
-func TestUpdateUserDuplicateEmail(t *testing.T) {
+func TestUsersUpdateDuplicateEmail(t *testing.T) {
 	d, err := {{$.Package}}.SpawnDaemon(context.Background(), {{$.Package}}.DaemonConfig{})
 	require.NoError(t, err)
 	defer d.Shutdown(context.Background())
@@ -372,21 +383,21 @@ func TestUpdateUserDuplicateEmail(t *testing.T) {
 	c := d.MustClient()
 
 	var user1 pb.CreateUserResponse
-	err = c.CreateUser(ctx, &pb.CreateUserRequest{
+	err = c.{{$createMethod}}(ctx, &pb.CreateUserRequest{
 		Name:  "Alice",
 		Email: "alice@example.com",
 	}, &user1)
 	require.NoError(t, err)
 
 	var user2 pb.CreateUserResponse
-	err = c.CreateUser(ctx, &pb.CreateUserRequest{
+	err = c.{{$createMethod}}(ctx, &pb.CreateUserRequest{
 		Name:  "Bob",
 		Email: "bob@example.com",
 	}, &user2)
 	require.NoError(t, err)
 
 	var resp pb.UpdateUserResponse
-	err = c.UpdateUser(ctx, &pb.UpdateUserRequest{
+	err = c.{{$updateMethod}}(ctx, &pb.UpdateUserRequest{
 		UserId: user2.UserId,
 		Email:  "alice@example.com",
 	}, &resp)
@@ -394,7 +405,7 @@ func TestUpdateUserDuplicateEmail(t *testing.T) {
 	require.ErrorContains(t, err, "user with this email already exists")
 }
 
-func TestUpdateUserValidation(t *testing.T) {
+func TestUsersUpdateValidation(t *testing.T) {
 	d, err := {{$.Package}}.SpawnDaemon(context.Background(), {{$.Package}}.DaemonConfig{})
 	require.NoError(t, err)
 	defer d.Shutdown(context.Background())
@@ -405,7 +416,7 @@ func TestUpdateUserValidation(t *testing.T) {
 	c := d.MustClient()
 
 	var resp pb.UpdateUserResponse
-	err = c.UpdateUser(ctx, &pb.UpdateUserRequest{
+	err = c.{{$updateMethod}}(ctx, &pb.UpdateUserRequest{
 		UserId: "",
 		Name:   "Updated",
 	}, &resp)

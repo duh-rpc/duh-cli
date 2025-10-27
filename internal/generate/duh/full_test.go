@@ -16,7 +16,7 @@ func TestGenerateDuhWithFullFlagAndInitSpec(t *testing.T) {
 	tempDir := t.TempDir()
 	specPath := filepath.Join(tempDir, "openapi.yaml")
 
-	require.NoError(t, os.WriteFile(specPath, []byte(initTemplateSpec), 0644))
+	require.NoError(t, os.WriteFile(specPath, []byte(initTemplateWithExtraMethod), 0644))
 	require.NoError(t, os.WriteFile(
 		filepath.Join(tempDir, "go.mod"),
 		[]byte("module github.com/test/example\n\ngo 1.24\n"),
@@ -54,17 +54,17 @@ func TestGenerateDuhWithFullFlagAndInitSpec(t *testing.T) {
 	serviceContent, err := os.ReadFile("service.go")
 	require.NoError(t, err)
 	assert.Contains(t, string(serviceContent), "map[string]*pb.UserResponse")
-	assert.Contains(t, string(serviceContent), "func (s *Service) CreateUser")
-	assert.Contains(t, string(serviceContent), "func (s *Service) GetUserById")
-	assert.Contains(t, string(serviceContent), "func (s *Service) ListUsers")
-	assert.Contains(t, string(serviceContent), "func (s *Service) UpdateUser")
+	assert.Contains(t, string(serviceContent), "func (s *Service) UsersCreate")
+	assert.Contains(t, string(serviceContent), "func (s *Service) UsersGet")
+	assert.Contains(t, string(serviceContent), "func (s *Service) UsersList")
+	assert.Contains(t, string(serviceContent), "func (s *Service) UsersUpdate")
 
 	apiTestContent, err := os.ReadFile("api_test.go")
 	require.NoError(t, err)
-	assert.Contains(t, string(apiTestContent), "func TestCreateUser(t *testing.T)")
-	assert.Contains(t, string(apiTestContent), "func TestGetUserById(t *testing.T)")
-	assert.Contains(t, string(apiTestContent), "func TestListUsers(t *testing.T)")
-	assert.Contains(t, string(apiTestContent), "func TestUpdateUser(t *testing.T)")
+	assert.Contains(t, string(apiTestContent), "func TestUsersCreate(t *testing.T)")
+	assert.Contains(t, string(apiTestContent), "func TestUsersGet(t *testing.T)")
+	assert.Contains(t, string(apiTestContent), "func TestUsersList(t *testing.T)")
+	assert.Contains(t, string(apiTestContent), "func TestUsersUpdate(t *testing.T)")
 
 	daemonContent, err := os.ReadFile("daemon.go")
 	require.NoError(t, err)
@@ -75,6 +75,20 @@ func TestGenerateDuhWithFullFlagAndInitSpec(t *testing.T) {
 	assert.Contains(t, string(makefileContent), "YOU CAN EDIT")
 	assert.Contains(t, string(makefileContent), "proto:")
 	assert.Contains(t, string(makefileContent), "test:")
+
+	serverContent, err := os.ReadFile("server.go")
+	require.NoError(t, err)
+	serverStr := string(serverContent)
+	assert.Contains(t, serverStr, "UsersCreate(ctx context.Context")
+	assert.Contains(t, serverStr, "UsersGet(ctx context.Context")
+	assert.Contains(t, serverStr, "UsersList(ctx context.Context")
+	assert.Contains(t, serverStr, "UsersUpdate(ctx context.Context")
+
+	serviceStr := string(serviceContent)
+	assert.Contains(t, serviceStr, "UsersCreate(ctx context.Context")
+	assert.Contains(t, serviceStr, "UsersGet(ctx context.Context")
+	assert.Contains(t, serviceStr, "UsersList(ctx context.Context")
+	assert.Contains(t, serviceStr, "UsersUpdate(ctx context.Context")
 }
 
 func TestGenerateDuhWithFullFlagAndCustomSpec(t *testing.T) {
@@ -103,7 +117,7 @@ func TestGenerateDuhWithFullFlagAndCustomSpec(t *testing.T) {
 
 	serviceContent, err := os.ReadFile("service.go")
 	require.NoError(t, err)
-	assert.Contains(t, string(serviceContent), "TODO")
+	assert.Contains(t, string(serviceContent), "func (s *Service) ProductsCreate")
 	assert.Contains(t, string(serviceContent), "CodeNotImplemented")
 
 	apiTestContent, err := os.ReadFile("api_test.go")
@@ -185,7 +199,7 @@ func TestRegenerateWithFullFlagOverwrites(t *testing.T) {
 	serviceContent, err := os.ReadFile("service.go")
 	require.NoError(t, err)
 	assert.NotContains(t, string(serviceContent), customContent)
-	assert.Contains(t, string(serviceContent), "func (s *Service) CreateUser")
+	assert.Contains(t, string(serviceContent), "func (s *Service) UsersCreate")
 }
 
 func TestMakefileGoesToProjectRoot(t *testing.T) {
@@ -585,4 +599,3 @@ func TestGenerateDuhWithFullFlagAndExtraEndpoint(t *testing.T) {
 	assert.Contains(t, serverStr, "UsersUpdate(ctx context.Context")
 	assert.Contains(t, serverStr, "UsersDelete(ctx context.Context")
 }
-

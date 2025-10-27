@@ -29,12 +29,13 @@ type TemplateData struct {
 }
 
 type Operation struct {
-	MethodName   string
-	Path         string
-	ConstName    string
-	Summary      string
-	RequestType  string
-	ResponseType string
+	MethodName           string
+	Path                 string
+	ConstName            string
+	Summary              string
+	RequestType          string
+	ResponseType         string
+	IsInitTemplateMethod bool
 }
 
 type ListOperation struct {

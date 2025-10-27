@@ -23,22 +23,26 @@ type ServiceConfig struct {
 	Log        *slog.Logger
 }
 
-{{if .IsFullTemplate}}type Service struct {
-	users map[string]*pb.UserResponse
+type Service struct {
+{{if .IsFullTemplate}}	users map[string]*pb.UserResponse
 	mutex sync.RWMutex
-	conf  ServiceConfig
+{{end}}	conf  ServiceConfig
 }
 
 func NewService(conf ServiceConfig) (ServiceInterface, error) {
-	set.Default(&conf.Log, slog.Default())
+{{if .IsFullTemplate}}	set.Default(&conf.Log, slog.Default())
 
 	return &Service{
 		users: make(map[string]*pb.UserResponse),
 		conf:  conf,
 	}, nil
-}
+{{else}}	return &Service{conf: conf}, nil
+{{end}}}
 
-func (s *Service) CreateUser(ctx context.Context, req *pb.CreateUserRequest, resp *pb.CreateUserResponse) error {
+{{range .Operations}}
+{{if .IsInitTemplateMethod}}
+{{if eq .Path "/v1/users.create"}}
+func (s *Service) {{.MethodName}}(ctx context.Context, req *{{.RequestType}}, resp *{{.ResponseType}}) error {
 	if req.Email == "" {
 		return duh.NewServiceError(duh.CodeBadRequest, "email is required", nil, nil)
 	}
@@ -75,8 +79,8 @@ func (s *Service) CreateUser(ctx context.Context, req *pb.CreateUserRequest, res
 
 	return nil
 }
-
-func (s *Service) GetUserById(ctx context.Context, req *pb.GetUserRequest, resp *pb.UserResponse) error {
+{{else if eq .Path "/v1/users.get"}}
+func (s *Service) {{.MethodName}}(ctx context.Context, req *{{.RequestType}}, resp *{{.ResponseType}}) error {
 	if req.UserId == "" {
 		return duh.NewServiceError(duh.CodeBadRequest, "user_id is required", nil, nil)
 	}
@@ -97,8 +101,8 @@ func (s *Service) GetUserById(ctx context.Context, req *pb.GetUserRequest, resp 
 
 	return nil
 }
-
-func (s *Service) ListUsers(ctx context.Context, req *pb.ListUsersRequest, resp *pb.ListUsersResponse) error {
+{{else if eq .Path "/v1/users.list"}}
+func (s *Service) {{.MethodName}}(ctx context.Context, req *{{.RequestType}}, resp *{{.ResponseType}}) error {
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
 
@@ -153,8 +157,8 @@ func (s *Service) ListUsers(ctx context.Context, req *pb.ListUsersRequest, resp 
 
 	return nil
 }
-
-func (s *Service) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest, resp *pb.UpdateUserResponse) error {
+{{else if eq .Path "/v1/users.update"}}
+func (s *Service) {{.MethodName}}(ctx context.Context, req *{{.RequestType}}, resp *{{.ResponseType}}) error {
 	if req.UserId == "" {
 		return duh.NewServiceError(duh.CodeBadRequest, "user_id is required", nil, nil)
 	}
@@ -198,32 +202,20 @@ func (s *Service) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest, res
 
 	return nil
 }
+{{end}}
+{{else}}
+func (s *Service) {{.MethodName}}(ctx context.Context, req *{{.RequestType}}, resp *{{.ResponseType}}) error {
+	return duh.NewServiceError(duh.CodeNotImplemented, "{{.MethodName}} not implemented", nil, nil)
+}
+{{end}}
+{{end}}
 
 func (s *Service) Shutdown(ctx context.Context) error {
-	s.mutex.Lock()
+{{if .IsFullTemplate}}	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
 	s.conf.Log.Info("Shutting down service", "users", len(s.users))
 	s.users = nil
-
-	return nil
+{{else}}	// TODO: Cleanup resources
+{{end}}	return nil
 }
-{{else}}type Service struct {
-	conf ServiceConfig
-}
-
-func NewService(conf ServiceConfig) (ServiceInterface, error) {
-	// TODO: Initialize your service dependencies here
-	return &Service{conf: conf}, nil
-}
-{{range .Operations}}
-func (s *Service) {{.MethodName}}(ctx context.Context, req *{{.RequestType}}, resp *{{.ResponseType}}) error {
-	// TODO: Implement {{.MethodName}} logic
-	return duh.NewServiceError(duh.CodeNotImplemented, "{{.MethodName}} not implemented", nil, nil)
-}
-{{end}}
-func (s *Service) Shutdown(ctx context.Context) error {
-	// TODO: Cleanup resources
-	return nil
-}
-{{end}}
