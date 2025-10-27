@@ -305,3 +305,284 @@ func TestBufFilesNotOverwrittenWhenExist(t *testing.T) {
 	assert.Equal(t, customBufGenYaml, string(bufGenYamlContent))
 }
 
+const initTemplateWithExtraMethod = `openapi: 3.0.0
+info:
+  title: Users API
+  version: 1.0.0
+paths:
+  /v1/users.create:
+    post:
+      summary: Create a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateUserResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /v1/users.get:
+    post:
+      summary: Get user by ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetUserRequest'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /v1/users.list:
+    post:
+      summary: List users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListUsersRequest'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListUsersResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /v1/users.update:
+    post:
+      summary: Update a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateUserResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /v1/users.delete:
+    post:
+      summary: Delete a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteUserRequest'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteUserResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    CreateUserRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        age:
+          type: integer
+    CreateUserResponse:
+      type: object
+      properties:
+        user_id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+    GetUserRequest:
+      type: object
+      properties:
+        user_id:
+          type: string
+    UserResponse:
+      type: object
+      properties:
+        user_id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        age:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+    ListUsersRequest:
+      type: object
+      properties:
+        offset:
+          type: integer
+        limit:
+          type: integer
+        sort_by:
+          type: string
+    ListUsersResponse:
+      type: object
+      properties:
+        users:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserResponse'
+        total:
+          type: integer
+        has_more:
+          type: boolean
+    UpdateUserRequest:
+      type: object
+      properties:
+        user_id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        age:
+          type: integer
+        status:
+          type: string
+    UpdateUserResponse:
+      type: object
+      properties:
+        user_id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        age:
+          type: integer
+        status:
+          type: string
+        updated_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+    DeleteUserRequest:
+      type: object
+      properties:
+        user_id:
+          type: string
+    DeleteUserResponse:
+      type: object
+      properties:
+        user_id:
+          type: string
+        deleted_at:
+          type: string
+          format: date-time
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+`
+
+func TestGenerateDuhWithFullFlagAndExtraEndpoint(t *testing.T) {
+	tempDir := t.TempDir()
+	specPath := filepath.Join(tempDir, "openapi.yaml")
+
+	require.NoError(t, os.WriteFile(specPath, []byte(initTemplateWithExtraMethod), 0644))
+	require.NoError(t, os.WriteFile(
+		filepath.Join(tempDir, "go.mod"),
+		[]byte("module github.com/test/example\n\ngo 1.24\n"),
+		0644,
+	))
+
+	originalDir, err := os.Getwd()
+	require.NoError(t, err)
+	defer func() { _ = os.Chdir(originalDir) }()
+
+	require.NoError(t, os.Chdir(tempDir))
+
+	var stdout bytes.Buffer
+	args := []string{"generate", "duh", "openapi.yaml", "--full"}
+	exitCode := duh.RunCmd(&stdout, args)
+
+	require.Equal(t, 0, exitCode)
+
+	serviceContent, err := os.ReadFile("service.go")
+	require.NoError(t, err)
+
+	content := string(serviceContent)
+
+	assert.Contains(t, content, "func (s *Service) UsersCreate")
+	assert.Contains(t, content, "func (s *Service) UsersGet")
+	assert.Contains(t, content, "func (s *Service) UsersList")
+	assert.Contains(t, content, "func (s *Service) UsersUpdate")
+	assert.Contains(t, content, "func (s *Service) UsersDelete")
+
+	assert.Contains(t, content, `duh.NewServiceError(duh.CodeNotImplemented, "UsersDelete not implemented", nil, nil)`)
+
+	serverContent, err := os.ReadFile("server.go")
+	require.NoError(t, err)
+
+	serverStr := string(serverContent)
+	assert.Contains(t, serverStr, "UsersCreate(ctx context.Context")
+	assert.Contains(t, serverStr, "UsersGet(ctx context.Context")
+	assert.Contains(t, serverStr, "UsersList(ctx context.Context")
+	assert.Contains(t, serverStr, "UsersUpdate(ctx context.Context")
+	assert.Contains(t, serverStr, "UsersDelete(ctx context.Context")
+}
+
