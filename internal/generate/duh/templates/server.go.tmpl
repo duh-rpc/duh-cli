@@ -6,9 +6,11 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	pb "{{.ProtoImport}}"
+    "crypto/rand"
+    "encoding/hex"
 
 	"github.com/duh-rpc/duh.go"
+	pb "{{.ProtoImport}}"
 )
 
 const (
@@ -31,6 +33,24 @@ type MiddlewareFunc func(http.Handler) http.Handler
 
 type HandlerConfig struct {
 	Middlewares []MiddlewareFunc
+}
+
+// Example middleware that adds a request ID to context
+func RequestIDMiddleware(next http.Handler) http.Handler {
+  return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+      requestID := func() string {
+        b := make([]byte, 16)
+        rand.Read(b)
+        return hex.EncodeToString(b)
+      }()
+      ctx := context.WithValue(r.Context(), "request-id", requestID)
+
+      // Create a new request with the modified context
+      r = r.WithContext(ctx)
+
+      // Pass the modified request to the next handler
+      next.ServeHTTP(w, r)
+  })
 }
 
 func NewHandler(s ServiceInterface, conf HandlerConfig) http.Handler {
