@@ -93,6 +93,20 @@ func Run(config RunConfig) error {
 	filesGenerated = append(filesGenerated, config.ProtoPath)
 
 	if config.FullFlag {
+		bufYamlPath := filepath.Join(config.OutputDir, "buf.yaml")
+		if _, err := os.Stat(bufYamlPath); os.IsNotExist(err) {
+			bufYamlCode, err := generator.RenderBufYaml(data)
+			if err != nil {
+				return fmt.Errorf("failed to render buf.yaml: %w", err)
+			}
+
+			if err := writeFile(bufYamlPath, bufYamlCode); err != nil {
+				return fmt.Errorf("failed to write buf.yaml: %w", err)
+			}
+
+			filesGenerated = append(filesGenerated, "buf.yaml")
+		}
+
 		daemonCode, err := generator.RenderDaemon(data)
 		if err != nil {
 			return fmt.Errorf("failed to render daemon.go: %w", err)

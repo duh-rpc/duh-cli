@@ -34,7 +34,10 @@ func TestGenerateDuhWithFullFlagAndInitSpec(t *testing.T) {
 	exitCode := duh.RunCmd(&stdout, args)
 
 	require.Equal(t, 0, exitCode)
-	assert.Contains(t, stdout.String(), "Generated 8 file(s)")
+	assert.Contains(t, stdout.String(), "Generated 9 file(s)")
+
+	_, err = os.Stat("buf.yaml")
+	require.NoError(t, err)
 
 	_, err = os.Stat("daemon.go")
 	require.NoError(t, err)
@@ -96,7 +99,7 @@ func TestGenerateDuhWithFullFlagAndCustomSpec(t *testing.T) {
 	exitCode := duh.RunCmd(&stdout, args)
 
 	require.Equal(t, 0, exitCode)
-	assert.Contains(t, stdout.String(), "Generated 7 file(s)")
+	assert.Contains(t, stdout.String(), "Generated 8 file(s)")
 
 	serviceContent, err := os.ReadFile("service.go")
 	require.NoError(t, err)
@@ -132,6 +135,9 @@ func TestGenerateDuhWithoutFullFlag(t *testing.T) {
 
 	require.Equal(t, 0, exitCode)
 	assert.Contains(t, stdout.String(), "Generated 4 file(s)")
+
+	_, err = os.Stat("buf.yaml")
+	require.Error(t, err)
 
 	_, err = os.Stat("daemon.go")
 	require.Error(t, err)
@@ -256,4 +262,36 @@ func TestFullGeneratedCodeFormat(t *testing.T) {
 			assert.Contains(t, firstLine, "DO NOT EDIT", "file %s should have DO NOT EDIT marker", file)
 		}
 	}
+}
+
+func TestBufYamlNotOverwrittenWhenExists(t *testing.T) {
+	tempDir := t.TempDir()
+	specPath := filepath.Join(tempDir, "openapi.yaml")
+
+	require.NoError(t, os.WriteFile(specPath, []byte(initTemplateSpec), 0644))
+	require.NoError(t, os.WriteFile(
+		filepath.Join(tempDir, "go.mod"),
+		[]byte("module github.com/test/example\n\ngo 1.24\n"),
+		0644,
+	))
+
+	const customBufYaml = "# MY CUSTOM BUF.YAML\nversion: v2\n"
+	require.NoError(t, os.WriteFile(filepath.Join(tempDir, "buf.yaml"), []byte(customBufYaml), 0644))
+
+	originalDir, err := os.Getwd()
+	require.NoError(t, err)
+	defer func() { _ = os.Chdir(originalDir) }()
+
+	require.NoError(t, os.Chdir(tempDir))
+
+	var stdout bytes.Buffer
+	args := []string{"generate", "duh", "openapi.yaml", "--full"}
+	exitCode := duh.RunCmd(&stdout, args)
+
+	require.Equal(t, 0, exitCode)
+	assert.Contains(t, stdout.String(), "Generated 8 file(s)")
+
+	bufYamlContent, err := os.ReadFile("buf.yaml")
+	require.NoError(t, err)
+	assert.Equal(t, customBufYaml, string(bufYamlContent))
 }
