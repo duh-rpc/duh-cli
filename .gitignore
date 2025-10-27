@@ -8,7 +8,5 @@ coverage.html
 *test-data*
 .aider*
 .env
-docs/notes
-docs/plans
 /duh
 /duh-cli

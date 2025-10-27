@@ -236,9 +236,13 @@ components:
           description: Human-readable error message
           example: "Invalid input: email is required"
         details:
-          type: object
-          description: Optional additional error details
-          additionalProperties: true
+          $ref: '#/components/schemas/ErrorDetails'
+
+    ErrorDetails:
+      type: object
+      description: Optional additional error details
+      additionalProperties:
+        type: string
 
     # User-related schemas
     CreateUserRequest:
