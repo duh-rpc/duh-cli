@@ -28,7 +28,7 @@ type DaemonConfig struct {
 	// Optional TLS config for the client
 	ClientTLS *tls.Config
 	// Log is the logger to use
-	Log slog.Logger
+	Log *slog.Logger
 	// InstanceID is a unique id for this daemon instance
 	InstanceID string
 	// MaxConcurrentRequests is the maximum number of concurrent HTTP requests allowed.
@@ -48,15 +48,11 @@ func SpawnDaemon(ctx context.Context, conf DaemonConfig) (*Daemon, error) {
 	// Set daemon defaults if not defined by the config
 	set.Default(&conf.InstanceID, fmt.Sprintf("daemon-%d", time.Now().UnixNano()))
 	set.Default(&conf.MaxConcurrentRequests, 1000)
-	if conf.Log.Handler() == nil {
-		conf.Log = *slog.Default()
-	}
+	set.Default(&conf.Log, slog.Default())
 
 	// Set service defaults if not defined by the config
 	set.Default(&conf.ServiceConfig.InstanceID, conf.InstanceID)
-	if conf.ServiceConfig.Log == nil {
-		conf.ServiceConfig.Log = slog.Default()
-	}
+	set.Default(&conf.ServiceConfig, slog.Default())
 
 	s, err := NewService(conf.ServiceConfig)
 	if err != nil {
