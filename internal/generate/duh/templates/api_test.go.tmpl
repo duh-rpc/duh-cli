@@ -265,7 +265,7 @@ func TestUsersListIterator(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	iter := c.ListUsersIter(10, pb.SortBy_SORT_BY_UNSPECIFIED)
+	iter := c.UsersListIter(10)
 	var page api.Page[*pb.UserResponse]
 
 	collected := make([]*pb.UserResponse, 0)
