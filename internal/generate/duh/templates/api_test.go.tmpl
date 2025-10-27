@@ -27,7 +27,7 @@ import (
 func TestUsersCreate(t *testing.T) {
 	d, err := {{$.Package}}.SpawnDaemon(context.Background(), {{$.Package}}.DaemonConfig{})
 	require.NoError(t, err)
-	defer d.Shutdown(context.Background())
+	defer func() { _ = d.Shutdown(context.Background()) }()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -50,7 +50,7 @@ func TestUsersCreate(t *testing.T) {
 func TestUsersCreateValidation(t *testing.T) {
 	d, err := {{$.Package}}.SpawnDaemon(context.Background(), {{$.Package}}.DaemonConfig{})
 	require.NoError(t, err)
-	defer d.Shutdown(context.Background())
+	defer func() { _ = d.Shutdown(context.Background()) }()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -89,7 +89,7 @@ func TestUsersCreateValidation(t *testing.T) {
 func TestUsersCreateDuplicateEmail(t *testing.T) {
 	d, err := {{$.Package}}.SpawnDaemon(context.Background(), {{$.Package}}.DaemonConfig{})
 	require.NoError(t, err)
-	defer d.Shutdown(context.Background())
+	defer func() { _ = d.Shutdown(context.Background()) }()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -115,7 +115,7 @@ func TestUsersCreateDuplicateEmail(t *testing.T) {
 func TestUsersGet(t *testing.T) {
 	d, err := {{$.Package}}.SpawnDaemon(context.Background(), {{$.Package}}.DaemonConfig{})
 	require.NoError(t, err)
-	defer d.Shutdown(context.Background())
+	defer func() { _ = d.Shutdown(context.Background()) }()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -144,7 +144,7 @@ func TestUsersGet(t *testing.T) {
 func TestUsersGetNotFound(t *testing.T) {
 	d, err := {{$.Package}}.SpawnDaemon(context.Background(), {{$.Package}}.DaemonConfig{})
 	require.NoError(t, err)
-	defer d.Shutdown(context.Background())
+	defer func() { _ = d.Shutdown(context.Background()) }()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -162,7 +162,7 @@ func TestUsersGetNotFound(t *testing.T) {
 func TestUsersGetValidation(t *testing.T) {
 	d, err := {{$.Package}}.SpawnDaemon(context.Background(), {{$.Package}}.DaemonConfig{})
 	require.NoError(t, err)
-	defer d.Shutdown(context.Background())
+	defer func() { _ = d.Shutdown(context.Background()) }()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -180,7 +180,7 @@ func TestUsersGetValidation(t *testing.T) {
 func TestUsersList(t *testing.T) {
 	d, err := {{$.Package}}.SpawnDaemon(context.Background(), {{$.Package}}.DaemonConfig{})
 	require.NoError(t, err)
-	defer d.Shutdown(context.Background())
+	defer func() { _ = d.Shutdown(context.Background()) }()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -207,7 +207,7 @@ func TestUsersList(t *testing.T) {
 func TestUsersListPagination(t *testing.T) {
 	d, err := {{$.Package}}.SpawnDaemon(context.Background(), {{$.Package}}.DaemonConfig{})
 	require.NoError(t, err)
-	defer d.Shutdown(context.Background())
+	defer func() { _ = d.Shutdown(context.Background()) }()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -248,7 +248,7 @@ func TestUsersListPagination(t *testing.T) {
 func TestUsersListIterator(t *testing.T) {
 	d, err := {{$.Package}}.SpawnDaemon(context.Background(), {{$.Package}}.DaemonConfig{})
 	require.NoError(t, err)
-	defer d.Shutdown(context.Background())
+	defer func() { _ = d.Shutdown(context.Background()) }()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -286,7 +286,7 @@ func TestUsersListIterator(t *testing.T) {
 func TestUsersListSorting(t *testing.T) {
 	d, err := {{$.Package}}.SpawnDaemon(context.Background(), {{$.Package}}.DaemonConfig{})
 	require.NoError(t, err)
-	defer d.Shutdown(context.Background())
+	defer func() { _ = d.Shutdown(context.Background()) }()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -325,7 +325,7 @@ func TestUsersListSorting(t *testing.T) {
 func TestUsersUpdate(t *testing.T) {
 	d, err := {{$.Package}}.SpawnDaemon(context.Background(), {{$.Package}}.DaemonConfig{})
 	require.NoError(t, err)
-	defer d.Shutdown(context.Background())
+	defer func() { _ = d.Shutdown(context.Background()) }()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -356,7 +356,7 @@ func TestUsersUpdate(t *testing.T) {
 func TestUsersUpdateNotFound(t *testing.T) {
 	d, err := {{$.Package}}.SpawnDaemon(context.Background(), {{$.Package}}.DaemonConfig{})
 	require.NoError(t, err)
-	defer d.Shutdown(context.Background())
+	defer func() { _ = d.Shutdown(context.Background()) }()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -375,7 +375,7 @@ func TestUsersUpdateNotFound(t *testing.T) {
 func TestUsersUpdateDuplicateEmail(t *testing.T) {
 	d, err := {{$.Package}}.SpawnDaemon(context.Background(), {{$.Package}}.DaemonConfig{})
 	require.NoError(t, err)
-	defer d.Shutdown(context.Background())
+	defer func() { _ = d.Shutdown(context.Background()) }()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -408,7 +408,7 @@ func TestUsersUpdateDuplicateEmail(t *testing.T) {
 func TestUsersUpdateValidation(t *testing.T) {
 	d, err := {{$.Package}}.SpawnDaemon(context.Background(), {{$.Package}}.DaemonConfig{})
 	require.NoError(t, err)
-	defer d.Shutdown(context.Background())
+	defer func() { _ = d.Shutdown(context.Background()) }()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -426,7 +426,7 @@ func TestUsersUpdateValidation(t *testing.T) {
 {{else}}{{$firstOp := index .Operations 0}}func Test{{$firstOp.MethodName}}(t *testing.T) {
 	d, err := {{$.Package}}.SpawnDaemon(context.Background(), {{$.Package}}.DaemonConfig{})
 	require.NoError(t, err)
-	defer d.Shutdown(context.Background())
+	defer func() { _ = d.Shutdown(context.Background()) }()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
