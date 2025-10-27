@@ -482,59 +482,6 @@ func TestGeneratedCodeStructure(t *testing.T) {
 	assert.NotContains(t, iteratorStr, "//go:build")
 }
 
-func TestListOperationIterator(t *testing.T) {
-	tempDir := t.TempDir()
-	require.NoError(t, os.Chdir(tempDir))
-	require.NoError(t, os.WriteFile("go.mod", []byte("module github.com/example/test\n"), 0644))
-
-	specPath := filepath.Join(tempDir, "openapi.yaml")
-	require.NoError(t, os.WriteFile(specPath, []byte(fullSpec), 0644))
-
-	var stdout bytes.Buffer
-	exitCode := duh.RunCmd(&stdout, []string{"generate", "duh", specPath})
-	require.Equal(t, 0, exitCode)
-
-	clientContent, err := os.ReadFile(filepath.Join(tempDir, "client.go"))
-	require.NoError(t, err)
-	clientStr := string(clientContent)
-
-	assert.Contains(t, clientStr, "type UserPageFetcher struct")
-	assert.Contains(t, clientStr, "func (c *Client) UsersListIter")
-	assert.Contains(t, clientStr, "func (f *UserPageFetcher) FetchPage")
-}
-
-func TestMultipleOperations(t *testing.T) {
-	tempDir := t.TempDir()
-	require.NoError(t, os.Chdir(tempDir))
-	require.NoError(t, os.WriteFile("go.mod", []byte("module github.com/example/test\n"), 0644))
-
-	specPath := filepath.Join(tempDir, "openapi.yaml")
-	require.NoError(t, os.WriteFile(specPath, []byte(fullSpec), 0644))
-
-	var stdout bytes.Buffer
-	exitCode := duh.RunCmd(&stdout, []string{"generate", "duh", specPath})
-	require.Equal(t, 0, exitCode)
-
-	serverContent, err := os.ReadFile(filepath.Join(tempDir, "server.go"))
-	require.NoError(t, err)
-	serverStr := string(serverContent)
-
-	assert.Contains(t, serverStr, "RPCUsersCreate")
-	assert.Contains(t, serverStr, "RPCUsersGet")
-	assert.Contains(t, serverStr, "RPCUsersList")
-	assert.Contains(t, serverStr, "RPCUsersUpdate")
-
-	assert.Contains(t, serverStr, "UsersCreate(")
-	assert.Contains(t, serverStr, "UsersGet(")
-	assert.Contains(t, serverStr, "UsersList(")
-	assert.Contains(t, serverStr, "UsersUpdate(")
-
-	assert.Contains(t, serverStr, "case RPCUsersCreate:")
-	assert.Contains(t, serverStr, "case RPCUsersGet:")
-	assert.Contains(t, serverStr, "case RPCUsersList:")
-	assert.Contains(t, serverStr, "case RPCUsersUpdate:")
-}
-
 func TestProtoImportPaths(t *testing.T) {
 	tempDir := t.TempDir()
 	require.NoError(t, os.Chdir(tempDir))

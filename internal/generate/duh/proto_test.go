@@ -106,31 +106,11 @@ func TestGenerateDuhCreatesProtoFile(t *testing.T) {
 	protoContent, err := os.ReadFile(protoPath)
 	require.NoError(t, err)
 
-	assert.Contains(t, string(protoContent), "syntax = \"proto3\"")
-	assert.Contains(t, string(protoContent), "package duh.api.v1")
-	assert.Contains(t, string(protoContent), "message CreateUserRequest")
-	assert.Contains(t, string(protoContent), "message UserResponse")
-	assert.Contains(t, string(protoContent), "message Error")
-}
-
-func TestProtoFileStructure(t *testing.T) {
-	specPath, stdout := setupTest(t, simpleValidSpec)
-	tempDir := filepath.Dir(specPath)
-
-	exitCode := duh.RunCmd(stdout, []string{"generate", "duh", specPath})
-
-	require.Equal(t, 0, exitCode)
-
-	protoPath := filepath.Join(tempDir, "proto/v1/api.proto")
-	protoContent, err := os.ReadFile(protoPath)
-	require.NoError(t, err)
-
 	content := string(protoContent)
 
 	assert.True(t, strings.HasPrefix(content, "syntax = \"proto3\""))
-
+	assert.Contains(t, content, "option go_package = \"github.com/example/test/proto/v1;duh.api.v1\";")
 	assert.Contains(t, content, "package duh.api.v1")
-
 	assert.Contains(t, content, "message CreateUserRequest")
 	assert.Contains(t, content, "message UserResponse")
 	assert.Contains(t, content, "message Error")

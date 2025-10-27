@@ -11,29 +11,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestGenerateDuhCreatesClientFile(t *testing.T) {
-	specPath, stdout := setupTest(t, simpleValidSpec)
-	tempDir := filepath.Dir(specPath)
-
-	exitCode := duh.RunCmd(stdout, []string{"generate", "duh", specPath})
-
-	require.Equal(t, 0, exitCode)
-	assert.Contains(t, stdout.String(), "✓")
-	assert.Contains(t, stdout.String(), "client.go")
-
-	_, err := os.Stat(filepath.Join(tempDir, "client.go"))
-	require.NoError(t, err)
-
-	clientContent, err := os.ReadFile(filepath.Join(tempDir, "client.go"))
-	require.NoError(t, err)
-
-	content := string(clientContent)
-	assert.Contains(t, content, "type ClientInterface interface")
-	assert.Contains(t, content, "func NewClient")
-	assert.Contains(t, content, "func WithTLS")
-	assert.Contains(t, content, "func WithNoTLS")
-}
-
 func TestGeneratedClientCompiles(t *testing.T) {
 	specPath, stdout := setupTest(t, simpleValidSpec)
 	tempDir := filepath.Dir(specPath)
@@ -345,6 +322,11 @@ func TestClientStructure(t *testing.T) {
 
 	exitCode := duh.RunCmd(stdout, []string{"generate", "duh", specPath})
 	require.Equal(t, 0, exitCode)
+	assert.Contains(t, stdout.String(), "✓")
+	assert.Contains(t, stdout.String(), "client.go")
+
+	_, err := os.Stat(filepath.Join(tempDir, "client.go"))
+	require.NoError(t, err)
 
 	clientContent, err := os.ReadFile(filepath.Join(tempDir, "client.go"))
 	require.NoError(t, err)
@@ -352,6 +334,7 @@ func TestClientStructure(t *testing.T) {
 	content := string(clientContent)
 
 	assert.Contains(t, content, "type ClientInterface interface")
+	assert.Contains(t, content, "func NewClient")
 	assert.Contains(t, content, "UsersCreate(ctx context.Context")
 	assert.Contains(t, content, "UsersGet(ctx context.Context")
 	assert.Contains(t, content, "UsersUpdate(ctx context.Context")

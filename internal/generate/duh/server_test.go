@@ -124,20 +124,6 @@ components:
           type: string
 `
 
-func TestGenerateDuhCreatesServerFile(t *testing.T) {
-	specPath, stdout := setupTest(t, simpleValidSpec)
-	tempDir := filepath.Dir(specPath)
-
-	exitCode := duh.RunCmd(stdout, []string{"generate", "duh", specPath})
-
-	require.Equal(t, 0, exitCode)
-	assert.Contains(t, stdout.String(), "✓")
-	assert.Contains(t, stdout.String(), "server.go")
-
-	_, err := os.Stat(filepath.Join(tempDir, "server.go"))
-	require.NoError(t, err)
-}
-
 func TestGeneratedServerCompiles(t *testing.T) {
 	specPath, stdout := setupTest(t, simpleValidSpec)
 	tempDir := filepath.Dir(specPath)
@@ -225,6 +211,11 @@ func TestGeneratedServerStructure(t *testing.T) {
 
 	exitCode := duh.RunCmd(stdout, []string{"generate", "duh", specPath})
 	require.Equal(t, 0, exitCode)
+	assert.Contains(t, stdout.String(), "✓")
+	assert.Contains(t, stdout.String(), "server.go")
+
+	_, err := os.Stat(filepath.Join(tempDir, "server.go"))
+	require.NoError(t, err)
 
 	serverContent, err := os.ReadFile(filepath.Join(tempDir, "server.go"))
 	require.NoError(t, err)

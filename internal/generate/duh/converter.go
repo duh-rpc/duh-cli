@@ -5,7 +5,7 @@ import (
 )
 
 type ProtoConverter interface {
-	Convert(openapi []byte, packageName string) ([]byte, error)
+	Convert(openapi []byte, packageName, packagePath string) ([]byte, error)
 }
 
 func NewProtoConverter() ProtoConverter {
@@ -14,6 +14,9 @@ func NewProtoConverter() ProtoConverter {
 
 type realProtoConverter struct{}
 
-func (r *realProtoConverter) Convert(openapi []byte, packageName string) ([]byte, error) {
-	return conv.Convert(openapi, packageName)
+func (r *realProtoConverter) Convert(openapi []byte, packageName, packagePath string) ([]byte, error) {
+	return conv.Convert(openapi, conv.ConvertOptions{
+		PackageName: packageName,
+		PackagePath: packagePath,
+	})
 }

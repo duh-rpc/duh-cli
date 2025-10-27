@@ -80,7 +80,7 @@ func Run(config RunConfig) error {
 		return fmt.Errorf("failed to read OpenAPI spec: %w", err)
 	}
 
-	protoCode, err := config.Converter.Convert(specContent, data.ProtoPackage)
+	protoCode, err := config.Converter.Convert(specContent, data.ProtoPackage, data.ProtoImport)
 	if err != nil {
 		return fmt.Errorf("failed to convert OpenAPI to proto: %w", err)
 	}
