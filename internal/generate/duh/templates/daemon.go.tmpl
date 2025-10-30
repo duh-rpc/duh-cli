@@ -52,7 +52,7 @@ func SpawnDaemon(ctx context.Context, conf DaemonConfig) (*Daemon, error) {
 
 	// Set service defaults if not defined by the config
 	set.Default(&conf.ServiceConfig.InstanceID, conf.InstanceID)
-	set.Default(&conf.ServiceConfig, slog.Default())
+	set.Default(&conf.ServiceConfig.Log, slog.Default())
 
 	s, err := NewService(conf.ServiceConfig)
 	if err != nil {
