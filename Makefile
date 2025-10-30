@@ -2,7 +2,7 @@
 
 # Run all tests
 test:
-	go test -v ./...
+	go test -p 1 -v ./...
 
 # Lint code using golangci-lint
 lint:
@@ -30,7 +30,7 @@ clean:
 
 # Coverage report
 coverage:
-	go test -coverprofile=coverage.out ./...
+	go test -p 1 -coverprofile=coverage.out ./...
 	go tool cover -html=coverage.out -o coverage.html
 	@echo "Coverage report: coverage.html"
 
