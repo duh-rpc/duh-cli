@@ -9,7 +9,15 @@ Command-line tools for working with DUH-RPC specifications.
 
 ## Overview
 
-`duh` is a command-line tool for working with DUH-RPC specifications. It provides commands for validating OpenAPI YAML specifications against DUH-RPC conventions, ensuring your API specifications follow the Document-Unified HTTP RPC pattern with clear error messages and actionable suggestions when violations are found.
+`duh` is a command-line tool for working with DUH-RPC specifications. It provides commands for:
+- **Creating** OpenAPI specifications that follow DUH-RPC conventions
+- **Validating** OpenAPI YAML specifications against DUH-RPC requirements
+- **Generating** Go client, server, and type code from OpenAPI specifications
+- **Adding** new endpoints to existing OpenAPI specifications
+
+The tool ensures your API specifications follow the Document-Unified HTTP RPC pattern with clear error messages and actionable suggestions when violations are found.
+
+For detailed DUH-RPC specification requirements and examples, see the [DUH-RPC OpenAPI Reference](docs/duh-openapi-reference.md).
 
 ## Installation
 
@@ -36,13 +44,25 @@ make build
 
 ## Usage
 
-### Basic Usage
+### Initialize a New Specification
+
+Create a new DUH-RPC compliant OpenAPI specification template:
+
+```bash
+# Creates openapi.yaml in current directory
+duh init
+
+# Create with custom filename
+duh init my-api.yaml
+```
+
+The template includes a complete example with users.create, users.get, users.list, and users.update endpoints demonstrating all DUH-RPC requirements.
+
+### Validate a Specification
 
 ```bash
 duh lint <openapi-file>
 ```
-
-### Examples
 
 **Validate a compliant specification:**
 ```bash
@@ -74,78 +94,104 @@ ERRORS FOUND:
 Summary: 2 violations found in api-spec.yaml
 ```
 
-### Generate HTTP Client
+### Add a New Endpoint
+
+Add a new DUH-RPC endpoint to an existing specification:
 
 ```bash
-# Use default openapi.yaml, output to client.go
-duh generate client
+# Add endpoint to openapi.yaml (default)
+duh add /v1/products.create CreateProduct
+
+# Add to custom spec file
+duh add /v1/orders.cancel CancelOrder -f api/openapi.yaml
+```
+
+This creates a new POST endpoint with placeholder request and response schemas.
+
+### Generate Code
+
+#### Generate DUH-RPC Client and Server
+
+Generate DUH-RPC specific code including HTTP client with pagination iterators, server with routing, and protobuf definitions:
+
+```bash
+# Generate from openapi.yaml (default) to current directory
+duh generate duh
 
 # Specify custom spec file
-duh generate client api/openapi.yaml
+duh generate duh api/openapi.yaml
 
-# Custom output location and package
-duh generate client -o pkg/client/client.go -p client
+# Custom output directory and package
+duh generate duh --output-dir pkg/api -p myapi
+
+# Generate with full scaffolding (daemon, service implementation, tests, Makefile)
+duh generate duh --full
+
+# Custom proto settings
+duh generate duh --proto-path proto/v1/api.proto --proto-package myapi.v1
 ```
 
-### Generate Server Stubs
+**Generated files:**
+- `client.go` - HTTP client with method calls for each endpoint
+- `server.go` - HTTP server with routing
+- `iterator.go` - Pagination iterators (if list operations exist)
+- `proto/v1/api.proto` - Protobuf definitions
+- `buf.yaml` and `buf.gen.yaml` - Buf configuration
+
+**With --full flag, also generates:**
+- `daemon.go` - Service orchestration with TLS/HTTP support
+- `service.go` - Service implementation (full or stub based on spec)
+- `api_test.go` - Integration tests (full suite or minimal example)
+- `Makefile` - Build automation with test, lint, and proto targets
+
+After generation, run:
+```bash
+buf generate      # Generate Go code from proto files
+go mod tidy       # Update dependencies
+```
+
+#### Generate OAPI Client, Server, and Models
+
+Generate standard OpenAPI client, server stubs, and type models using oapi-codegen:
 
 ```bash
-# Use default openapi.yaml, output to server.go
-duh generate server
+# Generate from openapi.yaml (default) to current directory
+duh generate oapi
 
 # Specify custom spec file
-duh generate server api/openapi.yaml
+duh generate oapi api/openapi.yaml
 
-# Custom output location and package
-duh generate server -o pkg/server/server.go -p server
+# Custom output directory and package
+duh generate oapi --output-dir pkg/api -p myapi
 ```
 
-### Generate Type Models
-
-```bash
-# Use default openapi.yaml, output to models.go
-duh generate models
-
-# Specify custom spec file
-duh generate models api/openapi.yaml
-
-# Custom output location and package
-duh generate models -o pkg/types/models.go -p types
-```
-
-### Generate All Components
-
-```bash
-# Generate all three files in current directory
-duh generate all
-
-# Generate all in specific directory
-duh generate all --output-dir pkg/api
-
-# Custom package name for all files
-duh generate all --output-dir api -p myapi
-```
-
-Generated code uses:
-- **Client**: HTTP client for calling DUH-RPC endpoints
-- **Server**: Standard library (net/http) server stubs
-- **Models**: Type definitions for request/response schemas
+**Generated files:**
+- `client.go` - HTTP client for calling DUH-RPC endpoints
+- `server.go` - Server stubs using net/http
+- `models.go` - Type definitions for request/response schemas
 
 ### Command-line Options
 
 ```bash
-# Show help
+# Show help for any command
+duh help
 duh lint --help
+duh generate duh --help
 
 # Show version
 duh --version
+
+# Generate shell completion script
+duh completion bash   # For bash
+duh completion zsh    # For zsh
+duh completion fish   # For fish
 ```
 
 ### Exit Codes
 
-- **0**: Validation passed (spec is DUH-RPC compliant)
-- **1**: Validation failed (violations found)
-- **2**: Error occurred (file not found, parse error, etc.)
+- **0**: Success (validation passed, code generated, endpoint added)
+- **1**: Validation failed (violations found in lint command)
+- **2**: Error occurred (file not found, parse error, invalid arguments, etc.)
 
 ## Validation Rules
 
