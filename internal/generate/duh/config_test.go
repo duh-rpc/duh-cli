@@ -137,7 +137,7 @@ func setupTest(t *testing.T, spec string) (string, *bytes.Buffer) {
 func TestGenerateDuhParsesSimpleSpec(t *testing.T) {
 	specPath, stdout := setupTest(t, simpleValidSpec)
 
-	exitCode := duh.RunCmd(stdout, []string{"generate", "duh", specPath})
+	exitCode := duh.RunCmd(stdout, []string{"generate", specPath})
 
 	require.Equal(t, 0, exitCode)
 	assert.Contains(t, stdout.String(), "✓")
@@ -147,7 +147,7 @@ func TestGenerateDuhParsesSimpleSpec(t *testing.T) {
 func TestGenerateDuhParsesListOperation(t *testing.T) {
 	specPath, stdout := setupTest(t, specWithListOp)
 
-	exitCode := duh.RunCmd(stdout, []string{"generate", "duh", specPath})
+	exitCode := duh.RunCmd(stdout, []string{"generate", specPath})
 
 	require.Equal(t, 0, exitCode)
 	assert.Contains(t, stdout.String(), "✓")
@@ -158,7 +158,7 @@ func TestGenerateDuhWithCustomPackage(t *testing.T) {
 	specPath, stdout := setupTest(t, simpleValidSpec)
 	tempDir := filepath.Dir(specPath)
 
-	exitCode := duh.RunCmd(stdout, []string{"generate", "duh", specPath, "-p", "myapi"})
+	exitCode := duh.RunCmd(stdout, []string{"generate", specPath, "-p", "myapi"})
 
 	require.Equal(t, 0, exitCode)
 	assert.Contains(t, stdout.String(), "✓")
@@ -171,7 +171,7 @@ func TestGenerateDuhWithCustomPackage(t *testing.T) {
 func TestGenerateDuhRejectsMainPackage(t *testing.T) {
 	specPath, stdout := setupTest(t, simpleValidSpec)
 
-	exitCode := duh.RunCmd(stdout, []string{"generate", "duh", specPath, "-p", "main"})
+	exitCode := duh.RunCmd(stdout, []string{"generate", specPath, "-p", "main"})
 
 	require.Equal(t, 2, exitCode)
 	assert.Contains(t, stdout.String(), "package name cannot be 'main'")
@@ -180,7 +180,7 @@ func TestGenerateDuhRejectsMainPackage(t *testing.T) {
 func TestGenerateDuhRejectsInvalidPackage(t *testing.T) {
 	specPath, stdout := setupTest(t, simpleValidSpec)
 
-	exitCode := duh.RunCmd(stdout, []string{"generate", "duh", specPath, "-p", "my-api"})
+	exitCode := duh.RunCmd(stdout, []string{"generate", specPath, "-p", "my-api"})
 
 	require.Equal(t, 2, exitCode)
 	assert.Contains(t, stdout.String(), "invalid package name")
@@ -195,7 +195,7 @@ func TestGenerateDuhDetectsModulePath(t *testing.T) {
 	require.NoError(t, os.WriteFile(specPath, []byte(simpleValidSpec), 0644))
 
 	var stdout bytes.Buffer
-	exitCode := duh.RunCmd(&stdout, []string{"generate", "duh", specPath})
+	exitCode := duh.RunCmd(&stdout, []string{"generate", specPath})
 
 	require.Equal(t, 0, exitCode)
 	assert.Contains(t, stdout.String(), "✓")
@@ -213,7 +213,7 @@ func TestGenerateDuhMissingGoMod(t *testing.T) {
 	require.NoError(t, os.WriteFile(specPath, []byte(simpleValidSpec), 0644))
 
 	var stdout bytes.Buffer
-	exitCode := duh.RunCmd(&stdout, []string{"generate", "duh", specPath})
+	exitCode := duh.RunCmd(&stdout, []string{"generate", specPath})
 
 	require.Equal(t, 2, exitCode)
 	assert.Contains(t, stdout.String(), "failed to read go.mod")

@@ -28,7 +28,7 @@ func TestRenderBufGenYaml(t *testing.T) {
 	require.NoError(t, os.Chdir(tempDir))
 
 	var stdout bytes.Buffer
-	exitCode := duh.RunCmd(&stdout, []string{"generate", "duh", "openapi.yaml"})
+	exitCode := duh.RunCmd(&stdout, []string{"generate", "openapi.yaml"})
 
 	require.Equal(t, 0, exitCode)
 
@@ -59,7 +59,7 @@ func TestBufFilesGeneratedWithoutFullFlag(t *testing.T) {
 	require.NoError(t, os.Chdir(tempDir))
 
 	var stdout bytes.Buffer
-	exitCode := duh.RunCmd(&stdout, []string{"generate", "duh", "openapi.yaml"})
+	exitCode := duh.RunCmd(&stdout, []string{"generate", "openapi.yaml"})
 
 	require.Equal(t, 0, exitCode)
 	assert.Contains(t, stdout.String(), "Generated 6 file(s)")
@@ -92,7 +92,7 @@ func TestBufFilesGeneratedWithFullFlag(t *testing.T) {
 	require.NoError(t, os.Chdir(tempDir))
 
 	var stdout bytes.Buffer
-	exitCode := duh.RunCmd(&stdout, []string{"generate", "duh", "openapi.yaml", "--full"})
+	exitCode := duh.RunCmd(&stdout, []string{"generate", "openapi.yaml", "--full"})
 
 	require.Equal(t, 0, exitCode)
 	assert.Contains(t, stdout.String(), "Generated 10 file(s)")
@@ -128,7 +128,7 @@ func TestMakefileWrittenToOutputDir(t *testing.T) {
 	require.NoError(t, os.Chdir(tempDir))
 
 	var stdout bytes.Buffer
-	exitCode := duh.RunCmd(&stdout, []string{"generate", "duh", "openapi.yaml", "--output-dir", "api", "--full"})
+	exitCode := duh.RunCmd(&stdout, []string{"generate", "openapi.yaml", "--output-dir", "api", "--full"})
 	require.Equal(t, 0, exitCode)
 
 	_, err = os.Stat(filepath.Join("api", "Makefile"))

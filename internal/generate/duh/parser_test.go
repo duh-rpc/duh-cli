@@ -405,7 +405,7 @@ components:
 func TestParseOperationsExtractsMultiple(t *testing.T) {
 	specPath, stdout := setupTest(t, multiOperationSpec)
 
-	exitCode := duh.RunCmd(stdout, []string{"generate", "duh", specPath})
+	exitCode := duh.RunCmd(stdout, []string{"generate", specPath})
 
 	require.Equal(t, 0, exitCode)
 	content := getServerContentForParser(t, specPath)
@@ -417,7 +417,7 @@ func TestParseOperationsExtractsMultiple(t *testing.T) {
 func TestParseOperationsExtractsPbPrefixedTypes(t *testing.T) {
 	specPath, stdout := setupTest(t, multiOperationSpec)
 
-	exitCode := duh.RunCmd(stdout, []string{"generate", "duh", specPath})
+	exitCode := duh.RunCmd(stdout, []string{"generate", specPath})
 
 	require.Equal(t, 0, exitCode)
 	content := getServerContentForParser(t, specPath)
@@ -428,7 +428,7 @@ func TestParseOperationsExtractsPbPrefixedTypes(t *testing.T) {
 func TestDetectListOperationsWith3Criteria(t *testing.T) {
 	specPath, stdout := setupTest(t, specWithListOp)
 
-	exitCode := duh.RunCmd(stdout, []string{"generate", "duh", specPath})
+	exitCode := duh.RunCmd(stdout, []string{"generate", specPath})
 
 	require.Equal(t, 0, exitCode)
 	assert.Contains(t, stdout.String(), "✓")
@@ -437,7 +437,7 @@ func TestDetectListOperationsWith3Criteria(t *testing.T) {
 func TestDetectListOperationsMultipleVariants(t *testing.T) {
 	specPath, stdout := setupTest(t, listOperationVariantsSpec)
 
-	exitCode := duh.RunCmd(stdout, []string{"generate", "duh", specPath})
+	exitCode := duh.RunCmd(stdout, []string{"generate", specPath})
 
 	require.Equal(t, 0, exitCode)
 	assert.Contains(t, stdout.String(), "✓")
@@ -446,7 +446,7 @@ func TestDetectListOperationsMultipleVariants(t *testing.T) {
 func TestIsListOperationChecksMethodPortion(t *testing.T) {
 	specPath, stdout := setupTest(t, listOperationVariantsSpec)
 
-	exitCode := duh.RunCmd(stdout, []string{"generate", "duh", specPath})
+	exitCode := duh.RunCmd(stdout, []string{"generate", specPath})
 
 	require.Equal(t, 0, exitCode)
 	assert.Contains(t, stdout.String(), "✓")
@@ -455,7 +455,7 @@ func TestIsListOperationChecksMethodPortion(t *testing.T) {
 func TestIsListOperationWithoutOffset(t *testing.T) {
 	specPath, stdout := setupTest(t, notListNoOffsetSpec)
 
-	exitCode := duh.RunCmd(stdout, []string{"generate", "duh", specPath})
+	exitCode := duh.RunCmd(stdout, []string{"generate", specPath})
 
 	require.Equal(t, 0, exitCode)
 	assert.Contains(t, stdout.String(), "✓")
@@ -464,7 +464,7 @@ func TestIsListOperationWithoutOffset(t *testing.T) {
 func TestFindFirstArrayFieldInYAMLOrder(t *testing.T) {
 	specPath, stdout := setupTest(t, arrayOrderSpec)
 
-	exitCode := duh.RunCmd(stdout, []string{"generate", "duh", specPath})
+	exitCode := duh.RunCmd(stdout, []string{"generate", specPath})
 
 	require.Equal(t, 0, exitCode)
 	assert.Contains(t, stdout.String(), "✓")
@@ -473,7 +473,7 @@ func TestFindFirstArrayFieldInYAMLOrder(t *testing.T) {
 func TestInlineSchemaReturnsError(t *testing.T) {
 	specPath, stdout := setupTest(t, inlineSchemaSpec)
 
-	exitCode := duh.RunCmd(stdout, []string{"generate", "duh", specPath})
+	exitCode := duh.RunCmd(stdout, []string{"generate", specPath})
 
 	require.Equal(t, 2, exitCode)
 	assert.Contains(t, stdout.String(), "inline schema not supported")
@@ -482,7 +482,7 @@ func TestInlineSchemaReturnsError(t *testing.T) {
 func TestParseExtractsModulePathAndProtoImport(t *testing.T) {
 	specPath, stdout := setupTest(t, simpleValidSpec)
 
-	exitCode := duh.RunCmd(stdout, []string{"generate", "duh", specPath})
+	exitCode := duh.RunCmd(stdout, []string{"generate", specPath})
 
 	require.Equal(t, 0, exitCode)
 	content := getServerContentForParser(t, specPath)
@@ -492,7 +492,7 @@ func TestParseExtractsModulePathAndProtoImport(t *testing.T) {
 func TestParseGeneratesTimestampInCorrectFormat(t *testing.T) {
 	specPath, stdout := setupTest(t, simpleValidSpec)
 
-	exitCode := duh.RunCmd(stdout, []string{"generate", "duh", specPath})
+	exitCode := duh.RunCmd(stdout, []string{"generate", specPath})
 
 	require.Equal(t, 0, exitCode)
 	content := getServerContentForParser(t, specPath)
@@ -502,7 +502,7 @@ func TestParseGeneratesTimestampInCorrectFormat(t *testing.T) {
 func TestParseExtractsOperationSummary(t *testing.T) {
 	specPath, stdout := setupTest(t, multiOperationSpec)
 
-	exitCode := duh.RunCmd(stdout, []string{"generate", "duh", specPath})
+	exitCode := duh.RunCmd(stdout, []string{"generate", specPath})
 
 	require.Equal(t, 0, exitCode)
 	content := getServerContentForParser(t, specPath)

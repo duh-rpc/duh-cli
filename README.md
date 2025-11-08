@@ -110,25 +110,23 @@ This creates a new POST endpoint with placeholder request and response schemas.
 
 ### Generate Code
 
-#### Generate DUH-RPC Client and Server
-
 Generate DUH-RPC specific code including HTTP client with pagination iterators, server with routing, and protobuf definitions:
 
 ```bash
 # Generate from openapi.yaml (default) to current directory
-duh generate duh
+duh generate
 
 # Specify custom spec file
-duh generate duh api/openapi.yaml
+duh generate api/openapi.yaml
 
 # Custom output directory and package
-duh generate duh --output-dir pkg/api -p myapi
+duh generate --output-dir pkg/api -p myapi
 
 # Generate with full scaffolding (daemon, service implementation, tests, Makefile)
-duh generate duh --full
+duh generate --full
 
 # Custom proto settings
-duh generate duh --proto-path proto/v1/api.proto --proto-package myapi.v1
+duh generate --proto-path proto/v1/api.proto --proto-package myapi.v1
 ```
 
 **Generated files:**
@@ -150,33 +148,13 @@ buf generate      # Generate Go code from proto files
 go mod tidy       # Update dependencies
 ```
 
-#### Generate OAPI Client, Server, and Models
-
-Generate standard OpenAPI client, server stubs, and type models using oapi-codegen:
-
-```bash
-# Generate from openapi.yaml (default) to current directory
-duh generate oapi
-
-# Specify custom spec file
-duh generate oapi api/openapi.yaml
-
-# Custom output directory and package
-duh generate oapi --output-dir pkg/api -p myapi
-```
-
-**Generated files:**
-- `client.go` - HTTP client for calling DUH-RPC endpoints
-- `server.go` - Server stubs using net/http
-- `models.go` - Type definitions for request/response schemas
-
 ### Command-line Options
 
 ```bash
 # Show help for any command
 duh help
 duh lint --help
-duh generate duh --help
+duh generate --help
 
 # Show version
 duh --version

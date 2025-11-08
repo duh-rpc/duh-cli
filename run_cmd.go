@@ -6,7 +6,6 @@ import (
 
 	"github.com/duh-rpc/duh-cli/internal/add"
 	"github.com/duh-rpc/duh-cli/internal/generate/duh"
-	"github.com/duh-rpc/duh-cli/internal/generate/oapi"
 	init_ "github.com/duh-rpc/duh-cli/internal/init"
 	"github.com/duh-rpc/duh-cli/internal/lint"
 	"github.com/spf13/cobra"
@@ -134,77 +133,11 @@ Exit Codes:
 	addCmd.Flags().StringP("file", "f", "openapi.yaml", "OpenAPI specification file to modify")
 
 	generateCmd := &cobra.Command{
-		Use:   "generate",
-		Short: "Generate Go code from OpenAPI specifications",
-		Long: `Generate Go code from OpenAPI specifications.
-
-The generate command uses oapi-codegen to create HTTP clients, server stubs,
-and type models from DUH-RPC compliant OpenAPI specifications.
-
-Available subcommands:
-  oapi      Generate client, server, and models
-
-Use "duh generate [command] --help" for more information about a command.`,
-		Run: func(cmd *cobra.Command, args []string) {
-			_ = cmd.Help()
-		},
-	}
-
-	oapiCmd := &cobra.Command{
-		Use:   "oapi [openapi-file]",
-		Short: "Generate client, server, and models from OpenAPI specification",
-		Long: `Generate client, server, and models from OpenAPI specification.
-
-The oapi command generates all three components (HTTP client, server stubs,
-and type models) from the OpenAPI specification in a single invocation.
-
-By default, generates client.go, server.go, and models.go in the current
-directory. Use --output-dir to specify a different directory.
-
-All generated files will use the same package name (default: api).
-
-If no file path is provided, defaults to 'openapi.yaml' in the current directory.
-
-Exit Codes:
-  0    All components generated successfully
-  2    Error (file not found, parse error, generation failed, etc.)`,
-		Args: cobra.MaximumNArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
-			const defaultFile = "openapi.yaml"
-			const defaultOutputDir = "."
-			const defaultPackage = "api"
-
-			filePath := defaultFile
-			if len(args) > 0 {
-				filePath = args[0]
-			}
-
-			outputDir, _ := cmd.Flags().GetString("output-dir")
-			if outputDir == "" {
-				outputDir = defaultOutputDir
-			}
-
-			packageName, _ := cmd.Flags().GetString("package")
-			if packageName == "" {
-				packageName = defaultPackage
-			}
-
-			if err := oapi.RunOapi(cmd.OutOrStdout(), filePath, outputDir, packageName); err != nil {
-				_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Error: %v\n", err)
-				exitCode = 2
-				return
-			}
-		},
-	}
-	oapiCmd.Flags().String("output-dir", "", "Output directory for generated files (default: current directory)")
-	oapiCmd.Flags().StringP("package", "p", "", "Package name for generated code (default: api)")
-
-	duhCmd := &cobra.Command{
-		Use:   "duh [openapi-file]",
+		Use:   "generate [openapi-file]",
 		Short: "Generate DUH-RPC client, server, and proto from OpenAPI specification",
 		Long: `Generate DUH-RPC client, server, and proto from OpenAPI specification.
 
-The duh command generates DUH-RPC specific code including HTTP client with
+The generate command generates DUH-RPC specific code including HTTP client with
 pagination iterators, server with routing, and protobuf definitions.
 
 By default, generates client.go, server.go, iterator.go (if list operations),
@@ -260,14 +193,12 @@ Exit Codes:
 			}
 		},
 	}
-	duhCmd.Flags().StringP("package", "p", "api", "Package name for generated code")
-	duhCmd.Flags().String("output-dir", ".", "Output directory for generated files")
-	duhCmd.Flags().String("proto-path", "proto/v1/api.proto", "Proto file path")
-	duhCmd.Flags().String("proto-import", "", "Proto import override (optional)")
-	duhCmd.Flags().String("proto-package", "", "Proto package override (optional)")
-	duhCmd.Flags().Bool("full", false, "Generate additional editable scaffolding files")
-
-	generateCmd.AddCommand(oapiCmd, duhCmd)
+	generateCmd.Flags().StringP("package", "p", "api", "Package name for generated code")
+	generateCmd.Flags().String("output-dir", ".", "Output directory for generated files")
+	generateCmd.Flags().String("proto-path", "proto/v1/api.proto", "Proto file path")
+	generateCmd.Flags().String("proto-import", "", "Proto import override (optional)")
+	generateCmd.Flags().String("proto-package", "", "Proto package override (optional)")
+	generateCmd.Flags().Bool("full", false, "Generate additional editable scaffolding files")
 
 	rootCmd.AddCommand(lintCmd, initCmd, addCmd, generateCmd)
 	rootCmd.SetOut(stdout)

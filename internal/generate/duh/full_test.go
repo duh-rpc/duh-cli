@@ -30,7 +30,7 @@ func TestGenerateDuhWithFullFlagAndInitSpec(t *testing.T) {
 	require.NoError(t, os.Chdir(tempDir))
 
 	var stdout bytes.Buffer
-	args := []string{"generate", "duh", "openapi.yaml", "--full"}
+	args := []string{"generate", "openapi.yaml", "--full"}
 	exitCode := duh.RunCmd(&stdout, args)
 
 	require.Equal(t, 0, exitCode)
@@ -109,7 +109,7 @@ func TestGenerateDuhWithFullFlagAndCustomSpec(t *testing.T) {
 	require.NoError(t, os.Chdir(tempDir))
 
 	var stdout bytes.Buffer
-	args := []string{"generate", "duh", "openapi.yaml", "--full"}
+	args := []string{"generate", "openapi.yaml", "--full"}
 	exitCode := duh.RunCmd(&stdout, args)
 
 	require.Equal(t, 0, exitCode)
@@ -144,7 +144,7 @@ func TestGenerateDuhWithoutFullFlag(t *testing.T) {
 	require.NoError(t, os.Chdir(tempDir))
 
 	var stdout bytes.Buffer
-	args := []string{"generate", "duh", "openapi.yaml"}
+	args := []string{"generate", "openapi.yaml"}
 	exitCode := duh.RunCmd(&stdout, args)
 
 	require.Equal(t, 0, exitCode)
@@ -184,7 +184,7 @@ func TestRegenerateWithFullFlagOverwrites(t *testing.T) {
 	require.NoError(t, os.Chdir(tempDir))
 
 	var stdout bytes.Buffer
-	args := []string{"generate", "duh", "openapi.yaml", "--full"}
+	args := []string{"generate", "openapi.yaml", "--full"}
 	exitCode := duh.RunCmd(&stdout, args)
 	require.Equal(t, 0, exitCode)
 
@@ -222,7 +222,7 @@ func TestMakefileGoesToProjectRoot(t *testing.T) {
 	require.NoError(t, os.Chdir(tempDir))
 
 	var stdout bytes.Buffer
-	args := []string{"generate", "duh", "openapi.yaml", "--output-dir", "api", "--full"}
+	args := []string{"generate", "openapi.yaml", "--output-dir", "api", "--full"}
 	exitCode := duh.RunCmd(&stdout, args)
 	require.Equal(t, 0, exitCode)
 
@@ -258,7 +258,7 @@ func TestFullGeneratedCodeFormat(t *testing.T) {
 	require.NoError(t, os.Chdir(tempDir))
 
 	var stdout bytes.Buffer
-	args := []string{"generate", "duh", "openapi.yaml", "--full"}
+	args := []string{"generate", "openapi.yaml", "--full"}
 	exitCode := duh.RunCmd(&stdout, args)
 	require.Equal(t, 0, exitCode)
 
@@ -304,7 +304,7 @@ func TestBufFilesNotOverwrittenWhenExist(t *testing.T) {
 	require.NoError(t, os.Chdir(tempDir))
 
 	var stdout bytes.Buffer
-	args := []string{"generate", "duh", "openapi.yaml"}
+	args := []string{"generate", "openapi.yaml"}
 	exitCode := duh.RunCmd(&stdout, args)
 
 	require.Equal(t, 0, exitCode)
@@ -571,7 +571,7 @@ func TestGenerateDuhWithFullFlagAndExtraEndpoint(t *testing.T) {
 	require.NoError(t, os.Chdir(tempDir))
 
 	var stdout bytes.Buffer
-	args := []string{"generate", "duh", "openapi.yaml", "--full"}
+	args := []string{"generate", "openapi.yaml", "--full"}
 	exitCode := duh.RunCmd(&stdout, args)
 
 	require.Equal(t, 0, exitCode)

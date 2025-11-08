@@ -382,7 +382,7 @@ func TestIsInitTemplateSpecWithFullMatch(t *testing.T) {
 	require.NoError(t, os.Chdir(tempDir))
 
 	var stdout bytes.Buffer
-	args := []string{"generate", "duh", "openapi.yaml"}
+	args := []string{"generate", "openapi.yaml"}
 	exitCode := duh.RunCmd(&stdout, args)
 
 	if exitCode != 0 {
@@ -410,7 +410,7 @@ func TestIsInitTemplateSpecWithPartialMatch(t *testing.T) {
 	require.NoError(t, os.Chdir(tempDir))
 
 	var stdout bytes.Buffer
-	args := []string{"generate", "duh", "openapi.yaml"}
+	args := []string{"generate", "openapi.yaml"}
 	exitCode := duh.RunCmd(&stdout, args)
 
 	require.Equal(t, 0, exitCode)
@@ -434,7 +434,7 @@ func TestIsInitTemplateSpecWithNoMatch(t *testing.T) {
 	require.NoError(t, os.Chdir(tempDir))
 
 	var stdout bytes.Buffer
-	args := []string{"generate", "duh", "openapi.yaml"}
+	args := []string{"generate", "openapi.yaml"}
 	exitCode := duh.RunCmd(&stdout, args)
 
 	require.Equal(t, 0, exitCode)
@@ -458,7 +458,7 @@ func TestIsInitTemplateSpecWithExtraEndpoints(t *testing.T) {
 	require.NoError(t, os.Chdir(tempDir))
 
 	var stdout bytes.Buffer
-	args := []string{"generate", "duh", "openapi.yaml"}
+	args := []string{"generate", "openapi.yaml"}
 	exitCode := duh.RunCmd(&stdout, args)
 
 	require.Equal(t, 0, exitCode)
@@ -482,7 +482,7 @@ func TestRunWithFullFlagFalse(t *testing.T) {
 	require.NoError(t, os.Chdir(tempDir))
 
 	var stdout bytes.Buffer
-	args := []string{"generate", "duh", "openapi.yaml"}
+	args := []string{"generate", "openapi.yaml"}
 	exitCode := duh.RunCmd(&stdout, args)
 
 	require.Equal(t, 0, exitCode)

@@ -245,3 +245,12 @@ func TestInitCommandHelp(t *testing.T) {
 	require.Contains(t, stdout.String(), "DUH-RPC compliant OpenAPI specification template")
 	require.Contains(t, stdout.String(), "openapi.yaml")
 }
+
+func TestGenerateOapiCommandRemoved(t *testing.T) {
+	var stdout bytes.Buffer
+	exitCode := lint.RunCmd(&stdout, []string{"generate", "oapi"})
+
+	require.Equal(t, 2, exitCode)
+	output := strings.ToLower(stdout.String())
+	require.Contains(t, output, "file not found")
+}
