@@ -9,7 +9,7 @@ Command-line tools for working with DUH-RPC specifications.
 
 ## Overview
 
-`duh` is a command-line tool for working with DUH-RPC specifications. It provides commands for:
+`duh` is a command-line tool for working with OpenAPI specifications. It provides commands for:
 - **Creating** OpenAPI specifications that follow DUH-RPC conventions
 - **Validating** OpenAPI YAML specifications against DUH-RPC requirements
 - **Generating** Go client, server, and type code from OpenAPI specifications
@@ -27,57 +27,112 @@ For detailed DUH-RPC specification requirements and examples, see the [DUH-RPC O
 go install github.com/duh-rpc/duh-cli/cmd/duh@latest
 ```
 
-### From source
+## Quick Start
+
+Get a DUH-RPC service up and running in minutes:
 
 ```bash
-git clone https://github.com/duh-rpc/duh-cli.git
-cd duh-cli
-make install
+# 1. Create a new directory for your service
+mkdir my-service && cd my-service
+
+# 2. Initialize a new DUH-RPC OpenAPI specification
+duh init
+
+# 3. Initialize Go module
+go mod init github.com/my-org/my-service
+
+# 4. Generate complete service scaffolding (client, server, daemon, tests, Makefile)
+duh generate --full
+
+# 5. Install dependencies
+go mod tidy
+
+# 6. Generate Go code from protobuf definitions
+buf generate
+
+# 7. Run tests to verify everything works
+make test
 ```
 
-### Building locally
+**Success!** You now have a fully functional DUH-RPC service with:
+- HTTP client with pagination support
+- Server with routing and handlers
+- Service implementation with example endpoints
+- Integration tests
+- Protobuf definitions
+- Build automation via Makefile
+
+### Making Changes
+
+After your initial setup, iterate on your API by modifying the OpenAPI spec:
 
 ```bash
-make build
-# Binary will be created as ./duh
+# 1. Add a new endpoint (optional - you can also edit openapi.yaml directly)
+duh add /v1/products.create CreateProduct
+
+# 2. Validate your changes follow DUH-RPC conventions
+duh lint openapi.yaml
+
+# 3. Regenerate code to incorporate changes
+duh generate
+
+# 4. Regenerate protobuf Go code
+buf generate
+
+# 5. Run tests
+make test
 ```
 
-## Usage
+Your service stays in sync with your OpenAPI specification, ensuring consistency between your API contract and implementation.
 
-### Initialize a New Specification
+## Command Reference
 
-Create a new DUH-RPC compliant OpenAPI specification template:
+### `duh init` - Initialize a New Specification
 
+Creates a new DUH-RPC compliant OpenAPI specification template with example endpoints.
+
+**Basic usage:**
 ```bash
 # Creates openapi.yaml in current directory
 duh init
 
 # Create with custom filename
 duh init my-api.yaml
+
+# Create in a specific directory
+duh init api/openapi.yaml
 ```
 
-The template includes a complete example with users.create, users.get, users.list, and users.update endpoints demonstrating all DUH-RPC requirements.
+**What's included:**
+The generated template includes a complete working example with four endpoints demonstrating all DUH-RPC requirements:
+- `users.create` - Creating resources
+- `users.get` - Retrieving a single resource
+- `users.list` - List operations with pagination
+- `users.update` - Updating resources
 
-### Validate a Specification
+The `openapi.yaml` is ready to use immediately or can be modified.
 
+### `duh lint` - Validate DUH-RPC Compliance
+
+Lints OpenAPI file against all 8 DUH-RPC requirements, providing clear error messages and actionable suggestions for violations.
+
+**Basic usage:**
 ```bash
-duh lint <openapi-file>
-```
+# Validate openapi.yaml (default)
+duh lint
 
-**Validate a compliant specification:**
-```bash
-duh lint api-spec.yaml
+# Validate specific file
+duh lint api/openapi.yaml
+
+# Validate multiple files
+duh lint api-v1.yaml api-v2.yaml
 ```
-Output:
+**Example output for compliant spec:**
 ```
 ✓ api-spec.yaml is DUH-RPC compliant
 ```
 
-**Validate a specification with violations:**
-```bash
-duh lint api-spec.yaml
-```
-Output:
+**Example output with violations:**
 ```
 Validating api-spec.yaml...
 
@@ -94,84 +149,127 @@ ERRORS FOUND:
 Summary: 2 violations found in api-spec.yaml
 ```
 
-### Add a New Endpoint
+See the [Validation Rules](#validation-rules) section for details on all requirements.
 
-Add a new DUH-RPC endpoint to an existing specification:
+### `duh add` - Add New Endpoints
 
+Adds a new DUH-RPC compliant endpoint to an existing OpenAPI specification with placeholder schemas.
+
+**Basic usage:**
 ```bash
-# Add endpoint to openapi.yaml (default)
+# Add endpoint to openapi.yaml
 duh add /v1/products.create CreateProduct
 
 # Add to custom spec file
 duh add /v1/orders.cancel CancelOrder -f api/openapi.yaml
+
+# Add to file in different directory
+duh add /v1/payments.process ProcessPayment -f api/v2/openapi.yaml
 ```
 
-This creates a new POST endpoint with placeholder request and response schemas.
+**What's created:**
+- New POST operation at the specified path
+- Request schema with placeholder fields
+- Response schema (200 status) with placeholder structure
+- Error response schemas for common error codes
+- Proper operationId for code generation
 
-### Generate Code
-
-Generate DUH-RPC specific code including HTTP client with pagination iterators, server with routing, and protobuf definitions:
-
+**Common endpoint patterns:**
 ```bash
-# Generate from openapi.yaml (default) to current directory
+# Create operations
+duh add /v1/users.create CreateUser
+
+# Get operations (single resource)
+duh add /v1/users.get GetUser
+
+# List operations (with pagination)
+duh add /v1/users.list ListUsers
+
+# Update operations
+duh add /v1/users.update UpdateUser
+
+# Delete operations
+duh add /v1/users.delete DeleteUser
+
+# Custom actions
+duh add /v1/orders.cancel CancelOrder
+duh add /v1/payments.refund RefundPayment
+```
+
+After adding an endpoint, edit the generated schemas to match your needs, then run `duh lint` to verify compliance.
+
+### `duh generate` - Generate Code
+
+Generates production-ready Go code from OpenAPI specifications, including HTTP clients, servers, protobuf definitions, and optional full service scaffolding.
+
+**Basic usage:**
+```bash
+# Generate from openapi.yaml (default)
 duh generate
 
 # Specify custom spec file
 duh generate api/openapi.yaml
 
-# Custom output directory and package
-duh generate --output-dir pkg/api -p myapi
-
-# Generate with full scaffolding (daemon, service implementation, tests, Makefile)
+# Generate with full service scaffolding
 duh generate --full
+```
 
-# Custom proto settings
+**Common options:**
+```bash
+# Custom output directory
+duh generate --output-dir pkg/api
+
+# Custom package name
+duh generate -p myapi
+
+# Custom protobuf path and package
 duh generate --proto-path proto/v1/api.proto --proto-package myapi.v1
+
+# Combine multiple options
+duh generate --full --output-dir internal/api -p api
 ```
 
-**Generated files:**
-- `client.go` - HTTP client with method calls for each endpoint
-- `server.go` - HTTP server with routing
-- `iterator.go` - Pagination iterators (if list operations exist)
-- `proto/v1/api.proto` - Protobuf definitions
-- `buf.yaml` and `buf.gen.yaml` - Buf configuration
+**Basic generation (default):**
+Creates core API components:
+- `client.go` - HTTP client with typed methods for each endpoint
+- `server.go` - HTTP server with routing and handler registration
+- `iterator.go` - Pagination iterators for list operations (if applicable)
+- `proto/v1/api.proto` - Protobuf message definitions
+- `buf.yaml` - Buf configuration for protobuf compilation
+- `buf.gen.yaml` - Buf code generation configuration
 
-**With --full flag, also generates:**
-- `daemon.go` - Service orchestration with TLS/HTTP support
-- `service.go` - Service implementation (full or stub based on spec)
-- `api_test.go` - Integration tests (full suite or minimal example)
-- `Makefile` - Build automation with test, lint, and proto targets
+**Full scaffolding (--full flag):**
+Generates a complete service with everything from basic generation plus:
+- `daemon.go` - Service orchestration with TLS/HTTP support and graceful shutdown
+- `service.go` - Service implementation (complete example or stub interface)
+- `api_test.go` - Integration test suite or minimal test example
+- `Makefile` - Build automation with targets for test, lint, build, and proto generation
 
-After generation, run:
-```bash
-buf generate      # Generate Go code from proto files
-go mod tidy       # Update dependencies
-```
+**Generated client features:**
+- Type-safe method calls for all endpoints
+- Automatic pagination for list operations
+- Context support for timeouts and cancellation
+- Configurable base URL and HTTP client
+- Built-in error handling
 
-### Command-line Options
+**Generated server features:**
+- Automatic routing based on OpenAPI paths
+- Request validation
+- Response serialization
+- Error response formatting
+- Middleware support
 
-```bash
-# Show help for any command
-duh help
-duh lint --help
-duh generate --help
+**Customization options:**
 
-# Show version
-duh --version
+| Flag | Description | Default |
+|------|-------------|---------|
+| `--output-dir` | Directory for generated files | Current directory |
+| `-p, --package` | Go package name | Inferred from module |
+| `--proto-path` | Path for protobuf file | `proto/v1/api.proto` |
+| `--proto-package` | Protobuf package name | `api.v1` |
+| `--full` | Generate complete service scaffold | `false` |
 
-# Generate shell completion script
-duh completion bash   # For bash
-duh completion zsh    # For zsh
-duh completion fish   # For fish
-```
-
-### Exit Codes
-
-- **0**: Success (validation passed, code generated, endpoint added)
-- **1**: Validation failed (violations found in lint command)
-- **2**: Error occurred (file not found, parse error, invalid arguments, etc.)
-
-## Validation Rules
+## Lint Rules
 
 `duh lint` validates against 8 DUH-RPC requirements:
 
@@ -208,46 +306,3 @@ duh completion fish   # For fish
 
 For detailed specifications, see the [technical specification document](docs/TECHNICAL_SPEC.md).
 
-## Development
-
-### Running Tests
-
-```bash
-# Run all tests
-make test
-
-# Run tests with verbose output
-go test -v ./...
-
-# Run integration tests
-make integration-test
-```
-
-### Building
-
-```bash
-# Build binary
-make build
-
-# Install to GOPATH/bin
-make install
-
-# Clean build artifacts
-make clean
-```
-
-### Code Coverage
-
-```bash
-# Generate coverage report
-make coverage
-
-# Opens coverage.html in your browser
-```
-
-### Linting
-
-```bash
-# Run code linters
-make lint
-```
