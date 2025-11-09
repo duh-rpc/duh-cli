@@ -12,6 +12,17 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var testStartDir string
+
+func TestMain(m *testing.M) {
+	var err error
+	testStartDir, err = os.Getwd()
+	if err != nil {
+		panic("failed to get working directory: " + err.Error())
+	}
+	os.Exit(m.Run())
+}
+
 func TestGenerateDuhWithFullFlagAndInitSpec(t *testing.T) {
 	tempDir := t.TempDir()
 	specPath := filepath.Join(tempDir, "openapi.yaml")
@@ -23,12 +34,10 @@ func TestGenerateDuhWithFullFlagAndInitSpec(t *testing.T) {
 		0644,
 	))
 
-	originalDir, err := os.Getwd()
-	require.NoError(t, err)
-	t.Cleanup(func() { _ = os.Chdir(originalDir) })
-
+	t.Cleanup(func() { _ = os.Chdir(testStartDir) })
 	require.NoError(t, os.Chdir(tempDir))
 
+	var err error
 	var stdout bytes.Buffer
 	args := []string{"generate", "openapi.yaml", "--full"}
 	exitCode := duh.RunCmd(&stdout, args)
@@ -102,12 +111,10 @@ func TestGenerateDuhWithFullFlagAndCustomSpec(t *testing.T) {
 		0644,
 	))
 
-	originalDir, err := os.Getwd()
-	require.NoError(t, err)
-	t.Cleanup(func() { _ = os.Chdir(originalDir) })
-
+	t.Cleanup(func() { _ = os.Chdir(testStartDir) })
 	require.NoError(t, os.Chdir(tempDir))
 
+	var err error
 	var stdout bytes.Buffer
 	args := []string{"generate", "openapi.yaml", "--full"}
 	exitCode := duh.RunCmd(&stdout, args)
@@ -137,12 +144,10 @@ func TestGenerateDuhWithoutFullFlag(t *testing.T) {
 		0644,
 	))
 
-	originalDir, err := os.Getwd()
-	require.NoError(t, err)
-	t.Cleanup(func() { _ = os.Chdir(originalDir) })
-
+	t.Cleanup(func() { _ = os.Chdir(testStartDir) })
 	require.NoError(t, os.Chdir(tempDir))
 
+	var err error
 	var stdout bytes.Buffer
 	args := []string{"generate", "openapi.yaml"}
 	exitCode := duh.RunCmd(&stdout, args)
@@ -177,12 +182,10 @@ func TestRegenerateWithFullFlagOverwrites(t *testing.T) {
 		0644,
 	))
 
-	originalDir, err := os.Getwd()
-	require.NoError(t, err)
-	t.Cleanup(func() { _ = os.Chdir(originalDir) })
-
+	t.Cleanup(func() { _ = os.Chdir(testStartDir) })
 	require.NoError(t, os.Chdir(tempDir))
 
+	var err error
 	var stdout bytes.Buffer
 	args := []string{"generate", "openapi.yaml", "--full"}
 	exitCode := duh.RunCmd(&stdout, args)
@@ -215,12 +218,10 @@ func TestMakefileGoesToProjectRoot(t *testing.T) {
 		0644,
 	))
 
-	originalDir, err := os.Getwd()
-	require.NoError(t, err)
-	t.Cleanup(func() { _ = os.Chdir(originalDir) })
-
+	t.Cleanup(func() { _ = os.Chdir(testStartDir) })
 	require.NoError(t, os.Chdir(tempDir))
 
+	var err error
 	var stdout bytes.Buffer
 	args := []string{"generate", "openapi.yaml", "--output-dir", "api", "--full"}
 	exitCode := duh.RunCmd(&stdout, args)
@@ -251,10 +252,7 @@ func TestFullGeneratedCodeFormat(t *testing.T) {
 		0644,
 	))
 
-	originalDir, err := os.Getwd()
-	require.NoError(t, err)
-	t.Cleanup(func() { _ = os.Chdir(originalDir) })
-
+	t.Cleanup(func() { _ = os.Chdir(testStartDir) })
 	require.NoError(t, os.Chdir(tempDir))
 
 	var stdout bytes.Buffer
@@ -297,12 +295,10 @@ func TestBufFilesNotOverwrittenWhenExist(t *testing.T) {
 	require.NoError(t, os.WriteFile(filepath.Join(tempDir, "buf.yaml"), []byte(customBufYaml), 0644))
 	require.NoError(t, os.WriteFile(filepath.Join(tempDir, "buf.gen.yaml"), []byte(customBufGenYaml), 0644))
 
-	originalDir, err := os.Getwd()
-	require.NoError(t, err)
-	t.Cleanup(func() { _ = os.Chdir(originalDir) })
-
+	t.Cleanup(func() { _ = os.Chdir(testStartDir) })
 	require.NoError(t, os.Chdir(tempDir))
 
+	var err error
 	var stdout bytes.Buffer
 	args := []string{"generate", "openapi.yaml"}
 	exitCode := duh.RunCmd(&stdout, args)
@@ -564,12 +560,10 @@ func TestGenerateDuhWithFullFlagAndExtraEndpoint(t *testing.T) {
 		0644,
 	))
 
-	originalDir, err := os.Getwd()
-	require.NoError(t, err)
-	t.Cleanup(func() { _ = os.Chdir(originalDir) })
-
+	t.Cleanup(func() { _ = os.Chdir(testStartDir) })
 	require.NoError(t, os.Chdir(tempDir))
 
+	var err error
 	var stdout bytes.Buffer
 	args := []string{"generate", "openapi.yaml", "--full"}
 	exitCode := duh.RunCmd(&stdout, args)

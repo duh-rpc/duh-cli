@@ -11,11 +11,20 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var testStartDir string
+
+func TestMain(m *testing.M) {
+	var err error
+	testStartDir, err = os.Getwd()
+	if err != nil {
+		panic("failed to get working directory: " + err.Error())
+	}
+	os.Exit(m.Run())
+}
+
 func TestInitDefaultPath(t *testing.T) {
 	tempDir := t.TempDir()
-	originalDir, _ := os.Getwd()
-	t.Cleanup(func() { _ = os.Chdir(originalDir) })
-
+	t.Cleanup(func() { _ = os.Chdir(testStartDir) })
 	require.NoError(t, os.Chdir(tempDir))
 
 	var stdout bytes.Buffer

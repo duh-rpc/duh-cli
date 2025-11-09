@@ -12,6 +12,17 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var testStartDir string
+
+func TestMain(m *testing.M) {
+	var err error
+	testStartDir, err = os.Getwd()
+	if err != nil {
+		panic("failed to get working directory: " + err.Error())
+	}
+	os.Exit(m.Run())
+}
+
 func TestRunCmdHelp(t *testing.T) {
 	var stdout bytes.Buffer
 	exitCode := lint.RunCmd(&stdout, []string{"--help"})
@@ -42,15 +53,13 @@ func TestRunCmdFileNotFound(t *testing.T) {
 
 func TestRunCmdNoArguments(t *testing.T) {
 	tempDir := t.TempDir()
-	originalDir, err := os.Getwd()
-	require.NoError(t, err)
 
 	const defaultFile = "openapi.yaml"
-	validSpecPath := filepath.Join(originalDir, "internal/lint/testdata/valid-spec.yaml")
+	validSpecPath := filepath.Join(testStartDir, "internal/lint/testdata/valid-spec.yaml")
 	validSpec, err := os.ReadFile(validSpecPath)
 	require.NoError(t, err)
 
-	t.Cleanup(func() { _ = os.Chdir(originalDir) })
+	t.Cleanup(func() { _ = os.Chdir(testStartDir) })
 	err = os.Chdir(tempDir)
 	require.NoError(t, err)
 
@@ -76,15 +85,12 @@ func TestRunCmdMultipleArguments(t *testing.T) {
 
 func TestLintWithDefaultFile(t *testing.T) {
 	tempDir := t.TempDir()
-	originalDir, err := os.Getwd()
-	require.NoError(t, err)
-
 	const defaultFile = "openapi.yaml"
-	validSpecPath := filepath.Join(originalDir, "internal/lint/testdata/valid-spec.yaml")
+	validSpecPath := filepath.Join(testStartDir, "internal/lint/testdata/valid-spec.yaml")
 	validSpec, err := os.ReadFile(validSpecPath)
 	require.NoError(t, err)
 
-	t.Cleanup(func() { _ = os.Chdir(originalDir) })
+	t.Cleanup(func() { _ = os.Chdir(testStartDir) })
 	err = os.Chdir(tempDir)
 	require.NoError(t, err)
 
@@ -101,11 +107,9 @@ func TestLintWithDefaultFile(t *testing.T) {
 
 func TestLintWithDefaultFileNotFound(t *testing.T) {
 	tempDir := t.TempDir()
-	originalDir, err := os.Getwd()
-	require.NoError(t, err)
 
-	t.Cleanup(func() { _ = os.Chdir(originalDir) })
-	err = os.Chdir(tempDir)
+	t.Cleanup(func() { _ = os.Chdir(testStartDir) })
+	err := os.Chdir(tempDir)
 	require.NoError(t, err)
 
 	var stdout bytes.Buffer
@@ -119,14 +123,12 @@ func TestLintWithDefaultFileNotFound(t *testing.T) {
 
 func TestLintWithExplicitFile(t *testing.T) {
 	tempDir := t.TempDir()
-	originalDir, err := os.Getwd()
-	require.NoError(t, err)
 
-	validSpecPath := filepath.Join(originalDir, "internal/lint/testdata/valid-spec.yaml")
+	validSpecPath := filepath.Join(testStartDir, "internal/lint/testdata/valid-spec.yaml")
 	validSpec, err := os.ReadFile(validSpecPath)
 	require.NoError(t, err)
 
-	t.Cleanup(func() { _ = os.Chdir(originalDir) })
+	t.Cleanup(func() { _ = os.Chdir(testStartDir) })
 	err = os.Chdir(tempDir)
 	require.NoError(t, err)
 
@@ -144,11 +146,9 @@ func TestLintWithExplicitFile(t *testing.T) {
 
 func TestInitCommandWithDefaultPath(t *testing.T) {
 	tempDir := t.TempDir()
-	originalDir, err := os.Getwd()
-	require.NoError(t, err)
 
-	t.Cleanup(func() { _ = os.Chdir(originalDir) })
-	err = os.Chdir(tempDir)
+	t.Cleanup(func() { _ = os.Chdir(testStartDir) })
+	err := os.Chdir(tempDir)
 	require.NoError(t, err)
 
 	var stdout bytes.Buffer

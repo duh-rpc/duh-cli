@@ -375,10 +375,7 @@ func TestIsInitTemplateSpecWithFullMatch(t *testing.T) {
 		0644,
 	))
 
-	originalDir, err := os.Getwd()
-	require.NoError(t, err)
-	t.Cleanup(func() { _ = os.Chdir(originalDir) })
-
+	t.Cleanup(func() { _ = os.Chdir(testStartDir) })
 	require.NoError(t, os.Chdir(tempDir))
 
 	var stdout bytes.Buffer
@@ -403,10 +400,7 @@ func TestIsInitTemplateSpecWithPartialMatch(t *testing.T) {
 		0644,
 	))
 
-	originalDir, err := os.Getwd()
-	require.NoError(t, err)
-	t.Cleanup(func() { _ = os.Chdir(originalDir) })
-
+	t.Cleanup(func() { _ = os.Chdir(testStartDir) })
 	require.NoError(t, os.Chdir(tempDir))
 
 	var stdout bytes.Buffer
@@ -427,10 +421,7 @@ func TestIsInitTemplateSpecWithNoMatch(t *testing.T) {
 		0644,
 	))
 
-	originalDir, err := os.Getwd()
-	require.NoError(t, err)
-	t.Cleanup(func() { _ = os.Chdir(originalDir) })
-
+	t.Cleanup(func() { _ = os.Chdir(testStartDir) })
 	require.NoError(t, os.Chdir(tempDir))
 
 	var stdout bytes.Buffer
@@ -451,10 +442,7 @@ func TestIsInitTemplateSpecWithExtraEndpoints(t *testing.T) {
 		0644,
 	))
 
-	originalDir, err := os.Getwd()
-	require.NoError(t, err)
-	t.Cleanup(func() { _ = os.Chdir(originalDir) })
-
+	t.Cleanup(func() { _ = os.Chdir(testStartDir) })
 	require.NoError(t, os.Chdir(tempDir))
 
 	var stdout bytes.Buffer
@@ -475,12 +463,10 @@ func TestRunWithFullFlagFalse(t *testing.T) {
 		0644,
 	))
 
-	originalDir, err := os.Getwd()
-	require.NoError(t, err)
-	t.Cleanup(func() { _ = os.Chdir(originalDir) })
-
+	t.Cleanup(func() { _ = os.Chdir(testStartDir) })
 	require.NoError(t, os.Chdir(tempDir))
 
+	var err error
 	var stdout bytes.Buffer
 	args := []string{"generate", "openapi.yaml"}
 	exitCode := duh.RunCmd(&stdout, args)

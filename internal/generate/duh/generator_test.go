@@ -22,11 +22,10 @@ func TestRenderBufGenYaml(t *testing.T) {
 		0644,
 	))
 
-	originalDir, err := os.Getwd()
-	require.NoError(t, err)
-	t.Cleanup(func() { _ = os.Chdir(originalDir) })
+	t.Cleanup(func() { _ = os.Chdir(testStartDir) })
 	require.NoError(t, os.Chdir(tempDir))
 
+	var err error
 	var stdout bytes.Buffer
 	exitCode := duh.RunCmd(&stdout, []string{"generate", "openapi.yaml"})
 
@@ -53,11 +52,10 @@ func TestBufFilesGeneratedWithoutFullFlag(t *testing.T) {
 		0644,
 	))
 
-	originalDir, err := os.Getwd()
-	require.NoError(t, err)
-	t.Cleanup(func() { _ = os.Chdir(originalDir) })
+	t.Cleanup(func() { _ = os.Chdir(testStartDir) })
 	require.NoError(t, os.Chdir(tempDir))
 
+	var err error
 	var stdout bytes.Buffer
 	exitCode := duh.RunCmd(&stdout, []string{"generate", "openapi.yaml"})
 
@@ -86,11 +84,10 @@ func TestBufFilesGeneratedWithFullFlag(t *testing.T) {
 		0644,
 	))
 
-	originalDir, err := os.Getwd()
-	require.NoError(t, err)
-	t.Cleanup(func() { _ = os.Chdir(originalDir) })
+	t.Cleanup(func() { _ = os.Chdir(testStartDir) })
 	require.NoError(t, os.Chdir(tempDir))
 
+	var err error
 	var stdout bytes.Buffer
 	exitCode := duh.RunCmd(&stdout, []string{"generate", "openapi.yaml", "--full"})
 
@@ -122,11 +119,10 @@ func TestMakefileWrittenToOutputDir(t *testing.T) {
 		0644,
 	))
 
-	originalDir, err := os.Getwd()
-	require.NoError(t, err)
-	t.Cleanup(func() { _ = os.Chdir(originalDir) })
+	t.Cleanup(func() { _ = os.Chdir(testStartDir) })
 	require.NoError(t, os.Chdir(tempDir))
 
+	var err error
 	var stdout bytes.Buffer
 	exitCode := duh.RunCmd(&stdout, []string{"generate", "openapi.yaml", "--output-dir", "api", "--full"})
 	require.Equal(t, 0, exitCode)

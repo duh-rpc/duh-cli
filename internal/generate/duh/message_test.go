@@ -23,9 +23,7 @@ func TestReminderMessageDisplayed(t *testing.T) {
 		0644,
 	))
 
-	originalDir, err := os.Getwd()
-	require.NoError(t, err)
-	t.Cleanup(func() { _ = os.Chdir(originalDir) })
+	t.Cleanup(func() { _ = os.Chdir(testStartDir) })
 	require.NoError(t, os.Chdir(tempDir))
 
 	var stdout bytes.Buffer
@@ -50,9 +48,7 @@ func TestReminderMessageWithFullFlag(t *testing.T) {
 		0644,
 	))
 
-	originalDir, err := os.Getwd()
-	require.NoError(t, err)
-	t.Cleanup(func() { _ = os.Chdir(originalDir) })
+	t.Cleanup(func() { _ = os.Chdir(testStartDir) })
 	require.NoError(t, os.Chdir(tempDir))
 
 	var stdout bytes.Buffer
@@ -77,9 +73,7 @@ func TestReminderMessageFormat(t *testing.T) {
 		0644,
 	))
 
-	originalDir, err := os.Getwd()
-	require.NoError(t, err)
-	t.Cleanup(func() { _ = os.Chdir(originalDir) })
+	t.Cleanup(func() { _ = os.Chdir(testStartDir) })
 	require.NoError(t, os.Chdir(tempDir))
 
 	var stdout bytes.Buffer
