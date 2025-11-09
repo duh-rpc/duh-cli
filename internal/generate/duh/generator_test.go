@@ -24,7 +24,7 @@ func TestRenderBufGenYaml(t *testing.T) {
 
 	originalDir, err := os.Getwd()
 	require.NoError(t, err)
-	defer func() { _ = os.Chdir(originalDir) }()
+	t.Cleanup(func() { _ = os.Chdir(originalDir) })
 	require.NoError(t, os.Chdir(tempDir))
 
 	var stdout bytes.Buffer
@@ -55,7 +55,7 @@ func TestBufFilesGeneratedWithoutFullFlag(t *testing.T) {
 
 	originalDir, err := os.Getwd()
 	require.NoError(t, err)
-	defer func() { _ = os.Chdir(originalDir) }()
+	t.Cleanup(func() { _ = os.Chdir(originalDir) })
 	require.NoError(t, os.Chdir(tempDir))
 
 	var stdout bytes.Buffer
@@ -88,7 +88,7 @@ func TestBufFilesGeneratedWithFullFlag(t *testing.T) {
 
 	originalDir, err := os.Getwd()
 	require.NoError(t, err)
-	defer func() { _ = os.Chdir(originalDir) }()
+	t.Cleanup(func() { _ = os.Chdir(originalDir) })
 	require.NoError(t, os.Chdir(tempDir))
 
 	var stdout bytes.Buffer
@@ -124,7 +124,7 @@ func TestMakefileWrittenToOutputDir(t *testing.T) {
 
 	originalDir, err := os.Getwd()
 	require.NoError(t, err)
-	defer func() { _ = os.Chdir(originalDir) }()
+	t.Cleanup(func() { _ = os.Chdir(originalDir) })
 	require.NoError(t, os.Chdir(tempDir))
 
 	var stdout bytes.Buffer

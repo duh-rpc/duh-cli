@@ -25,7 +25,7 @@ func TestGenerateDuhWithFullFlagAndInitSpec(t *testing.T) {
 
 	originalDir, err := os.Getwd()
 	require.NoError(t, err)
-	defer func() { _ = os.Chdir(originalDir) }()
+	t.Cleanup(func() { _ = os.Chdir(originalDir) })
 
 	require.NoError(t, os.Chdir(tempDir))
 
@@ -104,7 +104,7 @@ func TestGenerateDuhWithFullFlagAndCustomSpec(t *testing.T) {
 
 	originalDir, err := os.Getwd()
 	require.NoError(t, err)
-	defer func() { _ = os.Chdir(originalDir) }()
+	t.Cleanup(func() { _ = os.Chdir(originalDir) })
 
 	require.NoError(t, os.Chdir(tempDir))
 
@@ -139,7 +139,7 @@ func TestGenerateDuhWithoutFullFlag(t *testing.T) {
 
 	originalDir, err := os.Getwd()
 	require.NoError(t, err)
-	defer func() { _ = os.Chdir(originalDir) }()
+	t.Cleanup(func() { _ = os.Chdir(originalDir) })
 
 	require.NoError(t, os.Chdir(tempDir))
 
@@ -179,7 +179,7 @@ func TestRegenerateWithFullFlagOverwrites(t *testing.T) {
 
 	originalDir, err := os.Getwd()
 	require.NoError(t, err)
-	defer func() { _ = os.Chdir(originalDir) }()
+	t.Cleanup(func() { _ = os.Chdir(originalDir) })
 
 	require.NoError(t, os.Chdir(tempDir))
 
@@ -217,7 +217,7 @@ func TestMakefileGoesToProjectRoot(t *testing.T) {
 
 	originalDir, err := os.Getwd()
 	require.NoError(t, err)
-	defer func() { _ = os.Chdir(originalDir) }()
+	t.Cleanup(func() { _ = os.Chdir(originalDir) })
 
 	require.NoError(t, os.Chdir(tempDir))
 
@@ -253,7 +253,7 @@ func TestFullGeneratedCodeFormat(t *testing.T) {
 
 	originalDir, err := os.Getwd()
 	require.NoError(t, err)
-	defer func() { _ = os.Chdir(originalDir) }()
+	t.Cleanup(func() { _ = os.Chdir(originalDir) })
 
 	require.NoError(t, os.Chdir(tempDir))
 
@@ -299,7 +299,7 @@ func TestBufFilesNotOverwrittenWhenExist(t *testing.T) {
 
 	originalDir, err := os.Getwd()
 	require.NoError(t, err)
-	defer func() { _ = os.Chdir(originalDir) }()
+	t.Cleanup(func() { _ = os.Chdir(originalDir) })
 
 	require.NoError(t, os.Chdir(tempDir))
 
@@ -566,7 +566,7 @@ func TestGenerateDuhWithFullFlagAndExtraEndpoint(t *testing.T) {
 
 	originalDir, err := os.Getwd()
 	require.NoError(t, err)
-	defer func() { _ = os.Chdir(originalDir) }()
+	t.Cleanup(func() { _ = os.Chdir(originalDir) })
 
 	require.NoError(t, os.Chdir(tempDir))
 

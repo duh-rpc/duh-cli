@@ -377,7 +377,7 @@ func TestIsInitTemplateSpecWithFullMatch(t *testing.T) {
 
 	originalDir, err := os.Getwd()
 	require.NoError(t, err)
-	defer func() { _ = os.Chdir(originalDir) }()
+	t.Cleanup(func() { _ = os.Chdir(originalDir) })
 
 	require.NoError(t, os.Chdir(tempDir))
 
@@ -405,7 +405,7 @@ func TestIsInitTemplateSpecWithPartialMatch(t *testing.T) {
 
 	originalDir, err := os.Getwd()
 	require.NoError(t, err)
-	defer func() { _ = os.Chdir(originalDir) }()
+	t.Cleanup(func() { _ = os.Chdir(originalDir) })
 
 	require.NoError(t, os.Chdir(tempDir))
 
@@ -429,7 +429,7 @@ func TestIsInitTemplateSpecWithNoMatch(t *testing.T) {
 
 	originalDir, err := os.Getwd()
 	require.NoError(t, err)
-	defer func() { _ = os.Chdir(originalDir) }()
+	t.Cleanup(func() { _ = os.Chdir(originalDir) })
 
 	require.NoError(t, os.Chdir(tempDir))
 
@@ -453,7 +453,7 @@ func TestIsInitTemplateSpecWithExtraEndpoints(t *testing.T) {
 
 	originalDir, err := os.Getwd()
 	require.NoError(t, err)
-	defer func() { _ = os.Chdir(originalDir) }()
+	t.Cleanup(func() { _ = os.Chdir(originalDir) })
 
 	require.NoError(t, os.Chdir(tempDir))
 
@@ -477,7 +477,7 @@ func TestRunWithFullFlagFalse(t *testing.T) {
 
 	originalDir, err := os.Getwd()
 	require.NoError(t, err)
-	defer func() { _ = os.Chdir(originalDir) }()
+	t.Cleanup(func() { _ = os.Chdir(originalDir) })
 
 	require.NoError(t, os.Chdir(tempDir))
 

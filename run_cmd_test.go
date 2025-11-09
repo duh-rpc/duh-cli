@@ -50,11 +50,9 @@ func TestRunCmdNoArguments(t *testing.T) {
 	validSpec, err := os.ReadFile(validSpecPath)
 	require.NoError(t, err)
 
+	t.Cleanup(func() { _ = os.Chdir(originalDir) })
 	err = os.Chdir(tempDir)
 	require.NoError(t, err)
-	defer func() {
-		_ = os.Chdir(originalDir)
-	}()
 
 	err = os.WriteFile(defaultFile, validSpec, 0644)
 	require.NoError(t, err)
@@ -86,11 +84,9 @@ func TestLintWithDefaultFile(t *testing.T) {
 	validSpec, err := os.ReadFile(validSpecPath)
 	require.NoError(t, err)
 
+	t.Cleanup(func() { _ = os.Chdir(originalDir) })
 	err = os.Chdir(tempDir)
 	require.NoError(t, err)
-	defer func() {
-		_ = os.Chdir(originalDir)
-	}()
 
 	err = os.WriteFile(defaultFile, validSpec, 0644)
 	require.NoError(t, err)
@@ -108,11 +104,9 @@ func TestLintWithDefaultFileNotFound(t *testing.T) {
 	originalDir, err := os.Getwd()
 	require.NoError(t, err)
 
+	t.Cleanup(func() { _ = os.Chdir(originalDir) })
 	err = os.Chdir(tempDir)
 	require.NoError(t, err)
-	defer func() {
-		_ = os.Chdir(originalDir)
-	}()
 
 	var stdout bytes.Buffer
 	exitCode := lint.RunCmd(&stdout, []string{"lint"})
@@ -132,11 +126,9 @@ func TestLintWithExplicitFile(t *testing.T) {
 	validSpec, err := os.ReadFile(validSpecPath)
 	require.NoError(t, err)
 
+	t.Cleanup(func() { _ = os.Chdir(originalDir) })
 	err = os.Chdir(tempDir)
 	require.NoError(t, err)
-	defer func() {
-		_ = os.Chdir(originalDir)
-	}()
 
 	const customFile = "custom-spec.yaml"
 	err = os.WriteFile(customFile, validSpec, 0644)
@@ -155,11 +147,9 @@ func TestInitCommandWithDefaultPath(t *testing.T) {
 	originalDir, err := os.Getwd()
 	require.NoError(t, err)
 
+	t.Cleanup(func() { _ = os.Chdir(originalDir) })
 	err = os.Chdir(tempDir)
 	require.NoError(t, err)
-	defer func() {
-		_ = os.Chdir(originalDir)
-	}()
 
 	var stdout bytes.Buffer
 	const defaultOutput = "openapi.yaml"
