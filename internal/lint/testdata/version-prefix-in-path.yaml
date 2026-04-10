@@ -1,20 +1,14 @@
 openapi: 3.0.0
 info:
-  title: Wrong HTTP Methods
+  title: Version Prefix In Path
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /users.list:
-    get:  # Should be POST
-      responses:
-        200:
-          description: Success
-          content:
-            application/json:
-              schema:
-                type: array
-  /users.update:
-    put:  # Should be POST
+  /v1/users.create:
+    post:
       requestBody:
+        required: true
         content:
           application/json:
             schema:

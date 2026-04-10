@@ -7,10 +7,10 @@ import (
 
 // IsInitTemplateSpec checks if the OpenAPI spec contains all 4 required endpoints
 // from the duh init template:
-// - /v1/users.create
-// - /v1/users.get
-// - /v1/users.list
-// - /v1/users.update
+// - /users.create
+// - /users.get
+// - /users.list
+// - /users.update
 //
 // Additional endpoints beyond these 4 are allowed and don't affect the match.
 // Returns true only if ALL 4 required paths exist.
@@ -20,10 +20,10 @@ func IsInitTemplateSpec(spec *v3.Document) bool {
 	}
 
 	requiredPaths := []string{
-		"/v1/users.create",
-		"/v1/users.get",
-		"/v1/users.list",
-		"/v1/users.update",
+		"/users.create",
+		"/users.get",
+		"/users.list",
+		"/users.update",
 	}
 
 	for _, requiredPath := range requiredPaths {

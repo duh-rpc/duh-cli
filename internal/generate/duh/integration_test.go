@@ -17,8 +17,10 @@ const fullSpec = `openapi: 3.0.3
 info:
   title: DUH-RPC Example API
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/users.create:
+  /users.create:
     post:
       summary: Create a new user
       requestBody:
@@ -40,7 +42,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  /v1/users.get:
+  /users.get:
     post:
       summary: Get user by ID
       requestBody:
@@ -62,7 +64,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  /v1/users.list:
+  /users.list:
     post:
       summary: List users with pagination
       requestBody:
@@ -84,7 +86,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  /v1/users.update:
+  /users.update:
     post:
       summary: Update a user
       requestBody:
@@ -180,8 +182,10 @@ const specWithoutListOps = `openapi: 3.0.0
 info:
   title: Test API
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/users.create:
+  /users.create:
     post:
       requestBody:
         required: true
@@ -202,7 +206,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  /v1/users.get:
+  /users.get:
     post:
       requestBody:
         required: true

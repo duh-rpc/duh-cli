@@ -319,8 +319,10 @@ const initTemplateWithExtraMethod = `openapi: 3.0.0
 info:
   title: Users API
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/users.create:
+  /users.create:
     post:
       summary: Create a new user
       requestBody:
@@ -342,7 +344,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  /v1/users.get:
+  /users.get:
     post:
       summary: Get user by ID
       requestBody:
@@ -364,7 +366,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  /v1/users.list:
+  /users.list:
     post:
       summary: List users
       requestBody:
@@ -386,7 +388,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  /v1/users.update:
+  /users.update:
     post:
       summary: Update a user
       requestBody:
@@ -408,7 +410,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  /v1/users.delete:
+  /users.delete:
     post:
       summary: Delete a user
       requestBody:

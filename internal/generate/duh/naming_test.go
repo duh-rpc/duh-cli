@@ -14,8 +14,10 @@ const usersCreateSpec = `openapi: 3.0.0
 info:
   title: Test API
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/users.create:
+  /users.create:
     post:
       requestBody:
         required: true
@@ -64,8 +66,10 @@ const userProfilesGetByIdSpec = `openapi: 3.0.0
 info:
   title: Test API
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/user-profiles.get-by-id:
+  /user-profiles.get-by-id:
     post:
       requestBody:
         required: true
@@ -114,8 +118,10 @@ const underscoreSpec = `openapi: 3.0.0
 info:
   title: Test API
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/user_profiles.get_by_id:
+  /user_profiles.get_by_id:
     post:
       requestBody:
         required: true
@@ -164,6 +170,8 @@ const invalidPathNoVersionSpec = `openapi: 3.0.0
 info:
   title: Test API
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
   /users.create:
     post:
@@ -299,12 +307,14 @@ func TestGenerateOperationNameWithUnderscores(t *testing.T) {
 	assert.Contains(t, content, "UserProfilesGetById")
 }
 
-func TestGenerateOperationNameInvalidPathNoVersion(t *testing.T) {
+func TestGenerateOperationNamePathWithoutVersionPrefix(t *testing.T) {
 	specPath, stdout := setupTest(t, invalidPathNoVersionSpec)
 
 	exitCode := duh.RunCmd(stdout, []string{"generate", specPath})
 
-	require.Equal(t, 2, exitCode)
+	require.Equal(t, 0, exitCode)
+	content := getServerContent(t, specPath)
+	assert.Contains(t, content, "UsersCreate")
 }
 
 func TestGenerateOperationNameInvalidPathNoMethod(t *testing.T) {

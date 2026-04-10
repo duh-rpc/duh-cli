@@ -75,6 +75,18 @@ func TestLinterAllRuleViolations(t *testing.T) {
 			expectedViolation: "[ERROR_SCHEMA]",
 			expectedExitCode:  1,
 		},
+		{
+			name:              "VersionPrefixInPath",
+			file:              "testdata/version-prefix-in-path.yaml",
+			expectedViolation: "[PATH_NO_VERSION_PREFIX]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "MissingServerVersion",
+			file:              "testdata/missing-server-version.yaml",
+			expectedViolation: "[SERVER_URL_VERSIONING]",
+			expectedExitCode:  1,
+		},
 	}
 
 	for _, test := range tests {
@@ -103,6 +115,7 @@ func TestLinterMultipleViolations(t *testing.T) {
 	// Verify expected violations are reported
 	expectedViolations := []string{
 		"[PATH_FORMAT]",
+		"[PATH_NO_VERSION_PREFIX]",
 		"[HTTP_METHOD_ALLOWED]",
 		"[RPC_POST_NO_QUERY_PARAMS]",
 		"[REQUEST_BODY_REQUIRED]",
@@ -119,9 +132,9 @@ func TestLinterMultipleViolations(t *testing.T) {
 	// Verify output structure
 	assert.Contains(t, output, "errors")
 
-	// Count violations - should have at least 8 (one for each rule type)
+	// Count violations - should have at least 9 (one for each rule type)
 	violationCount := strings.Count(output, "[ERROR]")
-	assert.GreaterOrEqual(t, violationCount, 8)
+	assert.GreaterOrEqual(t, violationCount, 9)
 }
 
 func TestLinterFileNotFound(t *testing.T) {

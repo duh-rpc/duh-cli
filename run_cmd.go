@@ -106,8 +106,8 @@ Exit Codes:
 The add command creates a new endpoint with the specified path and name,
 generating request and response schemas with placeholder properties.
 
-The path must follow DUH-RPC format: /v{N}/{subject}.{method}
-For example: /v1/users.create
+The path must follow DUH-RPC format: /{resource}.{method}
+For example: /users.create
 
 The name is used to generate schema names: {Name}Request and {Name}Response
 For example: CreateUser generates CreateUserRequest and CreateUserResponse

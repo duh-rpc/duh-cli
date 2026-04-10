@@ -31,7 +31,7 @@ paths:
                   error:
                     type: string
 
-  /v1/products.list:
+  /v1/products.list:  # VIOLATION: PATH_NO_VERSION_PREFIX
     post:
       # VIOLATION: missing request body
       responses:

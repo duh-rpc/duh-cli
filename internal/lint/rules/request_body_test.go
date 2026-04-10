@@ -21,8 +21,10 @@ func TestRequestBodyRule(t *testing.T) {
 info:
   title: Test
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/users.create:
+  /users.create:
     post:
       requestBody:
         required: true
@@ -47,7 +49,7 @@ info:
   title: Test
   version: 1.0.0
 paths:
-  /v1/users.create:
+  /users.create:
     post:
       responses:
         200:
@@ -57,7 +59,7 @@ paths:
               schema:
                 type: object`,
 			expectedExit: 1,
-			expectedOutput: `[ERROR] [REQUEST_BODY_REQUIRED] POST /v1/users.create
+			expectedOutput: `[ERROR] [REQUEST_BODY_REQUIRED] POST /users.create
   Operation is missing a request body
   Add a required request body to this operation`,
 		},
@@ -68,7 +70,7 @@ info:
   title: Test
   version: 1.0.0
 paths:
-  /v1/users.create:
+  /users.create:
     post:
       requestBody:
         required: false
@@ -84,7 +86,7 @@ paths:
               schema:
                 type: object`,
 			expectedExit: 1,
-			expectedOutput: `[ERROR] [REQUEST_BODY_REQUIRED] POST /v1/users.create
+			expectedOutput: `[ERROR] [REQUEST_BODY_REQUIRED] POST /users.create
   Request body must be marked as required
   Set requestBody.required to true`,
 		},
@@ -95,7 +97,7 @@ info:
   title: Test
   version: 1.0.0
 paths:
-  /v1/users.create:
+  /users.create:
     post:
       requestBody:
         content:
@@ -110,7 +112,7 @@ paths:
               schema:
                 type: object`,
 			expectedExit: 1,
-			expectedOutput: `[ERROR] [REQUEST_BODY_REQUIRED] POST /v1/users.create
+			expectedOutput: `[ERROR] [REQUEST_BODY_REQUIRED] POST /users.create
   Request body must be marked as required
   Set requestBody.required to true`,
 		},

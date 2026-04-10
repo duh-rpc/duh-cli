@@ -7,16 +7,20 @@ info:
   description: A comprehensive example of a DUH-RPC compliant API specification
   version: 1.0.0
 
+# DUH-RPC Rule: Version belongs in servers[].url, not in the path prefix
+servers:
+  - url: https://api.example.com/v1
+
 # DUH-RPC Path Requirements:
-# - Must follow format: /v{N}/{subject}.{method}
-# - Version must be an integer (v0, v1, v2, etc.)
-# - Subject and method must be lowercase alphanumeric with optional hyphens/underscores
+# - Must follow format: /{resource}.{method}
+# - Resource and method must be lowercase alphanumeric with optional hyphens/underscores
 # - Must start with a letter
 # - Maximum 50 characters each
 # - No path parameters allowed
+# - Version prefix (e.g., /v1/) must NOT appear in paths
 paths:
   # Example 1: Basic create endpoint with JSON and protobuf support
-  /v1/users.create:
+  /users.create:
     post:  # DUH-RPC Rule: Only POST method is allowed
       summary: Create a new user
       description: Creates a new user account in the system
@@ -67,7 +71,7 @@ paths:
                 $ref: '#/components/schemas/Error'
 
   # Example 2: Retrieval endpoint with identifier in request body
-  /v1/users.get:
+  /users.get:
     post:  # Even for retrievals, DUH-RPC uses POST
       summary: Get user by ID
       description: Retrieves a user's details by their unique identifier
@@ -113,7 +117,7 @@ paths:
                 $ref: '#/components/schemas/Error'
 
   # Example 3: List endpoint with pagination
-  /v1/users.list:
+  /users.list:
     post:
       summary: List users with pagination
       description: Retrieves a paginated list of users
@@ -153,7 +157,7 @@ paths:
                 $ref: '#/components/schemas/Error'
 
   # Example 4: Update endpoint demonstrating additional status codes
-  /v1/users.update:
+  /users.update:
     post:
       summary: Update a user
       description: Updates an existing user with new information

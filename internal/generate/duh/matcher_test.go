@@ -14,8 +14,10 @@ const initTemplateSpec = `openapi: 3.0.3
 info:
   title: Test API
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/users.create:
+  /users.create:
     post:
       operationId: createUser
       requestBody:
@@ -31,7 +33,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CreateUserResponse'
-  /v1/users.get:
+  /users.get:
     post:
       operationId: getUserById
       requestBody:
@@ -47,7 +49,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GetUserByIdResponse'
-  /v1/users.list:
+  /users.list:
     post:
       operationId: listUsers
       requestBody:
@@ -63,7 +65,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ListUsersResponse'
-  /v1/users.update:
+  /users.update:
     post:
       operationId: updateUser
       requestBody:
@@ -128,8 +130,10 @@ const partialSpec = `openapi: 3.0.3
 info:
   title: Test API
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/users.create:
+  /users.create:
     post:
       operationId: createUser
       requestBody:
@@ -145,7 +149,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CreateUserResponse'
-  /v1/users.get:
+  /users.get:
     post:
       operationId: getUserById
       requestBody:
@@ -191,8 +195,10 @@ const customSpec = `openapi: 3.0.3
 info:
   title: Custom API
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/products.create:
+  /products.create:
     post:
       operationId: createProduct
       requestBody:
@@ -230,8 +236,10 @@ const extraEndpointsSpec = `openapi: 3.0.3
 info:
   title: Test API
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/users.create:
+  /users.create:
     post:
       operationId: createUser
       requestBody:
@@ -247,7 +255,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CreateUserResponse'
-  /v1/users.get:
+  /users.get:
     post:
       operationId: getUserById
       requestBody:
@@ -263,7 +271,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GetUserByIdResponse'
-  /v1/users.list:
+  /users.list:
     post:
       operationId: listUsers
       requestBody:
@@ -279,7 +287,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ListUsersResponse'
-  /v1/users.update:
+  /users.update:
     post:
       operationId: updateUser
       requestBody:
@@ -295,7 +303,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UpdateUserResponse'
-  /v1/products.create:
+  /products.create:
     post:
       operationId: createProduct
       requestBody:

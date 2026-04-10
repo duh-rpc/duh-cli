@@ -22,8 +22,10 @@ openapi: 3.0.0
 info:
   title: Test
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/test.action:
+  /test.action:
     post:
       requestBody:
         required: true
@@ -49,8 +51,10 @@ openapi: 3.0.0
 info:
   title: Test
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/test.action:
+  /test.action:
     post:
       requestBody:
         required: true
@@ -80,8 +84,10 @@ openapi: 3.0.0
 info:
   title: Test
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/test.action:
+  /test.action:
     post:
       requestBody:
         required: true
@@ -112,7 +118,7 @@ info:
   title: Test
   version: 1.0.0
 paths:
-  /v1/test.action:
+  /test.action:
     post:
       requestBody:
         required: true
@@ -129,7 +135,7 @@ paths:
                 type: object
 `,
 			expectedExit: 1,
-			expectedOutput: `[ERROR] [CONTENT_TYPE] POST /v1/test.action
+			expectedOutput: `[ERROR] [CONTENT_TYPE] POST /test.action
   Invalid request body content type: application/xml`,
 		},
 		{
@@ -140,7 +146,7 @@ info:
   title: Test
   version: 1.0.0
 paths:
-  /v1/test.action:
+  /test.action:
     post:
       requestBody:
         required: true
@@ -157,7 +163,7 @@ paths:
                 type: string
 `,
 			expectedExit: 1,
-			expectedOutput: `[ERROR] [CONTENT_TYPE] POST /v1/test.action response 200
+			expectedOutput: `[ERROR] [CONTENT_TYPE] POST /test.action response 200
   Invalid content type: text/html`,
 		},
 		{
@@ -168,7 +174,7 @@ info:
   title: Test
   version: 1.0.0
 paths:
-  /v1/test.action:
+  /test.action:
     post:
       requestBody:
         required: true
@@ -185,7 +191,7 @@ paths:
                 type: string
 `,
 			expectedExit: 1,
-			expectedOutput: `[ERROR] [CONTENT_TYPE] POST /v1/test.action response 200
+			expectedOutput: `[ERROR] [CONTENT_TYPE] POST /test.action response 200
   Invalid content type: text/plain`,
 		},
 		{
@@ -196,7 +202,7 @@ info:
   title: Test
   version: 1.0.0
 paths:
-  /v1/test.action:
+  /test.action:
     post:
       requestBody:
         required: true
@@ -213,7 +219,7 @@ paths:
                 type: object
 `,
 			expectedExit: 1,
-			expectedOutput: `[ERROR] [CONTENT_TYPE] POST /v1/test.action
+			expectedOutput: `[ERROR] [CONTENT_TYPE] POST /test.action
   MIME parameters not allowed in request body content type`,
 		},
 		{
@@ -224,7 +230,7 @@ info:
   title: Test
   version: 1.0.0
 paths:
-  /v1/test.action:
+  /test.action:
     post:
       requestBody:
         required: true
@@ -241,7 +247,7 @@ paths:
                 type: string
 `,
 			expectedExit: 1,
-			expectedOutput: `[ERROR] [CONTENT_TYPE] POST /v1/test.action
+			expectedOutput: `[ERROR] [CONTENT_TYPE] POST /test.action
   Request body must include application/json content type`,
 		},
 		{
@@ -252,7 +258,7 @@ info:
   title: Test
   version: 1.0.0
 paths:
-  /v1/test.action:
+  /test.action:
     post:
       requestBody:
         required: true
@@ -278,8 +284,10 @@ openapi: 3.0.0
 info:
   title: Test
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/test.action:
+  /test.action:
     post:
       requestBody:
         required: true

@@ -41,7 +41,7 @@ func NewService(conf ServiceConfig) (ServiceInterface, error) {
 
 {{range .Operations}}
 {{if .IsInitTemplateMethod}}
-{{if eq .Path "/v1/users.create"}}
+{{if eq .Path "/users.create"}}
 func (s *Service) {{.MethodName}}(ctx context.Context, req *{{.RequestType}}, resp *{{.ResponseType}}) error {
 	if req.Email == "" {
 		return duh.NewServiceError(duh.CodeBadRequest, "email is required", nil, nil)
@@ -79,7 +79,7 @@ func (s *Service) {{.MethodName}}(ctx context.Context, req *{{.RequestType}}, re
 
 	return nil
 }
-{{else if eq .Path "/v1/users.get"}}
+{{else if eq .Path "/users.get"}}
 func (s *Service) {{.MethodName}}(ctx context.Context, req *{{.RequestType}}, resp *{{.ResponseType}}) error {
 	if req.UserId == "" {
 		return duh.NewServiceError(duh.CodeBadRequest, "user_id is required", nil, nil)
@@ -101,7 +101,7 @@ func (s *Service) {{.MethodName}}(ctx context.Context, req *{{.RequestType}}, re
 
 	return nil
 }
-{{else if eq .Path "/v1/users.list"}}
+{{else if eq .Path "/users.list"}}
 func (s *Service) {{.MethodName}}(ctx context.Context, req *{{.RequestType}}, resp *{{.ResponseType}}) error {
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
@@ -157,7 +157,7 @@ func (s *Service) {{.MethodName}}(ctx context.Context, req *{{.RequestType}}, re
 
 	return nil
 }
-{{else if eq .Path "/v1/users.update"}}
+{{else if eq .Path "/users.update"}}
 func (s *Service) {{.MethodName}}(ctx context.Context, req *{{.RequestType}}, resp *{{.ResponseType}}) error {
 	if req.UserId == "" {
 		return duh.NewServiceError(duh.CodeBadRequest, "user_id is required", nil, nil)

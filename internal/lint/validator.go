@@ -15,6 +15,8 @@ type Rule interface {
 func Validate(doc *v3.Document, filePath string) ValidationResult {
 	allRules := []Rule{
 		rules2.NewPathFormatRule(),
+		rules2.NewPathNoVersionPrefixRule(),
+		rules2.NewServerURLVersioningRule(),
 		rules2.NewHTTPMethodRule(),
 		rules2.NewQueryParamsRule(),
 		rules2.NewRequestBodyRule(),

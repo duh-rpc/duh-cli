@@ -312,10 +312,10 @@ func extractSchemaName(ref string) string {
 
 func isInitTemplateMethod(path string) bool {
 	initTemplatePaths := []string{
-		"/v1/users.create",
-		"/v1/users.get",
-		"/v1/users.list",
-		"/v1/users.update",
+		"/users.create",
+		"/users.get",
+		"/users.list",
+		"/users.update",
 	}
 
 	for _, templatePath := range initTemplatePaths {

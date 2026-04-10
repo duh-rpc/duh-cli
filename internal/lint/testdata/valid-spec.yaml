@@ -4,8 +4,11 @@ info:
   version: 1.0.0
   description: Fully compliant DUH-RPC specification
 
+servers:
+  - url: https://api.example.com/v1
+
 paths:
-  /v1/users.create:
+  /users.create:
     post:
       operationId: createUser
       summary: Create a new user
@@ -49,7 +52,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /v1/users.get-by-id:
+  /users.get-by-id:
     post:
       operationId: getUserById
       summary: Get user by ID

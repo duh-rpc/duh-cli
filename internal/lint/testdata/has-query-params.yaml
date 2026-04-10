@@ -3,7 +3,7 @@ info:
   title: Query Parameters
   version: 1.0.0
 paths:
-  /v1/users.search:
+  /users.search:
     post:
       parameters:
         - name: query

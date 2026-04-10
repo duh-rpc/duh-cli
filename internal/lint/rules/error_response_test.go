@@ -22,8 +22,10 @@ openapi: 3.0.0
 info:
   title: Test
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/test.action:
+  /test.action:
     post:
       requestBody:
         required: true
@@ -61,8 +63,10 @@ openapi: 3.0.0
 info:
   title: Test
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/test.action:
+  /test.action:
     post:
       requestBody:
         required: true
@@ -103,7 +107,7 @@ info:
   title: Test
   version: 1.0.0
 paths:
-  /v1/test.action:
+  /test.action:
     post:
       requestBody:
         required: true
@@ -129,7 +133,7 @@ paths:
                     type: string
 `,
 			expectedExit: 1,
-			expectedOutput: `[ERROR] [ERROR_SCHEMA] POST /v1/test.action response 400 (application/json)
+			expectedOutput: `[ERROR] [ERROR_SCHEMA] POST /test.action response 400 (application/json)
   error schema must have required fields: code and message`,
 		},
 		{
@@ -140,7 +144,7 @@ info:
   title: Test
   version: 1.0.0
 paths:
-  /v1/test.action:
+  /test.action:
     post:
       requestBody:
         required: true
@@ -169,7 +173,7 @@ paths:
                     type: integer
 `,
 			expectedExit: 1,
-			expectedOutput: `[ERROR] [ERROR_SCHEMA] POST /v1/test.action response 500 (application/json)
+			expectedOutput: `[ERROR] [ERROR_SCHEMA] POST /test.action response 500 (application/json)
   code field must be type integer`,
 		},
 		{
@@ -180,7 +184,7 @@ info:
   title: Test
   version: 1.0.0
 paths:
-  /v1/test.action:
+  /test.action:
     post:
       requestBody:
         required: true
@@ -208,7 +212,7 @@ paths:
                     type: string
 `,
 			expectedExit: 1,
-			expectedOutput: `[ERROR] [ERROR_SCHEMA] POST /v1/test.action response 400 (application/json)
+			expectedOutput: `[ERROR] [ERROR_SCHEMA] POST /test.action response 400 (application/json)
   error schema must have explicit type 'object'`,
 		},
 		{
@@ -219,7 +223,7 @@ info:
   title: Test
   version: 1.0.0
 paths:
-  /v1/test.action:
+  /test.action:
     post:
       requestBody:
         required: true
@@ -250,7 +254,7 @@ paths:
                     type: string
 `,
 			expectedExit: 1,
-			expectedOutput: `[ERROR] [ERROR_SCHEMA] POST /v1/test.action response 400 (application/json)
+			expectedOutput: `[ERROR] [ERROR_SCHEMA] POST /test.action response 400 (application/json)
   details field must be type object`,
 		},
 		{
@@ -260,8 +264,10 @@ openapi: 3.0.0
 info:
   title: Test
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/test.action:
+  /test.action:
     post:
       requestBody:
         required: true
@@ -311,8 +317,10 @@ openapi: 3.0.0
 info:
   title: Test
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/test.action:
+  /test.action:
     post:
       requestBody:
         required: true
@@ -434,8 +442,10 @@ openapi: 3.0.0
 info:
   title: Test
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/test.action:
+  /test.action:
     post:
       requestBody:
         required: true
@@ -491,8 +501,10 @@ openapi: 3.0.0
 info:
   title: Test
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/test.action:
+  /test.action:
     post:
       requestBody:
         required: true

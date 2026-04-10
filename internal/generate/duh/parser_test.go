@@ -22,8 +22,10 @@ const multiOperationSpec = `openapi: 3.0.0
 info:
   title: Test API
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/users.create:
+  /users.create:
     post:
       summary: Create a new user
       requestBody:
@@ -45,7 +47,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  /v1/users.get:
+  /users.get:
     post:
       summary: Get user by ID
       requestBody:
@@ -67,7 +69,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  /v1/users.update:
+  /users.update:
     post:
       summary: Update user
       requestBody:
@@ -131,8 +133,10 @@ const inlineSchemaSpec = `openapi: 3.0.0
 info:
   title: Test API
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/users.create:
+  /users.create:
     post:
       requestBody:
         required: true
@@ -179,8 +183,10 @@ const listOperationVariantsSpec = `openapi: 3.0.0
 info:
   title: Test API
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/users.list:
+  /users.list:
     post:
       requestBody:
         required: true
@@ -201,7 +207,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  /v1/users.list-active:
+  /users.list-active:
     post:
       requestBody:
         required: true
@@ -279,8 +285,10 @@ const arrayOrderSpec = `openapi: 3.0.0
 info:
   title: Test API
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/data.list:
+  /data.list:
     post:
       requestBody:
         required: true
@@ -349,8 +357,10 @@ const notListNoOffsetSpec = `openapi: 3.0.0
 info:
   title: Test API
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/users.list:
+  /users.list:
     post:
       requestBody:
         required: true

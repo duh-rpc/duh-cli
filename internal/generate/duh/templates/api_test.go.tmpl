@@ -18,10 +18,10 @@ import (
 {{- $listMethod := "" -}}
 {{- $updateMethod := "" -}}
 {{- range .Operations -}}
-  {{- if eq .Path "/v1/users.create" -}}{{- $createMethod = .MethodName -}}{{- end -}}
-  {{- if eq .Path "/v1/users.get" -}}{{- $getMethod = .MethodName -}}{{- end -}}
-  {{- if eq .Path "/v1/users.list" -}}{{- $listMethod = .MethodName -}}{{- end -}}
-  {{- if eq .Path "/v1/users.update" -}}{{- $updateMethod = .MethodName -}}{{- end -}}
+  {{- if eq .Path "/users.create" -}}{{- $createMethod = .MethodName -}}{{- end -}}
+  {{- if eq .Path "/users.get" -}}{{- $getMethod = .MethodName -}}{{- end -}}
+  {{- if eq .Path "/users.list" -}}{{- $listMethod = .MethodName -}}{{- end -}}
+  {{- if eq .Path "/users.update" -}}{{- $updateMethod = .MethodName -}}{{- end -}}
 {{- end -}}
 
 func TestUsersCreate(t *testing.T) {

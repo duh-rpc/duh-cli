@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestHTTPMethodRule(t *testing.T) {
+func TestPathNoVersionPrefixRule(t *testing.T) {
 	for _, test := range []struct {
 		name           string
 		spec           string
@@ -16,7 +16,7 @@ func TestHTTPMethodRule(t *testing.T) {
 		expectedOutput string
 	}{
 		{
-			name: "ValidPOSTMethod",
+			name: "ValidNoPrefix",
 			spec: `openapi: 3.0.0
 info:
   title: Test
@@ -43,36 +43,18 @@ paths:
 			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
 		},
 		{
-			name: "InvalidGETMethod",
+			name: "ValidPetsList",
 			spec: `openapi: 3.0.0
 info:
   title: Test
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /users.list:
-    get:
-      responses:
-        200:
-          description: Success
-          content:
-            application/json:
-              schema:
-                type: array`,
-			expectedExit: 1,
-			expectedOutput: `[ERROR] [HTTP_METHOD_ALLOWED] GET /users.list
-  HTTP method GET is not allowed in DUH-RPC
-  Use POST method for all DUH-RPC operations`,
-		},
-		{
-			name: "InvalidPUTMethod",
-			spec: `openapi: 3.0.0
-info:
-  title: Test
-  version: 1.0.0
-paths:
-  /users.update:
-    put:
+  /pets.list:
+    post:
       requestBody:
+        required: true
         content:
           application/json:
             schema:
@@ -84,42 +66,20 @@ paths:
             application/json:
               schema:
                 type: object`,
-			expectedExit: 1,
-			expectedOutput: `[ERROR] [HTTP_METHOD_ALLOWED] PUT /users.update
-  HTTP method PUT is not allowed in DUH-RPC
-  Use POST method for all DUH-RPC operations`,
+			expectedExit:   0,
+			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
 		},
 		{
-			name: "InvalidDELETEMethod",
+			name: "InvalidV1Prefix",
 			spec: `openapi: 3.0.0
 info:
   title: Test
   version: 1.0.0
 paths:
-  /users.delete:
-    delete:
-      responses:
-        200:
-          description: Success
-          content:
-            application/json:
-              schema:
-                type: object`,
-			expectedExit: 1,
-			expectedOutput: `[ERROR] [HTTP_METHOD_ALLOWED] DELETE /users.delete
-  HTTP method DELETE is not allowed in DUH-RPC
-  Use POST method for all DUH-RPC operations`,
-		},
-		{
-			name: "InvalidPATCHMethod",
-			spec: `openapi: 3.0.0
-info:
-  title: Test
-  version: 1.0.0
-paths:
-  /users.patch:
-    patch:
+  /v1/users.create:
+    post:
       requestBody:
+        required: true
         content:
           application/json:
             schema:
@@ -131,29 +91,20 @@ paths:
             application/json:
               schema:
                 type: object`,
-			expectedExit: 1,
-			expectedOutput: `[ERROR] [HTTP_METHOD_ALLOWED] PATCH /users.patch
-  HTTP method PATCH is not allowed in DUH-RPC
-  Use POST method for all DUH-RPC operations`,
+			expectedExit:   1,
+			expectedOutput: "[PATH_NO_VERSION_PREFIX]",
 		},
 		{
-			name: "MultipleNonPOSTMethods",
+			name: "InvalidV2Prefix",
 			spec: `openapi: 3.0.0
 info:
   title: Test
   version: 1.0.0
 paths:
-  /users.manage:
-    get:
-      responses:
-        200:
-          description: Success
-          content:
-            application/json:
-              schema:
-                type: object
-    put:
+  /v2/pets.list:
+    post:
       requestBody:
+        required: true
         content:
           application/json:
             schema:
@@ -164,8 +115,25 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-    delete:
+                type: object`,
+			expectedExit:   1,
+			expectedOutput: "[PATH_NO_VERSION_PREFIX]",
+		},
+		{
+			name: "InvalidV10Prefix",
+			spec: `openapi: 3.0.0
+info:
+  title: Test
+  version: 1.0.0
+paths:
+  /v10/accounts.get:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
       responses:
         200:
           description: Success
@@ -173,17 +141,17 @@ paths:
             application/json:
               schema:
                 type: object`,
-			expectedExit: 1,
-			expectedOutput: `[ERROR] [HTTP_METHOD_ALLOWED] GET /users.manage
-  HTTP method GET is not allowed in DUH-RPC
-  Use POST method for all DUH-RPC operations`,
+			expectedExit:   1,
+			expectedOutput: "[PATH_NO_VERSION_PREFIX]",
 		},
 		{
-			name: "MixedPOSTAndOtherMethods",
+			name: "MultiplePaths",
 			spec: `openapi: 3.0.0
 info:
   title: Test
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
   /users.create:
     post:
@@ -200,7 +168,14 @@ paths:
             application/json:
               schema:
                 type: object
-    get:
+  /v1/pets.list:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
       responses:
         200:
           description: Success
@@ -208,10 +183,8 @@ paths:
             application/json:
               schema:
                 type: object`,
-			expectedExit: 1,
-			expectedOutput: `[ERROR] [HTTP_METHOD_ALLOWED] GET /users.create
-  HTTP method GET is not allowed in DUH-RPC
-  Use POST method for all DUH-RPC operations`,
+			expectedExit:   1,
+			expectedOutput: "[PATH_NO_VERSION_PREFIX]",
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {

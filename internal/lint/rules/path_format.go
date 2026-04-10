@@ -8,7 +8,7 @@ import (
 	"github.com/pb33f/libopenapi/datamodel/high/v3"
 )
 
-var pathFormatRegex = regexp.MustCompile(`^/v(0|[1-9][0-9]*)/[a-z][a-z0-9_-]{0,49}\.[a-z][a-z0-9_-]{0,49}$`)
+var pathFormatRegex = regexp.MustCompile(`^/[a-z][a-z0-9_-]{0,49}\.[a-z][a-z0-9_-]{0,49}$`)
 var pathParamRegex = regexp.MustCompile(`\{[^}]+\}`)
 
 // PathFormatRule validates DUH-RPC path format
@@ -78,75 +78,45 @@ func (r *PathFormatRule) Validate(doc *v3.Document) []Violation {
 }
 
 func (r *PathFormatRule) generateErrorMessage(path string) string {
-	if !strings.HasPrefix(path, "/v") {
-		return "Path must start with version prefix (e.g., /v1/)"
-	}
-
 	if strings.Contains(path, "{") || strings.Contains(path, "}") {
 		return "Path contains parameters, which are not allowed in DUH-RPC"
 	}
 
-	parts := strings.Split(strings.TrimPrefix(path, "/"), "/")
-	if len(parts) < 2 {
-		return "Path must have format /v{N}/subject.method"
+	// Strip leading slash for analysis
+	trimmed := strings.TrimPrefix(path, "/")
+
+	if !strings.Contains(trimmed, ".") {
+		return "Path must have format /{resource}.{method} with a dot separator"
 	}
 
-	// Check version format
-	versionPart := parts[0]
-	if !regexp.MustCompile(`^v(0|[1-9][0-9]*)$`).MatchString(versionPart) {
-		return "Version must be /v{N}/ where N is a non-negative integer (e.g., /v1/, /v2/)"
+	segments := strings.Split(trimmed, ".")
+	if len(segments) > 2 {
+		return "Path must have exactly one dot separating resource and method"
 	}
 
-	// Check subject.method format
-	if len(parts) < 2 {
-		return "Path must include subject.method after version"
+	resource, method := segments[0], segments[1]
+
+	if len(resource) > 0 && !regexp.MustCompile(`^[a-z]`).MatchString(resource) {
+		return "Resource/Method must start with a lowercase letter"
+	}
+	if !regexp.MustCompile(`^[a-z][a-z0-9_-]{0,49}$`).MatchString(resource) {
+		return "Resource/Method must contain only lowercase letters, numbers, hyphens, and underscores"
 	}
 
-	methodPart := parts[1]
-	if !strings.Contains(methodPart, ".") {
-		return "Path must have format /v{N}/subject.method with a dot separator"
+	if len(method) > 0 && !regexp.MustCompile(`^[a-z]`).MatchString(method) {
+		return "Resource/Method must start with a lowercase letter"
 	}
-
-	segments := strings.Split(methodPart, ".")
-	if len(segments) != 2 {
-		return "Path must have exactly one dot separating subject and method"
-	}
-
-	subject, method := segments[0], segments[1]
-
-	// Check subject format
-	if !regexp.MustCompile(`^[a-z][a-z0-9_-]{0,49}$`).MatchString(subject) {
-		if len(subject) > 50 {
-			return "Subject segment exceeds 50 characters"
-		}
-		if len(subject) > 0 && !regexp.MustCompile(`^[a-z]`).MatchString(subject) {
-			return "Subject must start with a lowercase letter"
-		}
-		return "Subject must contain only lowercase letters, numbers, hyphens, and underscores"
-	}
-
-	// Check method format
 	if !regexp.MustCompile(`^[a-z][a-z0-9_-]{0,49}$`).MatchString(method) {
-		if len(method) > 50 {
-			return "Method segment exceeds 50 characters"
-		}
-		if len(method) > 0 && !regexp.MustCompile(`^[a-z]`).MatchString(method) {
-			return "Method must start with a lowercase letter"
-		}
-		return "Method must contain only lowercase letters, numbers, hyphens, and underscores"
+		return "Resource/Method must contain only lowercase letters, numbers, hyphens, and underscores"
 	}
 
-	return "Path does not match DUH-RPC format: /v{N}/subject.method"
+	return "Path does not match format: /{resource}.{method}"
 }
 
 func (r *PathFormatRule) generateSuggestion(path string) string {
-	if !strings.HasPrefix(path, "/v") {
-		return "Add a version prefix like /v1/"
-	}
-
 	if !strings.Contains(path, ".") {
-		return "Use format /v1/subject.method (e.g., /v1/users.create)"
+		return "Use format /{resource}.{method} (e.g., /users.create)"
 	}
 
-	return "Ensure path follows format /v{N}/subject.method with lowercase letters, numbers, hyphens, and underscores only"
+	return "Ensure path follows format /{resource}.{method} with lowercase letters, numbers, hyphens, and underscores only (e.g., /users.create, /pets.list)"
 }

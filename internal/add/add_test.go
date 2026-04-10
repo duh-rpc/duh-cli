@@ -47,14 +47,14 @@ func TestAddCommandWithDefaultFile(t *testing.T) {
 	require.NoError(t, err)
 
 	var stdout bytes.Buffer
-	exitCode := duh.RunCmd(&stdout, []string{"add", "/v1/users.create", "CreateUser"})
+	exitCode := duh.RunCmd(&stdout, []string{"add", "/users.create", "CreateUser"})
 
 	require.Equal(t, 0, exitCode)
-	require.Contains(t, stdout.String(), "✓ Added endpoint /v1/users.create")
+	require.Contains(t, stdout.String(), "✓ Added endpoint /users.create")
 
 	content, err := os.ReadFile(defaultOutput)
 	require.NoError(t, err)
-	require.Contains(t, string(content), "/v1/users.create")
+	require.Contains(t, string(content), "/users.create")
 	require.Contains(t, string(content), "CreateUserRequest")
 	require.Contains(t, string(content), "CreateUserResponse")
 }
@@ -67,15 +67,15 @@ func TestAddCommandWithFFlag(t *testing.T) {
 	require.NoError(t, err)
 
 	var stdout bytes.Buffer
-	exitCode := duh.RunCmd(&stdout, []string{"add", "-f", customPath, "/v2/products.list", "ListProducts"})
+	exitCode := duh.RunCmd(&stdout, []string{"add", "-f", customPath, "/products.list", "ListProducts"})
 
 	require.Equal(t, 0, exitCode)
-	require.Contains(t, stdout.String(), "✓ Added endpoint /v2/products.list")
+	require.Contains(t, stdout.String(), "✓ Added endpoint /products.list")
 	require.Contains(t, stdout.String(), customPath)
 
 	content, err := os.ReadFile(customPath)
 	require.NoError(t, err)
-	require.Contains(t, string(content), "/v2/products.list")
+	require.Contains(t, string(content), "/products.list")
 	require.Contains(t, string(content), "ListProductsRequest")
 	require.Contains(t, string(content), "ListProductsResponse")
 	require.Contains(t, string(content), "post:")
@@ -91,7 +91,7 @@ info:
   title: Test API
   version: 1.0.0
 paths:
-  /v1/users.create:
+  /users.create:
     post:
       summary: Create user
       responses:
@@ -104,7 +104,7 @@ components:
 	require.NoError(t, err)
 
 	var stdout bytes.Buffer
-	exitCode := duh.RunCmd(&stdout, []string{"add", "-f", filePath, "/v1/users.create", "CreateUser"})
+	exitCode := duh.RunCmd(&stdout, []string{"add", "-f", filePath, "/users.create", "CreateUser"})
 
 	require.Equal(t, 2, exitCode)
 	require.Contains(t, stdout.String(), "Error:")
@@ -129,17 +129,12 @@ func TestAddCommandInvalidPath(t *testing.T) {
 			wantErr: "invalid path format",
 		},
 		{
-			path:    "/v1/users",
+			path:    "/Users.Create",
 			name:    "CreateUser",
 			wantErr: "invalid path format",
 		},
 		{
-			path:    "/v1/Users.Create",
-			name:    "CreateUser",
-			wantErr: "invalid path format",
-		},
-		{
-			path:    "v1/users.create",
+			path:    "users.create",
 			name:    "CreateUser",
 			wantErr: "invalid path format",
 		},
@@ -158,7 +153,7 @@ func TestAddCommandFileNotFound(t *testing.T) {
 	nonexistentFile := filepath.Join(tempDir, "nonexistent.yaml")
 
 	var stdout bytes.Buffer
-	exitCode := duh.RunCmd(&stdout, []string{"add", "-f", nonexistentFile, "/v1/users.create", "CreateUser"})
+	exitCode := duh.RunCmd(&stdout, []string{"add", "-f", nonexistentFile, "/users.create", "CreateUser"})
 
 	require.Equal(t, 2, exitCode)
 	require.Contains(t, stdout.String(), "Error:")
@@ -189,11 +184,31 @@ func TestAddGeneratedEndpointPassesLint(t *testing.T) {
 	tempDir := t.TempDir()
 	filePath := filepath.Join(tempDir, "openapi.yaml")
 
-	err := os.WriteFile(filePath, []byte(minimalOpenAPI), 0644)
+	minimalWithServers := `openapi: 3.0.3
+info:
+  title: Test API
+  version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
+paths: {}
+components:
+  schemas:
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+`
+	err := os.WriteFile(filePath, []byte(minimalWithServers), 0644)
 	require.NoError(t, err)
 
 	var addStdout bytes.Buffer
-	addExitCode := duh.RunCmd(&addStdout, []string{"add", "-f", filePath, "/v1/orders.update", "UpdateOrder"})
+	addExitCode := duh.RunCmd(&addStdout, []string{"add", "-f", filePath, "/orders.update", "UpdateOrder"})
 	require.Equal(t, 0, addExitCode)
 
 	var lintStdout bytes.Buffer
@@ -211,17 +226,17 @@ func TestAddCommandMultipleEndpoints(t *testing.T) {
 	require.NoError(t, err)
 
 	var stdout1 bytes.Buffer
-	exitCode1 := duh.RunCmd(&stdout1, []string{"add", "-f", filePath, "/v1/users.create", "CreateUser"})
+	exitCode1 := duh.RunCmd(&stdout1, []string{"add", "-f", filePath, "/users.create", "CreateUser"})
 	require.Equal(t, 0, exitCode1)
 
 	var stdout2 bytes.Buffer
-	exitCode2 := duh.RunCmd(&stdout2, []string{"add", "-f", filePath, "/v1/users.get", "GetUser"})
+	exitCode2 := duh.RunCmd(&stdout2, []string{"add", "-f", filePath, "/users.get", "GetUser"})
 	require.Equal(t, 0, exitCode2)
 
 	content, err := os.ReadFile(filePath)
 	require.NoError(t, err)
-	require.Contains(t, string(content), "/v1/users.create")
-	require.Contains(t, string(content), "/v1/users.get")
+	require.Contains(t, string(content), "/users.create")
+	require.Contains(t, string(content), "/users.get")
 	require.Contains(t, string(content), "CreateUserRequest")
 	require.Contains(t, string(content), "GetUserRequest")
 }
@@ -234,7 +249,7 @@ func TestAddCommandVerifyResponseStructure(t *testing.T) {
 	require.NoError(t, err)
 
 	var stdout bytes.Buffer
-	exitCode := duh.RunCmd(&stdout, []string{"add", "-f", filePath, "/v1/products.create", "CreateProduct"})
+	exitCode := duh.RunCmd(&stdout, []string{"add", "-f", filePath, "/products.create", "CreateProduct"})
 	require.Equal(t, 0, exitCode)
 
 	content, err := os.ReadFile(filePath)

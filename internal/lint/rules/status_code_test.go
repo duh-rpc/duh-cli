@@ -21,8 +21,10 @@ func TestStatusCodeRule(t *testing.T) {
 info:
   title: Test
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/users.create:
+  /users.create:
     post:
       requestBody:
         required: true
@@ -46,8 +48,10 @@ paths:
 info:
   title: Test
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/users.create:
+  /users.create:
     post:
       requestBody:
         required: true
@@ -85,8 +89,10 @@ paths:
 info:
   title: Test
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/users.create:
+  /users.create:
     post:
       requestBody:
         required: true
@@ -124,8 +130,10 @@ paths:
 info:
   title: Test
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/users.create:
+  /users.create:
     post:
       requestBody:
         required: true
@@ -164,7 +172,7 @@ info:
   title: Test
   version: 1.0.0
 paths:
-  /v1/users.create:
+  /users.create:
     post:
       requestBody:
         required: true
@@ -180,7 +188,7 @@ paths:
               schema:
                 type: object`,
 			expectedExit: 1,
-			expectedOutput: `[ERROR] [STATUS_CODE_ALLOWED] POST /v1/users.create
+			expectedOutput: `[ERROR] [STATUS_CODE_ALLOWED] POST /users.create
   Status code 201 is not allowed
   Use one of the allowed status codes: [200 400 401 403 404 429 452 453 454 455 500]`,
 		},
@@ -191,7 +199,7 @@ info:
   title: Test
   version: 1.0.0
 paths:
-  /v1/users.delete:
+  /users.delete:
     post:
       requestBody:
         required: true
@@ -203,7 +211,7 @@ paths:
         204:
           description: No Content`,
 			expectedExit: 1,
-			expectedOutput: `[ERROR] [STATUS_CODE_ALLOWED] POST /v1/users.delete
+			expectedOutput: `[ERROR] [STATUS_CODE_ALLOWED] POST /users.delete
   Status code 204 is not allowed
   Use one of the allowed status codes: [200 400 401 403 404 429 452 453 454 455 500]`,
 		},
@@ -214,7 +222,7 @@ info:
   title: Test
   version: 1.0.0
 paths:
-  /v1/users.create:
+  /users.create:
     post:
       requestBody:
         required: true
@@ -230,7 +238,7 @@ paths:
               schema:
                 type: object`,
 			expectedExit: 1,
-			expectedOutput: `[ERROR] [STATUS_CODE_ALLOWED] POST /v1/users.create
+			expectedOutput: `[ERROR] [STATUS_CODE_ALLOWED] POST /users.create
   Status code 503 is not allowed
   Use one of the allowed status codes: [200 400 401 403 404 429 452 453 454 455 500]`,
 		},
@@ -240,8 +248,10 @@ paths:
 info:
   title: Test
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/users.create:
+  /users.create:
     post:
       requestBody:
         required: true

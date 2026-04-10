@@ -2,7 +2,6 @@ package duh
 
 import (
 	"fmt"
-	"regexp"
 	"strings"
 )
 
@@ -23,16 +22,14 @@ func GenerateConstName(operationName string) string {
 }
 
 func parseSubjectMethod(path string) (subject, method string, err error) {
-	versionRegex := regexp.MustCompile(`^/v\d+/(.+)$`)
-	matches := versionRegex.FindStringSubmatch(path)
-	if len(matches) < 2 {
+	if !strings.HasPrefix(path, "/") {
 		return "", "", fmt.Errorf("invalid path format: %s", path)
 	}
 
-	subjectMethod := matches[1]
-	parts := strings.Split(subjectMethod, ".")
+	trimmed := strings.TrimPrefix(path, "/")
+	parts := strings.Split(trimmed, ".")
 	if len(parts) != 2 {
-		return "", "", fmt.Errorf("invalid path format: must contain subject.method: %s", path)
+		return "", "", fmt.Errorf("invalid path format: must contain resource.method: %s", path)
 	}
 
 	return parts[0], parts[1], nil
