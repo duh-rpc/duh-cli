@@ -82,11 +82,8 @@ components:
     Error:
       type: object
       required:
-        - code
         - message
       properties:
-        code:
-          type: integer
         message:
           type: string
 `

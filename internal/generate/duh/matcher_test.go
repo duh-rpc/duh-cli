@@ -85,9 +85,8 @@ components:
   schemas:
     Error:
       type: object
-      required: [code, message]
+      required: [message]
       properties:
-        code: {type: integer}
         message: {type: string}
     CreateUserRequest:
       type: object
@@ -169,9 +168,8 @@ components:
   schemas:
     Error:
       type: object
-      required: [code, message]
+      required: [message]
       properties:
-        code: {type: integer}
         message: {type: string}
     CreateUserRequest:
       type: object
@@ -218,9 +216,8 @@ components:
   schemas:
     Error:
       type: object
-      required: [code, message]
+      required: [message]
       properties:
-        code: {type: integer}
         message: {type: string}
     CreateProductRequest:
       type: object
@@ -323,9 +320,8 @@ components:
   schemas:
     Error:
       type: object
-      required: [code, message]
+      required: [message]
       properties:
-        code: {type: integer}
         message: {type: string}
     CreateUserRequest:
       type: object

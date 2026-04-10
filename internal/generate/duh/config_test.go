@@ -54,11 +54,8 @@ components:
     Error:
       type: object
       required:
-        - code
         - message
       properties:
-        code:
-          type: integer
         message:
           type: string
 `
@@ -117,11 +114,8 @@ components:
     Error:
       type: object
       required:
-        - code
         - message
       properties:
-        code:
-          type: integer
         message:
           type: string
 `

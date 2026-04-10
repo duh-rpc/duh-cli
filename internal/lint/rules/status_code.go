@@ -6,7 +6,7 @@ import (
 	"github.com/pb33f/libopenapi/datamodel/high/v3"
 )
 
-var allowedStatusCodes = []string{"200", "400", "401", "403", "404", "429", "452", "453", "454", "455", "500"}
+var allowedStatusCodes = []string{"200", "201", "202", "400", "401", "403", "404", "409", "429", "500"}
 
 // StatusCodeRule validates only allowed HTTP status codes are used
 type StatusCodeRule struct{}

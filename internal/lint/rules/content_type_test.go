@@ -78,7 +78,7 @@ paths:
 			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
 		},
 		{
-			name: "ValidOctetStreamContentType",
+			name: "InvalidOctetStreamContentType",
 			spec: `
 openapi: 3.0.0
 info:
@@ -107,8 +107,8 @@ paths:
               schema:
                 type: string
 `,
-			expectedExit:   0,
-			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
+			expectedExit: 1,
+			expectedOutput: `[ERROR] [CONTENT_TYPE]`,
 		},
 		{
 			name: "InvalidXMLContentType",
@@ -193,6 +193,64 @@ paths:
 			expectedExit: 1,
 			expectedOutput: `[ERROR] [CONTENT_TYPE] POST /test.action response 200
   Invalid content type: text/plain`,
+		},
+		{
+			name: "InvalidMultipartFormData",
+			spec: `
+openapi: 3.0.0
+info:
+  title: Test
+  version: 1.0.0
+paths:
+  /test.action:
+    post:
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+`,
+			expectedExit: 1,
+			expectedOutput: `[ERROR] [CONTENT_TYPE] POST /test.action
+  Multipart and form-encoded content types are not allowed
+  Use application/json or application/protobuf`,
+		},
+		{
+			name: "InvalidFormURLEncoded",
+			spec: `
+openapi: 3.0.0
+info:
+  title: Test
+  version: 1.0.0
+paths:
+  /test.action:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+`,
+			expectedExit: 1,
+			expectedOutput: `[ERROR] [CONTENT_TYPE] POST /test.action
+  Multipart and form-encoded content types are not allowed
+  Use application/json or application/protobuf`,
 		},
 		{
 			name: "MIMEParametersNotAllowed",

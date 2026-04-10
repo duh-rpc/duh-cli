@@ -50,7 +50,7 @@ paths:
               schema:
                 type: string
                 format: binary
-        # DUH-RPC Rule: Valid error status codes are 400-404, 429, 452-455, 500
+        # DUH-RPC Rule: Valid error status codes are 400, 401, 403, 404, 409, 429, 500
         '400':
           description: Bad request - invalid input data
           content:
@@ -207,8 +207,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-        '453':
-          description: Custom business error - user account locked
+        '409':
+          description: Conflict - user account already exists
           content:
             application/json:
               schema:
@@ -223,30 +223,30 @@ paths:
 # Reusable schemas for request and response bodies
 components:
   schemas:
-    # DUH-RPC Rule: Error schema must have 'code' (integer) and 'message' (string)
-    # The 'details' field is optional
+    # DUH-RPC Rule: Error schema must have required 'message' (string)
+    # Optional fields: code (string), type (string), details (object with additionalProperties: { type: string })
     Error:
       type: object
       required:
-        - code
         - message
       properties:
-        code:
-          type: integer
-          description: Error code
-          example: 1001
         message:
           type: string
           description: Human-readable error message
           example: "Invalid input: email is required"
+        code:
+          type: string
+          description: Error code
+          example: "INVALID_INPUT"
+        type:
+          type: string
+          description: Error type classification
+          example: "VALIDATION_ERROR"
         details:
-          $ref: '#/components/schemas/ErrorDetails'
-
-    ErrorDetails:
-      type: object
-      description: Optional additional error details
-      additionalProperties:
-        type: string
+          type: object
+          description: Optional additional error details
+          additionalProperties:
+            type: string
 
     # User-related schemas
     CreateUserRequest:

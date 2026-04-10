@@ -19,21 +19,11 @@ func (r *ErrorResponseRule) Name() string {
 	return "ERROR_SCHEMA"
 }
 
+const errorSchemaSuggestion = "Error response schema must be type 'object' with required field [message] (string). " +
+	"Optional fields: code (string), type (string), details (object with additionalProperties: { type: string })."
+
 func (r *ErrorResponseRule) Validate(doc *v3.Document) []Violation {
 	var violations []Violation
-
-	errorStatusCodes := map[string]bool{
-		"400": true,
-		"401": true,
-		"403": true,
-		"404": true,
-		"429": true,
-		"452": true,
-		"453": true,
-		"454": true,
-		"455": true,
-		"500": true,
-	}
 
 	if doc.Paths == nil || doc.Paths.PathItems == nil {
 		return violations
@@ -65,7 +55,7 @@ func (r *ErrorResponseRule) Validate(doc *v3.Document) []Violation {
 			}
 
 			for statusCode, response := range operation.Responses.Codes.FromOldest() {
-				if !errorStatusCodes[statusCode] {
+				if len(statusCode) != 3 || (statusCode[0] != '4' && statusCode[0] != '5') {
 					continue
 				}
 
@@ -81,16 +71,14 @@ func (r *ErrorResponseRule) Validate(doc *v3.Document) []Violation {
 
 					location := method + " " + pathName + " response " + statusCode + " (" + contentType + ")"
 
-					// Get the schema from the SchemaProxy
 					schema := mediaType.Schema.Schema()
 					if schema == nil {
-						// Unresolved reference - skip validation
 						continue
 					}
 
 					if err := r.validateErrorSchema(schema, make(map[*base.Schema]bool)); err != nil {
 						violations = append(violations, Violation{
-							Suggestion: "Error response schema must be type 'object' with required fields [code, message] where code is integer and message is string. Optional details field must be type object.",
+							Suggestion: errorSchemaSuggestion,
 							Message:    err.Error(),
 							Location:   location,
 							RuleName:   r.Name(),
@@ -120,7 +108,6 @@ func (r *ErrorResponseRule) validateErrorSchema(schema *base.Schema, visited map
 
 	// Handle allOf - all sub-schemas must combine to meet requirements
 	if len(schema.AllOf) > 0 {
-		// Collect all properties and required fields from allOf schemas
 		allProperties := make(map[string]*base.SchemaProxy)
 		allRequired := make(map[string]bool)
 		hasObjectType := false
@@ -131,61 +118,30 @@ func (r *ErrorResponseRule) validateErrorSchema(schema *base.Schema, visited map
 				continue
 			}
 
-			// Check if any sub-schema has type object
 			if len(subSchema.Type) > 0 && subSchema.Type[0] == "object" {
 				hasObjectType = true
 			}
 
-			// Collect properties
 			if subSchema.Properties != nil {
 				for propName, propProxy := range subSchema.Properties.FromOldest() {
 					allProperties[propName] = propProxy
 				}
 			}
 
-			// Collect required fields
 			for _, req := range subSchema.Required {
 				allRequired[req] = true
 			}
 		}
 
-		// Now validate combined schema
 		if !hasObjectType {
 			return fmt.Errorf("error schema must have explicit type 'object'")
 		}
 
-		if !allRequired["code"] || !allRequired["message"] {
-			return fmt.Errorf("error schema must have required fields: code and message")
+		if !allRequired["message"] {
+			return fmt.Errorf("error schema must have required field: message")
 		}
 
-		// Validate field types
-		if codeProxy, ok := allProperties["code"]; ok {
-			codeSchema := codeProxy.Schema()
-			if codeSchema == nil || len(codeSchema.Type) == 0 || codeSchema.Type[0] != "integer" {
-				return fmt.Errorf("code field must be type integer")
-			}
-		} else {
-			return fmt.Errorf("code field not found in schema properties")
-		}
-
-		if msgProxy, ok := allProperties["message"]; ok {
-			msgSchema := msgProxy.Schema()
-			if msgSchema == nil || len(msgSchema.Type) == 0 || msgSchema.Type[0] != "string" {
-				return fmt.Errorf("message field must be type string")
-			}
-		} else {
-			return fmt.Errorf("message field not found in schema properties")
-		}
-
-		// Check details field if present
-		if detailsProxy, ok := allProperties["details"]; ok {
-			detailsSchema := detailsProxy.Schema()
-			if detailsSchema != nil && len(detailsSchema.Type) > 0 && detailsSchema.Type[0] != "object" {
-				return fmt.Errorf("details field must be type object")
-			}
-		}
-
-		return nil
+		return r.validateFields(allProperties)
 	}
 
 	// Handle oneOf/anyOf - at least one sub-schema must meet requirements
@@ -214,50 +170,78 @@ func (r *ErrorResponseRule) validateErrorSchema(schema *base.Schema, visited map
 		return fmt.Errorf("error schema must have explicit type 'object'")
 	}
 
-	// Check required fields
-	hasCode := false
 	hasMessage := false
 	for _, req := range schema.Required {
-		if req == "code" {
-			hasCode = true
-		}
 		if req == "message" {
 			hasMessage = true
 		}
 	}
 
-	if !hasCode || !hasMessage {
-		return fmt.Errorf("error schema must have required fields: code and message")
+	if !hasMessage {
+		return fmt.Errorf("error schema must have required field: message")
 	}
 
-	// Check that properties exist and have correct types
 	if schema.Properties == nil {
-		return fmt.Errorf("error schema must define properties for code and message")
+		return fmt.Errorf("error schema must define properties for message")
 	}
 
-	codeProxy, hasCodeProp := schema.Properties.Get("code")
-	if !hasCodeProp {
-		return fmt.Errorf("code field not found in schema properties")
-	}
-	codeSchema := codeProxy.Schema()
-	if codeSchema == nil || len(codeSchema.Type) == 0 || codeSchema.Type[0] != "integer" {
-		return fmt.Errorf("code field must be type integer")
+	// Collect properties into a map for shared validation
+	properties := make(map[string]*base.SchemaProxy)
+	for propName, propProxy := range schema.Properties.FromOldest() {
+		properties[propName] = propProxy
 	}
 
-	msgProxy, hasMsgProp := schema.Properties.Get("message")
-	if !hasMsgProp {
+	return r.validateFields(properties)
+}
+
+// validateFields checks that known fields have the correct types
+func (r *ErrorResponseRule) validateFields(properties map[string]*base.SchemaProxy) error {
+	// message must exist and be type string
+	if msgProxy, ok := properties["message"]; ok {
+		msgSchema := msgProxy.Schema()
+		if msgSchema == nil || len(msgSchema.Type) == 0 || msgSchema.Type[0] != "string" {
+			return fmt.Errorf("message field must be type string")
+		}
+	} else {
 		return fmt.Errorf("message field not found in schema properties")
 	}
-	msgSchema := msgProxy.Schema()
-	if msgSchema == nil || len(msgSchema.Type) == 0 || msgSchema.Type[0] != "string" {
-		return fmt.Errorf("message field must be type string")
+
+	// code is optional, but if present must be type string
+	if codeProxy, ok := properties["code"]; ok {
+		codeSchema := codeProxy.Schema()
+		if codeSchema == nil || len(codeSchema.Type) == 0 || codeSchema.Type[0] != "string" {
+			return fmt.Errorf("code field must be type string")
+		}
 	}
 
-	// Check details field if present
-	if detailsProxy, hasDetails := schema.Properties.Get("details"); hasDetails {
+	// type is optional, but if present must be type string
+	if typeProxy, ok := properties["type"]; ok {
+		typeSchema := typeProxy.Schema()
+		if typeSchema == nil || len(typeSchema.Type) == 0 || typeSchema.Type[0] != "string" {
+			return fmt.Errorf("type field must be type string")
+		}
+	}
+
+	// details is optional, but if present must be type object with additionalProperties: { type: string }
+	if detailsProxy, ok := properties["details"]; ok {
 		detailsSchema := detailsProxy.Schema()
-		if detailsSchema != nil && len(detailsSchema.Type) > 0 && detailsSchema.Type[0] != "object" {
+		if detailsSchema == nil || len(detailsSchema.Type) == 0 || detailsSchema.Type[0] != "object" {
 			return fmt.Errorf("details field must be type object")
+		}
+
+		if detailsSchema.AdditionalProperties == nil {
+			return fmt.Errorf("details field must have additionalProperties with type string")
+		}
+
+		if detailsSchema.AdditionalProperties.IsB() {
+			return fmt.Errorf("details field must have additionalProperties with type string")
+		}
+
+		if detailsSchema.AdditionalProperties.IsA() {
+			addlSchema := detailsSchema.AdditionalProperties.A.Schema()
+			if addlSchema == nil || len(addlSchema.Type) == 0 || addlSchema.Type[0] != "string" {
+				return fmt.Errorf("details field additionalProperties must have type string")
+			}
 		}
 	}
 

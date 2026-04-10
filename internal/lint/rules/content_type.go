@@ -22,9 +22,8 @@ func (r *ContentTypeRule) Validate(doc *v3.Document) []Violation {
 	var violations []Violation
 
 	allowedTypes := map[string]bool{
-		"application/json":         true,
-		"application/protobuf":     true,
-		"application/octet-stream": true,
+		"application/json":     true,
+		"application/protobuf": true,
 	}
 
 	if doc.Paths == nil || doc.Paths.PathItems == nil {
@@ -121,6 +120,17 @@ func (r *ContentTypeRule) validateContentType(contentType string, allowedTypes m
 		}
 	}
 
+	// Check for multipart and form-encoded content types
+	if strings.HasPrefix(normalized, "multipart/") || normalized == "application/x-www-form-urlencoded" {
+		return &Violation{
+			Message:    "Multipart and form-encoded content types are not allowed",
+			Suggestion: "Use application/json or application/protobuf",
+			Location:   method + " " + path,
+			RuleName:   r.Name(),
+			Severity:   SeverityError,
+		}
+	}
+
 	// Check if content type is allowed
 	if !allowedTypes[normalized] {
 		msg := "Invalid content type: " + contentType
@@ -129,7 +139,7 @@ func (r *ContentTypeRule) validateContentType(contentType string, allowedTypes m
 		}
 		return &Violation{
 			Message:    msg,
-			Suggestion: "Use one of: application/json, application/protobuf, application/octet-stream",
+			Suggestion: "Use one of: application/json, application/protobuf",
 			Location:   method + " " + path,
 			RuleName:   r.Name(),
 			Severity:   SeverityError,

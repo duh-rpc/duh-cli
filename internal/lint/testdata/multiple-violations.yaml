@@ -14,7 +14,7 @@ paths:
           schema:
             type: string
       responses:
-        201:  # VIOLATION: invalid status code
+        201:
           description: Created
           content:
             application/xml:  # VIOLATION: invalid content type
@@ -26,7 +26,7 @@ paths:
             application/json:
               schema:
                 type: object
-                # VIOLATION: bad error schema (missing required fields)
+                # VIOLATION: bad error schema (missing required field: message)
                 properties:
                   error:
                     type: string
@@ -38,8 +38,8 @@ paths:
         200:
           description: Success
           # VIOLATION: missing content in 200 response
-        202:  # VIOLATION: invalid status code
-          description: Accepted
+        204:  # VIOLATION: invalid status code
+          description: No Content
           content:
             application/json:
               schema:
@@ -50,9 +50,7 @@ paths:
             application/json:
               schema:
                 type: object
-                required: [code, message]
+                required: [message]
                 properties:
-                  code:
-                    type: integer
                   message:
                     type: string

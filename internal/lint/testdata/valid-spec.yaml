@@ -44,13 +44,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/ErrorDetails'
         500:
           description: Internal Server Error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/ErrorDetails'
 
   /users.get-by-id:
     post:
@@ -89,32 +89,27 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                required: [code, message]
-                properties:
-                  code:
-                    type: integer
-                    enum: [404]
-                  message:
-                    type: string
-                  details:
-                    type: object
+                $ref: '#/components/schemas/ErrorDetails'
         500:
           description: Internal Server Error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/ErrorDetails'
 
 components:
   schemas:
-    Error:
+    ErrorDetails:
       type: object
-      required: [code, message]
+      required: [message]
       properties:
-        code:
-          type: integer
         message:
+          type: string
+        code:
+          type: string
+        type:
           type: string
         details:
           type: object
+          additionalProperties:
+            type: string
