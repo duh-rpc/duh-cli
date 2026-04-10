@@ -205,7 +205,7 @@ components:
 	require.NoError(t, err)
 
 	var addStdout bytes.Buffer
-	addExitCode := duh.RunCmd(&addStdout, []string{"add", "-f", filePath, "/orders.update", "UpdateOrder"})
+	addExitCode := duh.RunCmd(&addStdout, []string{"add", "-f", filePath, "/orders.update", "Update"})
 	require.Equal(t, 0, addExitCode)
 
 	var lintStdout bytes.Buffer

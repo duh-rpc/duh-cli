@@ -25,14 +25,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateUserRequest'
+              $ref: '#/components/schemas/CreateRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CreateUserResponse'
+                $ref: '#/components/schemas/CreateResponse'
   /users.get:
     post:
       operationId: getUserById
@@ -41,14 +41,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/GetUserByIdRequest'
+              $ref: '#/components/schemas/GetRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GetUserByIdResponse'
+                $ref: '#/components/schemas/GetResponse'
   /users.list:
     post:
       operationId: listUsers
@@ -57,14 +57,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ListUsersRequest'
+              $ref: '#/components/schemas/ListRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ListUsersResponse'
+                $ref: '#/components/schemas/ListResponse'
   /users.update:
     post:
       operationId: updateUser
@@ -73,14 +73,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateUserRequest'
+              $ref: '#/components/schemas/UpdateRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UpdateUserResponse'
+                $ref: '#/components/schemas/UpdateResponse'
 components:
   schemas:
     Error:
@@ -88,23 +88,23 @@ components:
       required: [message]
       properties:
         message: {type: string}
-    CreateUserRequest:
+    CreateRequest:
       type: object
       properties:
         name: {type: string}
-    CreateUserResponse:
+    CreateResponse:
       type: object
       properties:
         id: {type: string}
-    GetUserByIdRequest:
+    GetRequest:
       type: object
       properties:
         id: {type: string}
-    GetUserByIdResponse:
+    GetResponse:
       type: object
       properties:
         id: {type: string}
-    ListUsersRequest:
+    ListRequest:
       type: object
       properties:
         page:
@@ -114,13 +114,13 @@ components:
       properties:
         first: {type: integer}
         after: {type: string}
-    ListUsersResponse:
+    ListResponse:
       type: object
       properties:
         users:
           type: array
           items:
-            $ref: '#/components/schemas/GetUserByIdResponse'
+            $ref: '#/components/schemas/GetResponse'
         page:
           $ref: '#/components/schemas/PageResponse'
     PageResponse:
@@ -128,11 +128,11 @@ components:
       properties:
         endCursor: {type: string}
         hasMore: {type: boolean}
-    UpdateUserRequest:
+    UpdateRequest:
       type: object
       properties:
         id: {type: string}
-    UpdateUserResponse:
+    UpdateResponse:
       type: object
       properties:
         id: {type: string}
@@ -153,14 +153,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateUserRequest'
+              $ref: '#/components/schemas/CreateRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CreateUserResponse'
+                $ref: '#/components/schemas/CreateResponse'
   /users.get:
     post:
       operationId: getUserById
@@ -169,14 +169,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/GetUserByIdRequest'
+              $ref: '#/components/schemas/GetRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GetUserByIdResponse'
+                $ref: '#/components/schemas/GetResponse'
 components:
   schemas:
     Error:
@@ -184,19 +184,19 @@ components:
       required: [message]
       properties:
         message: {type: string}
-    CreateUserRequest:
+    CreateRequest:
       type: object
       properties:
         name: {type: string}
-    CreateUserResponse:
+    CreateResponse:
       type: object
       properties:
         id: {type: string}
-    GetUserByIdRequest:
+    GetRequest:
       type: object
       properties:
         id: {type: string}
-    GetUserByIdResponse:
+    GetResponse:
       type: object
       properties:
         id: {type: string}
@@ -217,14 +217,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateProductRequest'
+              $ref: '#/components/schemas/ProductsCreateRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CreateProductResponse'
+                $ref: '#/components/schemas/ProductsCreateResponse'
 components:
   schemas:
     Error:
@@ -232,11 +232,11 @@ components:
       required: [message]
       properties:
         message: {type: string}
-    CreateProductRequest:
+    ProductsCreateRequest:
       type: object
       properties:
         name: {type: string}
-    CreateProductResponse:
+    ProductsCreateResponse:
       type: object
       properties:
         id: {type: string}
@@ -257,14 +257,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateUserRequest'
+              $ref: '#/components/schemas/CreateRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CreateUserResponse'
+                $ref: '#/components/schemas/CreateResponse'
   /users.get:
     post:
       operationId: getUserById
@@ -273,14 +273,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/GetUserByIdRequest'
+              $ref: '#/components/schemas/GetRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GetUserByIdResponse'
+                $ref: '#/components/schemas/GetResponse'
   /users.list:
     post:
       operationId: listUsers
@@ -289,14 +289,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ListUsersRequest'
+              $ref: '#/components/schemas/ListRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ListUsersResponse'
+                $ref: '#/components/schemas/ListResponse'
   /users.update:
     post:
       operationId: updateUser
@@ -305,14 +305,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateUserRequest'
+              $ref: '#/components/schemas/UpdateRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UpdateUserResponse'
+                $ref: '#/components/schemas/UpdateResponse'
   /products.create:
     post:
       operationId: createProduct
@@ -321,14 +321,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateProductRequest'
+              $ref: '#/components/schemas/ProductsCreateRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CreateProductResponse'
+                $ref: '#/components/schemas/ProductsCreateResponse'
 components:
   schemas:
     Error:
@@ -336,23 +336,23 @@ components:
       required: [message]
       properties:
         message: {type: string}
-    CreateUserRequest:
+    CreateRequest:
       type: object
       properties:
         name: {type: string}
-    CreateUserResponse:
+    CreateResponse:
       type: object
       properties:
         id: {type: string}
-    GetUserByIdRequest:
+    GetRequest:
       type: object
       properties:
         id: {type: string}
-    GetUserByIdResponse:
+    GetResponse:
       type: object
       properties:
         id: {type: string}
-    ListUsersRequest:
+    ListRequest:
       type: object
       properties:
         page:
@@ -362,13 +362,13 @@ components:
       properties:
         first: {type: integer}
         after: {type: string}
-    ListUsersResponse:
+    ListResponse:
       type: object
       properties:
         users:
           type: array
           items:
-            $ref: '#/components/schemas/GetUserByIdResponse'
+            $ref: '#/components/schemas/GetResponse'
         page:
           $ref: '#/components/schemas/PageResponse'
     PageResponse:
@@ -376,19 +376,19 @@ components:
       properties:
         endCursor: {type: string}
         hasMore: {type: boolean}
-    UpdateUserRequest:
+    UpdateRequest:
       type: object
       properties:
         id: {type: string}
-    UpdateUserResponse:
+    UpdateResponse:
       type: object
       properties:
         id: {type: string}
-    CreateProductRequest:
+    ProductsCreateRequest:
       type: object
       properties:
         name: {type: string}
-    CreateProductResponse:
+    ProductsCreateResponse:
       type: object
       properties:
         id: {type: string}

@@ -32,7 +32,7 @@ paths:
           # DUH-RPC Rule: application/json is required, others are optional
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateUserRequest'
+              $ref: '#/components/schemas/CreateRequest'
           # Optional: Protocol Buffers support
           application/protobuf:
             schema:
@@ -45,7 +45,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CreateUserResponse'
+                $ref: '#/components/schemas/CreateResponse'
             application/protobuf:
               schema:
                 type: string
@@ -81,7 +81,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/GetUserRequest'
+              $ref: '#/components/schemas/GetRequest'
           application/protobuf:
             schema:
               type: string
@@ -92,7 +92,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserResponse'
+                $ref: '#/components/schemas/GetResponse'
             application/protobuf:
               schema:
                 type: string
@@ -127,7 +127,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ListUsersRequest'
+              $ref: '#/components/schemas/ListRequest'
           application/protobuf:
             schema:
               type: string
@@ -138,7 +138,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ListUsersResponse'
+                $ref: '#/components/schemas/ListResponse'
             application/protobuf:
               schema:
                 type: string
@@ -167,7 +167,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateUserRequest'
+              $ref: '#/components/schemas/UpdateRequest'
           application/protobuf:
             schema:
               type: string
@@ -178,7 +178,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UpdateUserResponse'
+                $ref: '#/components/schemas/UpdateResponse'
             application/protobuf:
               schema:
                 type: string
@@ -249,7 +249,7 @@ components:
             type: string
 
     # User-related schemas
-    CreateUserRequest:
+    CreateRequest:
       type: object
       required:
         - email
@@ -267,7 +267,7 @@ components:
           minimum: 0
           example: 30
 
-    CreateUserResponse:
+    CreateResponse:
       type: object
       required:
         - userId
@@ -288,7 +288,7 @@ components:
           format: date-time
           example: "2024-01-15T10:30:00Z"
 
-    GetUserRequest:
+    GetRequest:
       type: object
       required:
         - userId
@@ -297,7 +297,7 @@ components:
           type: string
           example: "usr_abc123"
 
-    UserResponse:
+    GetResponse:
       type: object
       required:
         - userId
@@ -322,7 +322,7 @@ components:
           example: "2024-01-15T10:30:00Z"
 
     # User list schemas - cursor-based pagination
-    ListUsersRequest:
+    ListRequest:
       type: object
       properties:
         page:
@@ -348,7 +348,7 @@ components:
           description: Cursor for the next page
           example: "cursor_abc123"
 
-    ListUsersResponse:
+    ListResponse:
       type: object
       required:
         - users
@@ -356,7 +356,7 @@ components:
         users:
           type: array
           items:
-            $ref: '#/components/schemas/UserResponse'
+            $ref: '#/components/schemas/GetResponse'
         page:
           $ref: '#/components/schemas/PageResponse'
 
@@ -373,7 +373,7 @@ components:
           example: true
 
     # User update schemas
-    UpdateUserRequest:
+    UpdateRequest:
       type: object
       required:
         - userId
@@ -397,7 +397,7 @@ components:
           enum: [active, inactive, suspended]
           example: "active"
 
-    UpdateUserResponse:
+    UpdateResponse:
       type: object
       required:
         - userId

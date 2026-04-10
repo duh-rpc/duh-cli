@@ -99,6 +99,24 @@ func TestLinterAllRuleViolations(t *testing.T) {
 			expectedViolation: "[RPC_PAGINATED_REQUEST_STRUCTURE]",
 			expectedExitCode:  1,
 		},
+		{
+			name:              "BadRequestName",
+			file:              "testdata/bad-request-name.yaml",
+			expectedViolation: "[RPC_REQUEST_STANDARD_NAME]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "BadResponseName",
+			file:              "testdata/bad-response-name.yaml",
+			expectedViolation: "[RPC_RESPONSE_STANDARD_NAME]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "SharedSchemas",
+			file:              "testdata/shared-schemas.yaml",
+			expectedViolation: "[RPC_REQUEST_RESPONSE_UNIQUE]",
+			expectedExitCode:  1,
+		},
 	}
 
 	for _, test := range tests {
@@ -135,6 +153,9 @@ func TestLinterMultipleViolations(t *testing.T) {
 		"[CONTENT_TYPE]",
 		"[ERROR_SCHEMA]",
 		"[SUCCESS_RESPONSE]",
+		"[RPC_REQUEST_STANDARD_NAME]",
+		"[RPC_RESPONSE_STANDARD_NAME]",
+		"[RPC_REQUEST_RESPONSE_UNIQUE]",
 	}
 
 	for _, violation := range expectedViolations {
@@ -144,9 +165,9 @@ func TestLinterMultipleViolations(t *testing.T) {
 	// Verify output structure
 	assert.Contains(t, output, "errors")
 
-	// Count violations - should have at least 9 (one for each rule type)
+	// Count violations - should have at least 12 (one for each rule type)
 	violationCount := strings.Count(output, "[ERROR]")
-	assert.GreaterOrEqual(t, violationCount, 9)
+	assert.GreaterOrEqual(t, violationCount, 12)
 }
 
 func TestLinterFileNotFound(t *testing.T) {

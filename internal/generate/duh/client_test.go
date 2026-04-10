@@ -25,8 +25,8 @@ func TestGeneratedClientCompiles(t *testing.T) {
 
 package duh.api.v1;
 
-message CreateUserRequest {}
-message UserResponse {}
+message CreateRequest {}
+message CreateResponse {}
 `
 	require.NoError(t, os.WriteFile(filepath.Join(protoDir, "api.proto"), []byte(protoStub), 0644))
 
@@ -37,29 +37,29 @@ import (
 	"google.golang.org/protobuf/runtime/protoimpl"
 )
 
-type CreateUserRequest struct {
+type CreateRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 }
 
-func (x *CreateUserRequest) Reset() {}
-func (x *CreateUserRequest) String() string { return "CreateUserRequest{}" }
-func (x *CreateUserRequest) ProtoMessage() {}
-func (x *CreateUserRequest) ProtoReflect() protoreflect.Message {
+func (x *CreateRequest) Reset() {}
+func (x *CreateRequest) String() string { return "CreateRequest{}" }
+func (x *CreateRequest) ProtoMessage() {}
+func (x *CreateRequest) ProtoReflect() protoreflect.Message {
 	return (&protoimpl.MessageInfo{}).MessageOf(x)
 }
 
-type UserResponse struct {
+type CreateResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 }
 
-func (x *UserResponse) Reset() {}
-func (x *UserResponse) String() string { return "UserResponse{}" }
-func (x *UserResponse) ProtoMessage() {}
-func (x *UserResponse) ProtoReflect() protoreflect.Message {
+func (x *CreateResponse) Reset() {}
+func (x *CreateResponse) String() string { return "CreateResponse{}" }
+func (x *CreateResponse) ProtoMessage() {}
+func (x *CreateResponse) ProtoReflect() protoreflect.Message {
 	return (&protoimpl.MessageInfo{}).MessageOf(x)
 }
 `
@@ -125,9 +125,9 @@ func TestClientIteratorIntegration(t *testing.T) {
 
 package duh.api.v1;
 
-message ListUsersRequest {}
-message ListUsersResponse {}
-message UserResponse {}
+message ListRequest {}
+message ListResponse {}
+message User {}
 `
 	require.NoError(t, os.WriteFile(filepath.Join(protoDir, "api.proto"), []byte(protoStub), 0644))
 
@@ -168,45 +168,45 @@ func (x *PageResponse) ProtoReflect() protoreflect.Message {
 	return (&protoimpl.MessageInfo{}).MessageOf(x)
 }
 
-type ListUsersRequest struct {
+type ListRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 	Page          *PageRequest
 }
 
-func (x *ListUsersRequest) Reset() {}
-func (x *ListUsersRequest) String() string { return "ListUsersRequest{}" }
-func (x *ListUsersRequest) ProtoMessage() {}
-func (x *ListUsersRequest) ProtoReflect() protoreflect.Message {
+func (x *ListRequest) Reset() {}
+func (x *ListRequest) String() string { return "ListRequest{}" }
+func (x *ListRequest) ProtoMessage() {}
+func (x *ListRequest) ProtoReflect() protoreflect.Message {
 	return (&protoimpl.MessageInfo{}).MessageOf(x)
 }
 
-type ListUsersResponse struct {
+type ListResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
-	Users         []*UserResponse
+	Users         []*User
 	Page          *PageResponse
 }
 
-func (x *ListUsersResponse) Reset() {}
-func (x *ListUsersResponse) String() string { return "ListUsersResponse{}" }
-func (x *ListUsersResponse) ProtoMessage() {}
-func (x *ListUsersResponse) ProtoReflect() protoreflect.Message {
+func (x *ListResponse) Reset() {}
+func (x *ListResponse) String() string { return "ListResponse{}" }
+func (x *ListResponse) ProtoMessage() {}
+func (x *ListResponse) ProtoReflect() protoreflect.Message {
 	return (&protoimpl.MessageInfo{}).MessageOf(x)
 }
 
-type UserResponse struct {
+type User struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 }
 
-func (x *UserResponse) Reset() {}
-func (x *UserResponse) String() string { return "UserResponse{}" }
-func (x *UserResponse) ProtoMessage() {}
-func (x *UserResponse) ProtoReflect() protoreflect.Message {
+func (x *User) Reset() {}
+func (x *User) String() string { return "User{}" }
+func (x *User) ProtoMessage() {}
+func (x *User) ProtoReflect() protoreflect.Message {
 	return (&protoimpl.MessageInfo{}).MessageOf(x)
 }
 `
@@ -271,8 +271,8 @@ func TestClientWithoutIterator(t *testing.T) {
 
 package duh.api.v1;
 
-message CreateUserRequest {}
-message UserResponse {}
+message CreateRequest {}
+message CreateResponse {}
 `
 	require.NoError(t, os.WriteFile(filepath.Join(protoDir, "api.proto"), []byte(protoStub), 0644))
 
@@ -283,29 +283,29 @@ import (
 	"google.golang.org/protobuf/runtime/protoimpl"
 )
 
-type CreateUserRequest struct {
+type CreateRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 }
 
-func (x *CreateUserRequest) Reset() {}
-func (x *CreateUserRequest) String() string { return "CreateUserRequest{}" }
-func (x *CreateUserRequest) ProtoMessage() {}
-func (x *CreateUserRequest) ProtoReflect() protoreflect.Message {
+func (x *CreateRequest) Reset() {}
+func (x *CreateRequest) String() string { return "CreateRequest{}" }
+func (x *CreateRequest) ProtoMessage() {}
+func (x *CreateRequest) ProtoReflect() protoreflect.Message {
 	return (&protoimpl.MessageInfo{}).MessageOf(x)
 }
 
-type UserResponse struct {
+type CreateResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 }
 
-func (x *UserResponse) Reset() {}
-func (x *UserResponse) String() string { return "UserResponse{}" }
-func (x *UserResponse) ProtoMessage() {}
-func (x *UserResponse) ProtoReflect() protoreflect.Message {
+func (x *CreateResponse) Reset() {}
+func (x *CreateResponse) String() string { return "CreateResponse{}" }
+func (x *CreateResponse) ProtoMessage() {}
+func (x *CreateResponse) ProtoReflect() protoreflect.Message {
 	return (&protoimpl.MessageInfo{}).MessageOf(x)
 }
 `

@@ -62,7 +62,7 @@ func TestGenerateDuhWithFullFlagAndInitSpec(t *testing.T) {
 
 	serviceContent, err := os.ReadFile("service.go")
 	require.NoError(t, err)
-	assert.Contains(t, string(serviceContent), "map[string]*pb.UserResponse")
+	assert.Contains(t, string(serviceContent), "map[string]*pb.GetResponse")
 	assert.Contains(t, string(serviceContent), "func (s *Service) UsersCreate")
 	assert.Contains(t, string(serviceContent), "func (s *Service) UsersGet")
 	assert.Contains(t, string(serviceContent), "func (s *Service) UsersList")
@@ -330,14 +330,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateUserRequest'
+              $ref: '#/components/schemas/CreateRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CreateUserResponse'
+                $ref: '#/components/schemas/CreateResponse'
         '400':
           description: Bad Request
           content:
@@ -352,14 +352,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/GetUserRequest'
+              $ref: '#/components/schemas/GetRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserResponse'
+                $ref: '#/components/schemas/GetResponse'
         '400':
           description: Bad Request
           content:
@@ -374,14 +374,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ListUsersRequest'
+              $ref: '#/components/schemas/ListRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ListUsersResponse'
+                $ref: '#/components/schemas/ListResponse'
         '400':
           description: Bad Request
           content:
@@ -396,14 +396,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateUserRequest'
+              $ref: '#/components/schemas/UpdateRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UpdateUserResponse'
+                $ref: '#/components/schemas/UpdateResponse'
         '400':
           description: Bad Request
           content:
@@ -418,14 +418,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DeleteUserRequest'
+              $ref: '#/components/schemas/DeleteRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DeleteUserResponse'
+                $ref: '#/components/schemas/DeleteResponse'
         '400':
           description: Bad Request
           content:
@@ -434,7 +434,7 @@ paths:
                 $ref: '#/components/schemas/Error'
 components:
   schemas:
-    CreateUserRequest:
+    CreateRequest:
       type: object
       properties:
         name:
@@ -443,7 +443,7 @@ components:
           type: string
         age:
           type: integer
-    CreateUserResponse:
+    CreateResponse:
       type: object
       properties:
         user_id:
@@ -455,12 +455,12 @@ components:
         created_at:
           type: string
           format: date-time
-    GetUserRequest:
+    GetRequest:
       type: object
       properties:
         user_id:
           type: string
-    UserResponse:
+    GetResponse:
       type: object
       properties:
         user_id:
@@ -474,7 +474,7 @@ components:
         created_at:
           type: string
           format: date-time
-    ListUsersRequest:
+    ListRequest:
       type: object
       properties:
         page:
@@ -488,13 +488,13 @@ components:
           type: integer
         after:
           type: string
-    ListUsersResponse:
+    ListResponse:
       type: object
       properties:
         users:
           type: array
           items:
-            $ref: '#/components/schemas/UserResponse'
+            $ref: '#/components/schemas/GetResponse'
         page:
           $ref: '#/components/schemas/PageResponse'
     PageResponse:
@@ -504,7 +504,7 @@ components:
           type: string
         has_more:
           type: boolean
-    UpdateUserRequest:
+    UpdateRequest:
       type: object
       properties:
         user_id:
@@ -517,7 +517,7 @@ components:
           type: integer
         status:
           type: string
-    UpdateUserResponse:
+    UpdateResponse:
       type: object
       properties:
         user_id:
@@ -536,12 +536,12 @@ components:
         created_at:
           type: string
           format: date-time
-    DeleteUserRequest:
+    DeleteRequest:
       type: object
       properties:
         user_id:
           type: string
-    DeleteUserResponse:
+    DeleteResponse:
       type: object
       properties:
         user_id:

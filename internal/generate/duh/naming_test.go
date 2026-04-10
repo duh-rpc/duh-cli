@@ -24,33 +24,33 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateUserRequest'
+              $ref: '#/components/schemas/CreateRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserResponse'
+                $ref: '#/components/schemas/CreateResponse'
         '400':
           description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/ErrorDetails'
 components:
   schemas:
-    CreateUserRequest:
+    CreateRequest:
       type: object
       properties:
         name:
           type: string
-    UserResponse:
+    CreateResponse:
       type: object
       properties:
         id:
           type: string
-    Error:
+    ErrorDetails:
       type: object
       required:
         - message
@@ -73,33 +73,33 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/GetUserProfileRequest'
+              $ref: '#/components/schemas/GetByIdRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserProfileResponse'
+                $ref: '#/components/schemas/GetByIdResponse'
         '400':
           description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/ErrorDetails'
 components:
   schemas:
-    GetUserProfileRequest:
+    GetByIdRequest:
       type: object
       properties:
         id:
           type: string
-    UserProfileResponse:
+    GetByIdResponse:
       type: object
       properties:
         id:
           type: string
-    Error:
+    ErrorDetails:
       type: object
       required:
         - message
@@ -122,33 +122,33 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/GetUserProfileRequest'
+              $ref: '#/components/schemas/Get_by_idRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserProfileResponse'
+                $ref: '#/components/schemas/Get_by_idResponse'
         '400':
           description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/ErrorDetails'
 components:
   schemas:
-    GetUserProfileRequest:
+    Get_by_idRequest:
       type: object
       properties:
         id:
           type: string
-    UserProfileResponse:
+    Get_by_idResponse:
       type: object
       properties:
         id:
           type: string
-    Error:
+    ErrorDetails:
       type: object
       required:
         - message
@@ -171,33 +171,33 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateUserRequest'
+              $ref: '#/components/schemas/CreateRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserResponse'
+                $ref: '#/components/schemas/CreateResponse'
         '400':
           description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/ErrorDetails'
 components:
   schemas:
-    CreateUserRequest:
+    CreateRequest:
       type: object
       properties:
         name:
           type: string
-    UserResponse:
+    CreateResponse:
       type: object
       properties:
         id:
           type: string
-    Error:
+    ErrorDetails:
       type: object
       required:
         - message

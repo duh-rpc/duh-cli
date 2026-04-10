@@ -33,20 +33,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateUserRequest'
+              $ref: '#/components/schemas/CreateRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserResponse'
+                $ref: '#/components/schemas/CreateResponse'
         '400':
           description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/ErrorDetails'
   /users.get:
     post:
       summary: Get user by ID
@@ -55,20 +55,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/GetUserRequest'
+              $ref: '#/components/schemas/GetRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserResponse'
+                $ref: '#/components/schemas/GetResponse'
         '400':
           description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/ErrorDetails'
   /users.update:
     post:
       summary: Update user
@@ -77,47 +77,57 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateUserRequest'
+              $ref: '#/components/schemas/UpdateRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserResponse'
+                $ref: '#/components/schemas/UpdateResponse'
         '400':
           description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/ErrorDetails'
 components:
   schemas:
-    CreateUserRequest:
+    CreateRequest:
       type: object
       properties:
         name:
           type: string
-    GetUserRequest:
+    GetRequest:
       type: object
       properties:
         id:
           type: string
-    UpdateUserRequest:
-      type: object
-      properties:
-        id:
-          type: string
-        name:
-          type: string
-    UserResponse:
+    UpdateRequest:
       type: object
       properties:
         id:
           type: string
         name:
           type: string
-    Error:
+    CreateResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+    GetResponse:
+      type: object
+      properties:
+        id:
+          type: string
+    UpdateResponse:
+      type: object
+      properties:
+        id:
+          type: string
+    ErrorDetails:
       type: object
       required:
         - message
@@ -150,21 +160,21 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserResponse'
+                $ref: '#/components/schemas/CreateResponse'
         '400':
           description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/ErrorDetails'
 components:
   schemas:
-    UserResponse:
+    CreateResponse:
       type: object
       properties:
         id:
           type: string
-    Error:
+    ErrorDetails:
       type: object
       required:
         - message
@@ -187,20 +197,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ListUsersRequest'
+              $ref: '#/components/schemas/ListRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ListUsersResponse'
+                $ref: '#/components/schemas/ListResponse'
         '400':
           description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/ErrorDetails'
   /users.list-active:
     post:
       requestBody:
@@ -208,23 +218,23 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ListActiveUsersRequest'
+              $ref: '#/components/schemas/ListActiveRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ListActiveUsersResponse'
+                $ref: '#/components/schemas/ListActiveResponse'
         '400':
           description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/ErrorDetails'
 components:
   schemas:
-    ListUsersRequest:
+    ListRequest:
       type: object
       properties:
         page:
@@ -236,13 +246,13 @@ components:
           type: integer
         after:
           type: string
-    ListUsersResponse:
+    ListResponse:
       type: object
       properties:
         users:
           type: array
           items:
-            $ref: '#/components/schemas/UserResponse'
+            $ref: '#/components/schemas/User'
         page:
           $ref: '#/components/schemas/PageResponse'
     PageResponse:
@@ -252,28 +262,28 @@ components:
           type: string
         hasMore:
           type: boolean
-    ListActiveUsersRequest:
+    ListActiveRequest:
       type: object
       properties:
         page:
           $ref: '#/components/schemas/PageRequest'
-    ListActiveUsersResponse:
+    ListActiveResponse:
       type: object
       properties:
         active_users:
           type: array
           items:
-            $ref: '#/components/schemas/UserResponse'
+            $ref: '#/components/schemas/User'
         page:
           $ref: '#/components/schemas/PageResponse'
-    UserResponse:
+    User:
       type: object
       properties:
         id:
           type: string
         name:
           type: string
-    Error:
+    ErrorDetails:
       type: object
       required:
         - message
@@ -296,23 +306,23 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ListDataRequest'
+              $ref: '#/components/schemas/DataListRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ListDataResponse'
+                $ref: '#/components/schemas/DataListResponse'
         '400':
           description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/ErrorDetails'
 components:
   schemas:
-    ListDataRequest:
+    DataListRequest:
       type: object
       properties:
         page:
@@ -324,7 +334,7 @@ components:
           type: integer
         after:
           type: string
-    ListDataResponse:
+    DataListResponse:
       type: object
       properties:
         items:
@@ -345,7 +355,7 @@ components:
       properties:
         key:
           type: string
-    Error:
+    ErrorDetails:
       type: object
       required:
         - message
@@ -368,40 +378,40 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ListUsersRequest'
+              $ref: '#/components/schemas/ListRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ListUsersResponse'
+                $ref: '#/components/schemas/ListResponse'
         '400':
           description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/ErrorDetails'
 components:
   schemas:
-    ListUsersRequest:
+    ListRequest:
       type: object
       properties:
         filter:
           type: string
-    ListUsersResponse:
+    ListResponse:
       type: object
       properties:
         users:
           type: array
           items:
-            $ref: '#/components/schemas/UserResponse'
-    UserResponse:
+            $ref: '#/components/schemas/User'
+    User:
       type: object
       properties:
         id:
           type: string
-    Error:
+    ErrorDetails:
       type: object
       required:
         - message
@@ -429,8 +439,8 @@ func TestParseOperationsExtractsPbPrefixedTypes(t *testing.T) {
 
 	require.Equal(t, 0, exitCode)
 	content := getServerContentForParser(t, specPath)
-	assert.Contains(t, content, "pb.CreateUserRequest")
-	assert.Contains(t, content, "pb.UserResponse")
+	assert.Contains(t, content, "pb.CreateRequest")
+	assert.Contains(t, content, "pb.CreateResponse")
 }
 
 func TestDetectListOperationsWith3Criteria(t *testing.T) {

@@ -1,4 +1,4 @@
-openapi: 3.0.0
+openapi: "3.0.3"
 info:
   title: Valid DUH-RPC API
   version: 1.0.0
@@ -8,90 +8,49 @@ servers:
   - url: https://api.example.com/v1
 
 paths:
-  /users.create:
+  /pets.list:
     post:
-      operationId: createUser
-      summary: Create a new user
+      operationId: listPets
+      description: List pets with optional filtering
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              required: [name, email]
-              properties:
-                name:
-                  type: string
-                email:
-                  type: string
-                  format: email
+              $ref: '#/components/schemas/ListRequest'
       responses:
         200:
-          description: User created successfully
+          description: Success
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  userId:
-                    type: string
-                  name:
-                    type: string
-                  email:
-                    type: string
+                $ref: '#/components/schemas/ListResponse'
         400:
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorDetails'
-        500:
-          description: Internal Server Error
+          description: Bad request
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorDetails'
 
-  /users.get-by-id:
+  /pets.create:
     post:
-      operationId: getUserById
-      summary: Get user by ID
+      operationId: createPet
+      description: Create a new pet
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              required: [userId]
-              properties:
-                userId:
-                  type: string
-          application/protobuf:
-            schema:
-              type: string
-              format: binary
+              $ref: '#/components/schemas/CreateRequest'
       responses:
         200:
-          description: User found
+          description: Success
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  userId:
-                    type: string
-                  name:
-                    type: string
-                  email:
-                    type: string
-        404:
-          description: User not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorDetails'
-        500:
-          description: Internal Server Error
+                $ref: '#/components/schemas/CreateResponse'
+        400:
+          description: Bad request
           content:
             application/json:
               schema:
@@ -99,6 +58,74 @@ paths:
 
 components:
   schemas:
+    ListRequest:
+      type: object
+      properties:
+        page:
+          $ref: '#/components/schemas/PageRequest'
+        status:
+          type: string
+
+    PageRequest:
+      type: object
+      properties:
+        first:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 100
+        after:
+          type: string
+
+    ListResponse:
+      type: object
+      required: [items, page]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Pet'
+        page:
+          $ref: '#/components/schemas/PageResponse'
+
+    PageResponse:
+      type: object
+      required: [endCursor]
+      properties:
+        endCursor:
+          type: string
+
+    CreateRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        status:
+          type: string
+
+    CreateResponse:
+      type: object
+      required: [petId, name]
+      properties:
+        petId:
+          type: string
+        name:
+          type: string
+        status:
+          type: string
+
+    Pet:
+      type: object
+      required: [petId, name]
+      properties:
+        petId:
+          type: string
+        name:
+          type: string
+        status:
+          type: string
+
     ErrorDetails:
       type: object
       required: [message]

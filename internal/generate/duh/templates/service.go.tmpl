@@ -24,7 +24,7 @@ type ServiceConfig struct {
 }
 
 type Service struct {
-{{if .IsFullTemplate}}	users map[string]*pb.UserResponse
+{{if .IsFullTemplate}}	users map[string]*pb.GetResponse
 	mutex sync.RWMutex
 {{end}}	conf  ServiceConfig
 }
@@ -33,7 +33,7 @@ func NewService(conf ServiceConfig) (ServiceInterface, error) {
 {{if .IsFullTemplate}}	set.Default(&conf.Log, slog.Default())
 
 	return &Service{
-		users: make(map[string]*pb.UserResponse),
+		users: make(map[string]*pb.GetResponse),
 		conf:  conf,
 	}, nil
 {{else}}	return &Service{conf: conf}, nil
@@ -62,7 +62,7 @@ func (s *Service) {{.MethodName}}(ctx context.Context, req *{{.RequestType}}, re
 	now := timestamppb.Now()
 	userID := uuid.New().String()
 
-	user := &pb.UserResponse{
+	user := &pb.GetResponse{
 		CreatedAt: now,
 		UserId:    userID,
 		Email:     req.Email,
@@ -112,7 +112,7 @@ func (s *Service) {{.MethodName}}(ctx context.Context, req *{{.RequestType}}, re
 		first = int(req.Page.First)
 	}
 
-	users := make([]*pb.UserResponse, 0, len(s.users))
+	users := make([]*pb.GetResponse, 0, len(s.users))
 	for _, user := range s.users {
 		users = append(users, user)
 	}

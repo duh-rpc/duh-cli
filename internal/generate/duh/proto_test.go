@@ -25,20 +25,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateUserRequest'
+              $ref: '#/components/schemas/CreateRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserResponse'
+                $ref: '#/components/schemas/CreateResponse'
         '400':
           description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/ErrorDetails'
   /users.get:
     post:
       requestBody:
@@ -46,40 +46,45 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/GetUserRequest'
+              $ref: '#/components/schemas/GetRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserResponse'
+                $ref: '#/components/schemas/GetResponse'
         '400':
           description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/ErrorDetails'
 components:
   schemas:
-    CreateUserRequest:
+    CreateRequest:
       type: object
       properties:
         name:
           type: string
-    GetUserRequest:
+    GetRequest:
       type: object
       properties:
         id:
           type: string
-    UserResponse:
+    CreateResponse:
       type: object
       properties:
         id:
           type: string
         name:
           type: string
-    Error:
+    GetResponse:
+      type: object
+      properties:
+        id:
+          type: string
+    ErrorDetails:
       type: object
       required:
         - message
@@ -110,13 +115,13 @@ func TestGenerateDuhCreatesProtoFile(t *testing.T) {
 	assert.True(t, strings.HasPrefix(content, "syntax = \"proto3\""))
 	assert.Contains(t, content, "option go_package = \"github.com/example/test/proto/v1\";")
 	assert.Contains(t, content, "package duh.api.v1")
-	assert.Contains(t, content, "message CreateUserRequest")
-	assert.Contains(t, content, "message UserResponse")
-	assert.Contains(t, content, "message Error")
+	assert.Contains(t, content, "message CreateRequest")
+	assert.Contains(t, content, "message CreateResponse")
+	assert.Contains(t, content, "message ErrorDetails")
 
-	assert.NotContains(t, content, "message CreateUserRequest {}")
-	assert.NotContains(t, content, "message UserResponse {}")
-	assert.NotContains(t, content, "message Error {}")
+	assert.NotContains(t, content, "message CreateRequest {}")
+	assert.NotContains(t, content, "message CreateResponse {}")
+	assert.NotContains(t, content, "message ErrorDetails {}")
 
 	lines := strings.Split(content, "\n")
 	messageCount := 0
@@ -163,10 +168,11 @@ func TestProtoSchemaExtraction(t *testing.T) {
 
 	content := string(protoContent)
 
-	assert.Contains(t, content, "message CreateUserRequest")
-	assert.Contains(t, content, "message GetUserRequest")
-	assert.Contains(t, content, "message UserResponse")
-	assert.Contains(t, content, "message Error")
+	assert.Contains(t, content, "message CreateRequest")
+	assert.Contains(t, content, "message GetRequest")
+	assert.Contains(t, content, "message CreateResponse")
+	assert.Contains(t, content, "message GetResponse")
+	assert.Contains(t, content, "message ErrorDetails")
 
 	seenSchemas := make(map[string]int)
 	lines := strings.Split(content, "\n")

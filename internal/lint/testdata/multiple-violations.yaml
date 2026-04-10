@@ -54,3 +54,71 @@ paths:
                 properties:
                   message:
                     type: string
+
+  /orders.create:
+    post:
+      operationId: createOrder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BadPayload'
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadResult'
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [message]
+                properties:
+                  message:
+                    type: string
+
+  /orders.update:
+    post:
+      operationId: updateOrder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BadPayload'
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadResult'
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [message]
+                properties:
+                  message:
+                    type: string
+
+components:
+  schemas:
+    BadPayload:
+      type: object
+      properties:
+        name:
+          type: string
+
+    BadResult:
+      type: object
+      properties:
+        orderId:
+          type: string
