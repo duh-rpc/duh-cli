@@ -57,7 +57,7 @@ paths:
               schema:
                 type: object`,
 			expectedExit: 1,
-			expectedOutput: `[request-body-required] POST /v1/users.create
+			expectedOutput: `[ERROR] [REQUEST_BODY_REQUIRED] POST /v1/users.create
   Operation is missing a request body
   Add a required request body to this operation`,
 		},
@@ -84,7 +84,7 @@ paths:
               schema:
                 type: object`,
 			expectedExit: 1,
-			expectedOutput: `[request-body-required] POST /v1/users.create
+			expectedOutput: `[ERROR] [REQUEST_BODY_REQUIRED] POST /v1/users.create
   Request body must be marked as required
   Set requestBody.required to true`,
 		},
@@ -110,7 +110,7 @@ paths:
               schema:
                 type: object`,
 			expectedExit: 1,
-			expectedOutput: `[request-body-required] POST /v1/users.create
+			expectedOutput: `[ERROR] [REQUEST_BODY_REQUIRED] POST /v1/users.create
   Request body must be marked as required
   Set requestBody.required to true`,
 		},

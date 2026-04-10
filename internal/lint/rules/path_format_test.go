@@ -126,7 +126,7 @@ paths:
               schema:
                 type: object`,
 			expectedExit: 1,
-			expectedOutput: `[path-format] /users.create
+			expectedOutput: `[ERROR] [PATH_FORMAT] /users.create
   Path must start with version prefix (e.g., /v1/)
   Add a version prefix like /v1/`,
 		},
@@ -153,7 +153,7 @@ paths:
               schema:
                 type: object`,
 			expectedExit: 1,
-			expectedOutput: `[path-format] /v1.2/users.create
+			expectedOutput: `[ERROR] [PATH_FORMAT] /v1.2/users.create
   Version must be /v{N}/ where N is a non-negative integer (e.g., /v1/, /v2/)
   Ensure path follows format /v{N}/subject.method with lowercase letters, numbers, hyphens, and underscores only`,
 		},
@@ -180,7 +180,7 @@ paths:
               schema:
                 type: object`,
 			expectedExit: 1,
-			expectedOutput: `[path-format] /vbeta/users.create
+			expectedOutput: `[ERROR] [PATH_FORMAT] /vbeta/users.create
   Version must be /v{N}/ where N is a non-negative integer (e.g., /v1/, /v2/)
   Ensure path follows format /v{N}/subject.method with lowercase letters, numbers, hyphens, and underscores only`,
 		},
@@ -207,7 +207,7 @@ paths:
               schema:
                 type: object`,
 			expectedExit: 1,
-			expectedOutput: `[path-format] /v1/Users.create
+			expectedOutput: `[ERROR] [PATH_FORMAT] /v1/Users.create
   Subject must start with a lowercase letter
   Ensure path follows format /v{N}/subject.method with lowercase letters, numbers, hyphens, and underscores only`,
 		},
@@ -234,7 +234,7 @@ paths:
               schema:
                 type: object`,
 			expectedExit: 1,
-			expectedOutput: `[path-format] /v1/users
+			expectedOutput: `[ERROR] [PATH_FORMAT] /v1/users
   Path must have format /v{N}/subject.method with a dot separator
   Use format /v1/subject.method (e.g., /v1/users.create)`,
 		},
@@ -261,7 +261,7 @@ paths:
               schema:
                 type: object`,
 			expectedExit: 1,
-			expectedOutput: `[path-format] /v1/users/{id}.get
+			expectedOutput: `[ERROR] [PATH_FORMAT] /v1/users/{id}.get
   Path contains path parameters, which are not allowed in DUH-RPC
   Remove path parameters and use request body fields instead`,
 		},
@@ -288,7 +288,7 @@ paths:
               schema:
                 type: object`,
 			expectedExit: 1,
-			expectedOutput: `[path-format] /v1/user$accounts.create
+			expectedOutput: `[ERROR] [PATH_FORMAT] /v1/user$accounts.create
   Subject must contain only lowercase letters, numbers, hyphens, and underscores
   Ensure path follows format /v{N}/subject.method with lowercase letters, numbers, hyphens, and underscores only`,
 		},
@@ -321,7 +321,7 @@ paths:
               schema:
                 type: object`,
 			expectedExit: 1,
-			expectedOutput: `[path-format] /v1/users.get
+			expectedOutput: `[ERROR] [PATH_FORMAT] /v1/users.get
   Path parameter 'id' is not allowed in DUH-RPC
   Move path parameters to request body fields`,
 		},
@@ -363,7 +363,7 @@ paths:
               schema:
                 type: object`,
 			expectedExit: 1,
-			expectedOutput: `[path-format] /invalid-path
+			expectedOutput: `[ERROR] [PATH_FORMAT] /invalid-path
   Path must start with version prefix (e.g., /v1/)
   Add a version prefix like /v1/`,
 		},

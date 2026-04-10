@@ -18,7 +18,7 @@ func NewStatusCodeRule() *StatusCodeRule {
 
 // Name returns the rule name
 func (r *StatusCodeRule) Name() string {
-	return "status-code"
+	return "STATUS_CODE_ALLOWED"
 }
 
 // Validate checks that only allowed status codes are used
@@ -56,6 +56,7 @@ func (r *StatusCodeRule) Validate(doc *v3.Document) []Violation {
 						Message:    fmt.Sprintf("Status code %s is not allowed", statusCode),
 						Location:   location,
 						RuleName:   r.Name(),
+						Severity:   SeverityError,
 					})
 				}
 			}

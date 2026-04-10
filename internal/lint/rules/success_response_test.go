@@ -119,7 +119,7 @@ paths:
                   message:
                     type: string`,
 			expectedExit: 1,
-			expectedOutput: `[success-response] POST /v1/users.create
+			expectedOutput: `[ERROR] [SUCCESS_RESPONSE] POST /v1/users.create
   Operation is missing a 200 (success) response`,
 		},
 		{
@@ -141,7 +141,7 @@ paths:
         200:
           description: Success`,
 			expectedExit: 1,
-			expectedOutput: `[success-response] POST /v1/users.delete
+			expectedOutput: `[ERROR] [SUCCESS_RESPONSE] POST /v1/users.delete
   200 response is missing content`,
 		},
 		{
@@ -167,7 +167,7 @@ paths:
               example:
                 foo: bar`,
 			expectedExit: 1,
-			expectedOutput: `[success-response] POST /v1/users.create
+			expectedOutput: `[ERROR] [SUCCESS_RESPONSE] POST /v1/users.create
   200 response content is missing a schema`,
 		},
 		{

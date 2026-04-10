@@ -129,7 +129,7 @@ paths:
                     type: string
 `,
 			expectedExit: 1,
-			expectedOutput: `[error-response-schema] POST /v1/test.action response 400 (application/json)
+			expectedOutput: `[ERROR] [ERROR_SCHEMA] POST /v1/test.action response 400 (application/json)
   error schema must have required fields: code and message`,
 		},
 		{
@@ -169,7 +169,7 @@ paths:
                     type: integer
 `,
 			expectedExit: 1,
-			expectedOutput: `[error-response-schema] POST /v1/test.action response 500 (application/json)
+			expectedOutput: `[ERROR] [ERROR_SCHEMA] POST /v1/test.action response 500 (application/json)
   code field must be type integer`,
 		},
 		{
@@ -208,7 +208,7 @@ paths:
                     type: string
 `,
 			expectedExit: 1,
-			expectedOutput: `[error-response-schema] POST /v1/test.action response 400 (application/json)
+			expectedOutput: `[ERROR] [ERROR_SCHEMA] POST /v1/test.action response 400 (application/json)
   error schema must have explicit type 'object'`,
 		},
 		{
@@ -250,7 +250,7 @@ paths:
                     type: string
 `,
 			expectedExit: 1,
-			expectedOutput: `[error-response-schema] POST /v1/test.action response 400 (application/json)
+			expectedOutput: `[ERROR] [ERROR_SCHEMA] POST /v1/test.action response 400 (application/json)
   details field must be type object`,
 		},
 		{

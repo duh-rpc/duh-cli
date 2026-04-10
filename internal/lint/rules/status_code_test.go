@@ -180,7 +180,7 @@ paths:
               schema:
                 type: object`,
 			expectedExit: 1,
-			expectedOutput: `[status-code] POST /v1/users.create
+			expectedOutput: `[ERROR] [STATUS_CODE_ALLOWED] POST /v1/users.create
   Status code 201 is not allowed
   Use one of the allowed status codes: [200 400 401 403 404 429 452 453 454 455 500]`,
 		},
@@ -203,7 +203,7 @@ paths:
         204:
           description: No Content`,
 			expectedExit: 1,
-			expectedOutput: `[status-code] POST /v1/users.delete
+			expectedOutput: `[ERROR] [STATUS_CODE_ALLOWED] POST /v1/users.delete
   Status code 204 is not allowed
   Use one of the allowed status codes: [200 400 401 403 404 429 452 453 454 455 500]`,
 		},
@@ -230,7 +230,7 @@ paths:
               schema:
                 type: object`,
 			expectedExit: 1,
-			expectedOutput: `[status-code] POST /v1/users.create
+			expectedOutput: `[ERROR] [STATUS_CODE_ALLOWED] POST /v1/users.create
   Status code 503 is not allowed
   Use one of the allowed status codes: [200 400 401 403 404 429 452 453 454 455 500]`,
 		},

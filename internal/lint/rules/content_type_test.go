@@ -129,7 +129,7 @@ paths:
                 type: object
 `,
 			expectedExit: 1,
-			expectedOutput: `[content-type] POST /v1/test.action
+			expectedOutput: `[ERROR] [CONTENT_TYPE] POST /v1/test.action
   Invalid request body content type: application/xml`,
 		},
 		{
@@ -157,7 +157,7 @@ paths:
                 type: string
 `,
 			expectedExit: 1,
-			expectedOutput: `[content-type] POST /v1/test.action response 200
+			expectedOutput: `[ERROR] [CONTENT_TYPE] POST /v1/test.action response 200
   Invalid content type: text/html`,
 		},
 		{
@@ -185,7 +185,7 @@ paths:
                 type: string
 `,
 			expectedExit: 1,
-			expectedOutput: `[content-type] POST /v1/test.action response 200
+			expectedOutput: `[ERROR] [CONTENT_TYPE] POST /v1/test.action response 200
   Invalid content type: text/plain`,
 		},
 		{
@@ -213,7 +213,7 @@ paths:
                 type: object
 `,
 			expectedExit: 1,
-			expectedOutput: `[content-type] POST /v1/test.action
+			expectedOutput: `[ERROR] [CONTENT_TYPE] POST /v1/test.action
   MIME parameters not allowed in request body content type`,
 		},
 		{
@@ -241,7 +241,7 @@ paths:
                 type: string
 `,
 			expectedExit: 1,
-			expectedOutput: `[content-type] POST /v1/test.action
+			expectedOutput: `[ERROR] [CONTENT_TYPE] POST /v1/test.action
   Request body must include application/json content type`,
 		},
 		{
@@ -269,7 +269,7 @@ paths:
                 type: string
 `,
 			expectedExit:   1,
-			expectedOutput: `[content-type]`,
+			expectedOutput: `[ERROR] [CONTENT_TYPE]`,
 		},
 		{
 			name: "CaseInsensitiveContentType",

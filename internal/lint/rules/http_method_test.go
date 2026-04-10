@@ -57,7 +57,7 @@ paths:
               schema:
                 type: array`,
 			expectedExit: 1,
-			expectedOutput: `[http-method] GET /v1/users.list
+			expectedOutput: `[ERROR] [HTTP_METHOD_ALLOWED] GET /v1/users.list
   HTTP method GET is not allowed in DUH-RPC
   Use POST method for all DUH-RPC operations`,
 		},
@@ -83,7 +83,7 @@ paths:
               schema:
                 type: object`,
 			expectedExit: 1,
-			expectedOutput: `[http-method] PUT /v1/users.update
+			expectedOutput: `[ERROR] [HTTP_METHOD_ALLOWED] PUT /v1/users.update
   HTTP method PUT is not allowed in DUH-RPC
   Use POST method for all DUH-RPC operations`,
 		},
@@ -104,7 +104,7 @@ paths:
               schema:
                 type: object`,
 			expectedExit: 1,
-			expectedOutput: `[http-method] DELETE /v1/users.delete
+			expectedOutput: `[ERROR] [HTTP_METHOD_ALLOWED] DELETE /v1/users.delete
   HTTP method DELETE is not allowed in DUH-RPC
   Use POST method for all DUH-RPC operations`,
 		},
@@ -130,7 +130,7 @@ paths:
               schema:
                 type: object`,
 			expectedExit: 1,
-			expectedOutput: `[http-method] PATCH /v1/users.patch
+			expectedOutput: `[ERROR] [HTTP_METHOD_ALLOWED] PATCH /v1/users.patch
   HTTP method PATCH is not allowed in DUH-RPC
   Use POST method for all DUH-RPC operations`,
 		},
@@ -172,7 +172,7 @@ paths:
               schema:
                 type: object`,
 			expectedExit: 1,
-			expectedOutput: `[http-method] GET /v1/users.manage
+			expectedOutput: `[ERROR] [HTTP_METHOD_ALLOWED] GET /v1/users.manage
   HTTP method GET is not allowed in DUH-RPC
   Use POST method for all DUH-RPC operations`,
 		},
@@ -207,7 +207,7 @@ paths:
               schema:
                 type: object`,
 			expectedExit: 1,
-			expectedOutput: `[http-method] GET /v1/users.create
+			expectedOutput: `[ERROR] [HTTP_METHOD_ALLOWED] GET /v1/users.create
   HTTP method GET is not allowed in DUH-RPC
   Use POST method for all DUH-RPC operations`,
 		},

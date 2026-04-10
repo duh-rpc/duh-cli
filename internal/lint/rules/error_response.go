@@ -16,7 +16,7 @@ func NewErrorResponseRule() *ErrorResponseRule {
 }
 
 func (r *ErrorResponseRule) Name() string {
-	return "error-response-schema"
+	return "ERROR_SCHEMA"
 }
 
 func (r *ErrorResponseRule) Validate(doc *v3.Document) []Violation {
@@ -90,10 +90,11 @@ func (r *ErrorResponseRule) Validate(doc *v3.Document) []Violation {
 
 					if err := r.validateErrorSchema(schema, make(map[*base.Schema]bool)); err != nil {
 						violations = append(violations, Violation{
-							Message:    err.Error(),
 							Suggestion: "Error response schema must be type 'object' with required fields [code, message] where code is integer and message is string. Optional details field must be type object.",
-							RuleName:   r.Name(),
+							Message:    err.Error(),
 							Location:   location,
+							RuleName:   r.Name(),
+							Severity:   SeverityError,
 						})
 					}
 				}

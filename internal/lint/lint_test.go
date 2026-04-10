@@ -30,49 +30,49 @@ func TestLinterAllRuleViolations(t *testing.T) {
 		{
 			name:              "BadPathFormat",
 			file:              "testdata/bad-path-format.yaml",
-			expectedViolation: "[path-format]",
+			expectedViolation: "[PATH_FORMAT]",
 			expectedExitCode:  1,
 		},
 		{
 			name:              "WrongHTTPMethod",
 			file:              "testdata/wrong-http-method.yaml",
-			expectedViolation: "[http-method]",
+			expectedViolation: "[HTTP_METHOD_ALLOWED]",
 			expectedExitCode:  1,
 		},
 		{
 			name:              "HasQueryParams",
 			file:              "testdata/has-query-params.yaml",
-			expectedViolation: "[query-parameters]",
+			expectedViolation: "[RPC_POST_NO_QUERY_PARAMS]",
 			expectedExitCode:  1,
 		},
 		{
 			name:              "MissingRequestBody",
 			file:              "testdata/missing-request-body.yaml",
-			expectedViolation: "[request-body-required]",
+			expectedViolation: "[REQUEST_BODY_REQUIRED]",
 			expectedExitCode:  1,
 		},
 		{
 			name:              "InvalidStatusCode",
 			file:              "testdata/invalid-status-code.yaml",
-			expectedViolation: "[status-code]",
+			expectedViolation: "[STATUS_CODE_ALLOWED]",
 			expectedExitCode:  1,
 		},
 		{
 			name:              "MissingSuccessResponse",
 			file:              "testdata/missing-success-response.yaml",
-			expectedViolation: "[success-response]",
+			expectedViolation: "[SUCCESS_RESPONSE]",
 			expectedExitCode:  1,
 		},
 		{
 			name:              "InvalidContentType",
 			file:              "testdata/invalid-content-type.yaml",
-			expectedViolation: "[content-type]",
+			expectedViolation: "[CONTENT_TYPE]",
 			expectedExitCode:  1,
 		},
 		{
 			name:              "BadErrorSchema",
 			file:              "testdata/bad-error-schema.yaml",
-			expectedViolation: "[error-response-schema]",
+			expectedViolation: "[ERROR_SCHEMA]",
 			expectedExitCode:  1,
 		},
 	}
@@ -86,8 +86,7 @@ func TestLinterAllRuleViolations(t *testing.T) {
 			assert.Equal(t, test.expectedExitCode, exitCode)
 			output := stdout.String()
 			assert.Contains(t, output, test.expectedViolation)
-			assert.Contains(t, output, "ERRORS FOUND:")
-			assert.Contains(t, output, "Summary:")
+			assert.Contains(t, output, "errors")
 		})
 	}
 }
@@ -103,14 +102,14 @@ func TestLinterMultipleViolations(t *testing.T) {
 
 	// Verify expected violations are reported
 	expectedViolations := []string{
-		"[path-format]",
-		"[http-method]",
-		"[query-parameters]",
-		"[request-body-required]",
-		"[status-code]",
-		"[content-type]",
-		"[error-response-schema]",
-		"[success-response]",
+		"[PATH_FORMAT]",
+		"[HTTP_METHOD_ALLOWED]",
+		"[RPC_POST_NO_QUERY_PARAMS]",
+		"[REQUEST_BODY_REQUIRED]",
+		"[STATUS_CODE_ALLOWED]",
+		"[CONTENT_TYPE]",
+		"[ERROR_SCHEMA]",
+		"[SUCCESS_RESPONSE]",
 	}
 
 	for _, violation := range expectedViolations {
@@ -118,11 +117,10 @@ func TestLinterMultipleViolations(t *testing.T) {
 	}
 
 	// Verify output structure
-	assert.Contains(t, output, "ERRORS FOUND:")
-	assert.Contains(t, output, "Summary:")
+	assert.Contains(t, output, "errors")
 
 	// Count violations - should have at least 8 (one for each rule type)
-	violationCount := strings.Count(output, "[")
+	violationCount := strings.Count(output, "[ERROR]")
 	assert.GreaterOrEqual(t, violationCount, 8)
 }
 

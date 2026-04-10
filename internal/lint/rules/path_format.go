@@ -20,7 +20,7 @@ func NewPathFormatRule() *PathFormatRule {
 }
 
 func (r *PathFormatRule) Name() string {
-	return "path-format"
+	return "PATH_FORMAT"
 }
 
 func (r *PathFormatRule) Validate(doc *v3.Document) []Violation {
@@ -38,10 +38,11 @@ func (r *PathFormatRule) Validate(doc *v3.Document) []Violation {
 		// Check for path parameters in the path string
 		if pathParamRegex.MatchString(path) {
 			violations = append(violations, Violation{
-				RuleName:   r.Name(),
-				Location:   path,
-				Message:    "Path contains path parameters, which are not allowed in DUH-RPC",
 				Suggestion: "Remove path parameters and use request body fields instead",
+				Message:    "Path contains path parameters, which are not allowed in DUH-RPC",
+				Location:   path,
+				RuleName:   r.Name(),
+				Severity:   SeverityError,
 			})
 			continue
 		}
@@ -51,10 +52,11 @@ func (r *PathFormatRule) Validate(doc *v3.Document) []Violation {
 			for _, param := range pathItem.Parameters {
 				if param != nil && param.In == "path" {
 					violations = append(violations, Violation{
-						RuleName:   r.Name(),
-						Location:   path,
 						Message:    fmt.Sprintf("Path parameter '%s' is not allowed in DUH-RPC", param.Name),
 						Suggestion: "Move path parameters to request body fields",
+						Location:   path,
+						RuleName:   r.Name(),
+						Severity:   SeverityError,
 					})
 				}
 			}
@@ -63,10 +65,11 @@ func (r *PathFormatRule) Validate(doc *v3.Document) []Violation {
 		// Check path format
 		if !pathFormatRegex.MatchString(path) {
 			violations = append(violations, Violation{
-				RuleName:   r.Name(),
-				Location:   path,
-				Message:    r.generateErrorMessage(path),
 				Suggestion: r.generateSuggestion(path),
+				Message:    r.generateErrorMessage(path),
+				Location:   path,
+				RuleName:   r.Name(),
+				Severity:   SeverityError,
 			})
 		}
 	}

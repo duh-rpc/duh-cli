@@ -130,7 +130,7 @@ paths:
               schema:
                 type: object`,
 			expectedExit: 1,
-			expectedOutput: `[query-parameters] POST /v1/users.search
+			expectedOutput: `[ERROR] [RPC_POST_NO_QUERY_PARAMS] POST /v1/users.search
   Query parameter 'query' is not allowed in DUH-RPC
   Move 'query' to request body`,
 		},
@@ -170,7 +170,7 @@ paths:
               schema:
                 type: object`,
 			expectedExit: 1,
-			expectedOutput: `[query-parameters] POST /v1/users.search
+			expectedOutput: `[ERROR] [RPC_POST_NO_QUERY_PARAMS] POST /v1/users.search
   Query parameter 'query' is not allowed in DUH-RPC
   Move 'query' to request body`,
 		},
@@ -211,7 +211,7 @@ paths:
               schema:
                 type: object`,
 			expectedExit: 1,
-			expectedOutput: `[query-parameters] POST /v1/users.search
+			expectedOutput: `[ERROR] [RPC_POST_NO_QUERY_PARAMS] POST /v1/users.search
   Query parameter 'query' is not allowed in DUH-RPC
   Move 'query' to request body`,
 		},

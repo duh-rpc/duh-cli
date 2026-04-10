@@ -14,7 +14,7 @@ func NewRequestBodyRule() *RequestBodyRule {
 
 // Name returns the rule name
 func (r *RequestBodyRule) Name() string {
-	return "request-body-required"
+	return "REQUEST_BODY_REQUIRED"
 }
 
 // Validate checks that all operations have a required request body
@@ -48,6 +48,7 @@ func (r *RequestBodyRule) Validate(doc *v3.Document) []Violation {
 					Message:    "Operation is missing a request body",
 					Location:   location,
 					RuleName:   r.Name(),
+					Severity:   SeverityError,
 				})
 				continue
 			}
@@ -59,6 +60,7 @@ func (r *RequestBodyRule) Validate(doc *v3.Document) []Violation {
 					Message:    "Request body must be marked as required",
 					Location:   location,
 					RuleName:   r.Name(),
+					Severity:   SeverityError,
 				})
 			}
 		}
