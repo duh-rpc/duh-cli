@@ -146,10 +146,15 @@ components:
     ListUsersRequest:
       type: object
       properties:
-        offset:
+        page:
+          $ref: '#/components/schemas/PageRequest'
+    PageRequest:
+      type: object
+      properties:
+        first:
           type: integer
-        limit:
-          type: integer
+        after:
+          type: string
     ListUsersResponse:
       type: object
       properties:
@@ -157,8 +162,15 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/UserResponse'
-        total:
-          type: integer
+        page:
+          $ref: '#/components/schemas/PageResponse'
+    PageResponse:
+      type: object
+      properties:
+        endCursor:
+          type: string
+        hasMore:
+          type: boolean
     UpdateUserRequest:
       type: object
       properties:
@@ -361,12 +373,39 @@ func (x *UserResponse) ProtoReflect() protoreflect.Message {
 	return (&protoimpl.MessageInfo{}).MessageOf(x)
 }
 
+type PageRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+	First         int32
+	After         string
+}
+func (x *PageRequest) Reset() {}
+func (x *PageRequest) String() string { return "PageRequest{}" }
+func (x *PageRequest) ProtoMessage() {}
+func (x *PageRequest) ProtoReflect() protoreflect.Message {
+	return (&protoimpl.MessageInfo{}).MessageOf(x)
+}
+
+type PageResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+	EndCursor     string
+	HasMore       bool
+}
+func (x *PageResponse) Reset() {}
+func (x *PageResponse) String() string { return "PageResponse{}" }
+func (x *PageResponse) ProtoMessage() {}
+func (x *PageResponse) ProtoReflect() protoreflect.Message {
+	return (&protoimpl.MessageInfo{}).MessageOf(x)
+}
+
 type ListUsersRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
-	Offset        int32
-	Limit         int32
+	Page          *PageRequest
 }
 func (x *ListUsersRequest) Reset() {}
 func (x *ListUsersRequest) String() string { return "ListUsersRequest{}" }
@@ -380,7 +419,7 @@ type ListUsersResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 	Users         []*UserResponse
-	Total         int32
+	Page          *PageResponse
 }
 func (x *ListUsersResponse) Reset() {}
 func (x *ListUsersResponse) String() string { return "ListUsersResponse{}" }
@@ -656,12 +695,39 @@ func (x *UserResponse) ProtoReflect() protoreflect.Message {
 	return (&protoimpl.MessageInfo{}).MessageOf(x)
 }
 
+type PageRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+	First         int32
+	After         string
+}
+func (x *PageRequest) Reset() {}
+func (x *PageRequest) String() string { return "PageRequest{}" }
+func (x *PageRequest) ProtoMessage() {}
+func (x *PageRequest) ProtoReflect() protoreflect.Message {
+	return (&protoimpl.MessageInfo{}).MessageOf(x)
+}
+
+type PageResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+	EndCursor     string
+	HasMore       bool
+}
+func (x *PageResponse) Reset() {}
+func (x *PageResponse) String() string { return "PageResponse{}" }
+func (x *PageResponse) ProtoMessage() {}
+func (x *PageResponse) ProtoReflect() protoreflect.Message {
+	return (&protoimpl.MessageInfo{}).MessageOf(x)
+}
+
 type ListUsersRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
-	Offset        int32
-	Limit         int32
+	Page          *PageRequest
 }
 func (x *ListUsersRequest) Reset() {}
 func (x *ListUsersRequest) String() string { return "ListUsersRequest{}" }
@@ -675,7 +741,7 @@ type ListUsersResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 	Users         []*UserResponse
-	Total         int32
+	Page          *PageResponse
 }
 func (x *ListUsersResponse) Reset() {}
 func (x *ListUsersResponse) String() string { return "ListUsersResponse{}" }

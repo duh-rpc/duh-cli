@@ -138,12 +138,41 @@ import (
 	"google.golang.org/protobuf/runtime/protoimpl"
 )
 
+type PageRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+	First         int32
+	After         string
+}
+
+func (x *PageRequest) Reset() {}
+func (x *PageRequest) String() string { return "PageRequest{}" }
+func (x *PageRequest) ProtoMessage() {}
+func (x *PageRequest) ProtoReflect() protoreflect.Message {
+	return (&protoimpl.MessageInfo{}).MessageOf(x)
+}
+
+type PageResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+	EndCursor     string
+	HasMore       bool
+}
+
+func (x *PageResponse) Reset() {}
+func (x *PageResponse) String() string { return "PageResponse{}" }
+func (x *PageResponse) ProtoMessage() {}
+func (x *PageResponse) ProtoReflect() protoreflect.Message {
+	return (&protoimpl.MessageInfo{}).MessageOf(x)
+}
+
 type ListUsersRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
-	Offset        int32
-	Limit         int32
+	Page          *PageRequest
 }
 
 func (x *ListUsersRequest) Reset() {}
@@ -158,7 +187,7 @@ type ListUsersResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 	Users         []*UserResponse
-	Total         int32
+	Page          *PageResponse
 }
 
 func (x *ListUsersResponse) Reset() {}

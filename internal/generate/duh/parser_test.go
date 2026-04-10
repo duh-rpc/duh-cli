@@ -227,10 +227,15 @@ components:
     ListUsersRequest:
       type: object
       properties:
-        offset:
+        page:
+          $ref: '#/components/schemas/PageRequest'
+    PageRequest:
+      type: object
+      properties:
+        first:
           type: integer
-        limit:
-          type: integer
+        after:
+          type: string
     ListUsersResponse:
       type: object
       properties:
@@ -238,15 +243,20 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/UserResponse'
-        total:
-          type: integer
+        page:
+          $ref: '#/components/schemas/PageResponse'
+    PageResponse:
+      type: object
+      properties:
+        endCursor:
+          type: string
+        hasMore:
+          type: boolean
     ListActiveUsersRequest:
       type: object
       properties:
-        offset:
-          type: integer
-        limit:
-          type: integer
+        page:
+          $ref: '#/components/schemas/PageRequest'
     ListActiveUsersResponse:
       type: object
       properties:
@@ -254,8 +264,8 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/UserResponse'
-        total:
-          type: integer
+        page:
+          $ref: '#/components/schemas/PageResponse'
     UserResponse:
       type: object
       properties:
@@ -305,15 +315,18 @@ components:
     ListDataRequest:
       type: object
       properties:
-        offset:
+        page:
+          $ref: '#/components/schemas/DataPageRequest'
+    DataPageRequest:
+      type: object
+      properties:
+        first:
           type: integer
-        limit:
-          type: integer
+        after:
+          type: string
     ListDataResponse:
       type: object
       properties:
-        total:
-          type: integer
         items:
           type: array
           items:
@@ -341,7 +354,7 @@ components:
           type: string
 `
 
-const notListNoOffsetSpec = `openapi: 3.0.0
+const notListNoPageSpec = `openapi: 3.0.0
 info:
   title: Test API
   version: 1.0.0
@@ -374,8 +387,8 @@ components:
     ListUsersRequest:
       type: object
       properties:
-        limit:
-          type: integer
+        filter:
+          type: string
     ListUsersResponse:
       type: object
       properties:
@@ -447,8 +460,8 @@ func TestIsListOperationChecksMethodPortion(t *testing.T) {
 	assert.Contains(t, stdout.String(), "✓")
 }
 
-func TestIsListOperationWithoutOffset(t *testing.T) {
-	specPath, stdout := setupTest(t, notListNoOffsetSpec)
+func TestIsListOperationWithoutPage(t *testing.T) {
+	specPath, stdout := setupTest(t, notListNoPageSpec)
 
 	exitCode := duh.RunCmd(stdout, []string{"generate", specPath})
 

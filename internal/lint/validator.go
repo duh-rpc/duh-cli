@@ -24,6 +24,8 @@ func Validate(doc *v3.Document, filePath string) ValidationResult {
 		rules2.NewSuccessResponseRule(),
 		rules2.NewContentTypeRule(),
 		rules2.NewErrorResponseRule(),
+		rules2.NewRPCPaginationParametersRule(),
+		rules2.NewRPCPaginatedRequestStructureRule(),
 	}
 
 	var violations []Violation

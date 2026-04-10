@@ -93,10 +93,15 @@ components:
     ListUsersRequest:
       type: object
       properties:
-        offset:
+        page:
+          $ref: '#/components/schemas/PageRequest'
+    PageRequest:
+      type: object
+      properties:
+        first:
           type: integer
-        limit:
-          type: integer
+        after:
+          type: string
     ListUsersResponse:
       type: object
       properties:
@@ -104,8 +109,15 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/UserResponse'
-        total:
-          type: integer
+        page:
+          $ref: '#/components/schemas/PageResponse'
+    PageResponse:
+      type: object
+      properties:
+        endCursor:
+          type: string
+        hasMore:
+          type: boolean
     UserResponse:
       type: object
       properties:

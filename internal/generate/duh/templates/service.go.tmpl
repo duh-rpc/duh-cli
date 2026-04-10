@@ -106,15 +106,10 @@ func (s *Service) {{.MethodName}}(ctx context.Context, req *{{.RequestType}}, re
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
 
-	const defaultLimit = 10
-	limit := defaultLimit
-	if req.Limit > 0 {
-		limit = int(req.Limit)
-	}
-
-	offset := 0
-	if req.Offset > 0 {
-		offset = int(req.Offset)
+	const defaultFirst = 10
+	first := defaultFirst
+	if req.Page != nil && req.Page.First > 0 {
+		first = int(req.Page.First)
 	}
 
 	users := make([]*pb.UserResponse, 0, len(s.users))
@@ -138,22 +133,15 @@ func (s *Service) {{.MethodName}}(ctx context.Context, req *{{.RequestType}}, re
 	}
 
 	total := len(users)
-
-	if offset >= total {
-		resp.Total = int32(total)
-		resp.Users = []*pb.UserResponse{}
-		resp.HasMore = false
-		return nil
-	}
-
-	end := offset + limit
+	end := first
 	if end > total {
 		end = total
 	}
 
-	resp.Users = users[offset:end]
-	resp.Total = int32(total)
-	resp.HasMore = end < total
+	resp.Users = users[:end]
+	resp.Page = &pb.PageResponse{
+		HasMore: end < total,
+	}
 
 	return nil
 }

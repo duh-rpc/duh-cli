@@ -87,6 +87,18 @@ func TestLinterAllRuleViolations(t *testing.T) {
 			expectedViolation: "[SERVER_URL_VERSIONING]",
 			expectedExitCode:  1,
 		},
+		{
+			name:              "PaginationUsesLimit",
+			file:              "testdata/pagination-uses-limit.yaml",
+			expectedViolation: "[RPC_PAGINATION_PARAMETERS]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "PaginationNotNested",
+			file:              "testdata/pagination-not-nested.yaml",
+			expectedViolation: "[RPC_PAGINATED_REQUEST_STRUCTURE]",
+			expectedExitCode:  1,
+		},
 	}
 
 	for _, test := range tests {

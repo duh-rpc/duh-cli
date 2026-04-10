@@ -477,11 +477,16 @@ components:
     ListUsersRequest:
       type: object
       properties:
-        offset:
-          type: integer
-        limit:
-          type: integer
+        page:
+          $ref: '#/components/schemas/PageRequest'
         sort_by:
+          type: string
+    PageRequest:
+      type: object
+      properties:
+        first:
+          type: integer
+        after:
           type: string
     ListUsersResponse:
       type: object
@@ -490,8 +495,13 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/UserResponse'
-        total:
-          type: integer
+        page:
+          $ref: '#/components/schemas/PageResponse'
+    PageResponse:
+      type: object
+      properties:
+        end_cursor:
+          type: string
         has_more:
           type: boolean
     UpdateUserRequest:

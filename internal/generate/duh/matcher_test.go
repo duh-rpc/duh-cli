@@ -107,7 +107,13 @@ components:
     ListUsersRequest:
       type: object
       properties:
-        offset: {type: integer}
+        page:
+          $ref: '#/components/schemas/PageRequest'
+    PageRequest:
+      type: object
+      properties:
+        first: {type: integer}
+        after: {type: string}
     ListUsersResponse:
       type: object
       properties:
@@ -115,6 +121,13 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/GetUserByIdResponse'
+        page:
+          $ref: '#/components/schemas/PageResponse'
+    PageResponse:
+      type: object
+      properties:
+        endCursor: {type: string}
+        hasMore: {type: boolean}
     UpdateUserRequest:
       type: object
       properties:
@@ -342,7 +355,13 @@ components:
     ListUsersRequest:
       type: object
       properties:
-        offset: {type: integer}
+        page:
+          $ref: '#/components/schemas/PageRequest'
+    PageRequest:
+      type: object
+      properties:
+        first: {type: integer}
+        after: {type: string}
     ListUsersResponse:
       type: object
       properties:
@@ -350,6 +369,13 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/GetUserByIdResponse'
+        page:
+          $ref: '#/components/schemas/PageResponse'
+    PageResponse:
+      type: object
+      properties:
+        endCursor: {type: string}
+        hasMore: {type: boolean}
     UpdateUserRequest:
       type: object
       properties:
