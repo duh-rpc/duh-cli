@@ -186,7 +186,7 @@ type ListResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
-	Users         []*User
+	Items         []*User
 	Page          *PageResponse
 }
 

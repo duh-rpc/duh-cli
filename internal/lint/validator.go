@@ -34,6 +34,8 @@ func Validate(doc *v3.Document, filePath string) ValidationResult {
 		rules2.NewRPCNoNestedArraysRule(),
 		rules2.NewRPCTypedAdditionalPropertiesRule(),
 		rules2.NewRPCProhibitedOneOfAndAllOfRule(),
+		rules2.NewResponsePaginatedStructureRule(),
+		rules2.NewPaginationParametersRule(),
 	}
 
 	var violations []Violation

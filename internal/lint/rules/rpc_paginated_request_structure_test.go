@@ -38,6 +38,9 @@ paths:
                   properties:
                     first:
                       type: integer
+                      format: int32
+                      minimum: 1
+                      maximum: 100
                     after:
                       type: string
       responses:

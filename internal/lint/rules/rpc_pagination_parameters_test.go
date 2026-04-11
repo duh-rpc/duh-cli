@@ -38,6 +38,9 @@ paths:
                   properties:
                     first:
                       type: integer
+                      format: int32
+                      minimum: 1
+                      maximum: 100
                     after:
                       type: string
       responses:
@@ -100,6 +103,16 @@ paths:
               properties:
                 filter:
                   type: string
+                page:
+                  type: object
+                  properties:
+                    first:
+                      type: integer
+                      format: int32
+                      minimum: 1
+                      maximum: 100
+                    after:
+                      type: string
       responses:
         200:
           description: Success

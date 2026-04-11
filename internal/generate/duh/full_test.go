@@ -489,12 +489,14 @@ components:
         first:
           type: integer
           format: int32
+          minimum: 1
+          maximum: 100
         after:
           type: string
     ListResponse:
       type: object
       properties:
-        users:
+        items:
           type: array
           items:
             $ref: '#/components/schemas/GetResponse'
@@ -503,9 +505,9 @@ components:
     PageResponse:
       type: object
       properties:
-        end_cursor:
+        endCursor:
           type: string
-        has_more:
+        hasMore:
           type: boolean
     UpdateRequest:
       type: object

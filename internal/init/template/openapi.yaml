@@ -354,9 +354,9 @@ components:
     ListResponse:
       type: object
       required:
-        - users
+        - items
       properties:
-        users:
+        items:
           type: array
           items:
             $ref: '#/components/schemas/GetResponse'

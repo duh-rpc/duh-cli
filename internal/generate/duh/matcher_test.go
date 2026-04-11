@@ -112,12 +112,12 @@ components:
     PageRequest:
       type: object
       properties:
-        first: {type: integer, format: int32}
+        first: {type: integer, format: int32, minimum: 1, maximum: 100}
         after: {type: string}
     ListResponse:
       type: object
       properties:
-        users:
+        items:
           type: array
           items:
             $ref: '#/components/schemas/GetResponse'
@@ -360,12 +360,12 @@ components:
     PageRequest:
       type: object
       properties:
-        first: {type: integer, format: int32}
+        first: {type: integer, format: int32, minimum: 1, maximum: 100}
         after: {type: string}
     ListResponse:
       type: object
       properties:
-        users:
+        items:
           type: array
           items:
             $ref: '#/components/schemas/GetResponse'

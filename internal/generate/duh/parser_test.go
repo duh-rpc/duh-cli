@@ -245,12 +245,14 @@ components:
         first:
           type: integer
           format: int32
+          minimum: 1
+          maximum: 100
         after:
           type: string
     ListResponse:
       type: object
       properties:
-        users:
+        items:
           type: array
           items:
             $ref: '#/components/schemas/User'
@@ -271,7 +273,7 @@ components:
     ListActiveResponse:
       type: object
       properties:
-        active_users:
+        items:
           type: array
           items:
             $ref: '#/components/schemas/User'
@@ -334,6 +336,8 @@ components:
         first:
           type: integer
           format: int32
+          minimum: 1
+          maximum: 100
         after:
           type: string
     DataListResponse:
@@ -347,6 +351,13 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/MetadataItem'
+        page:
+          $ref: '#/components/schemas/DataPageResponse'
+    DataPageResponse:
+      type: object
+      properties:
+        endCursor:
+          type: string
     DataItem:
       type: object
       properties:
@@ -401,13 +412,32 @@ components:
       properties:
         filter:
           type: string
+        page:
+          $ref: '#/components/schemas/PageRequest'
+    PageRequest:
+      type: object
+      properties:
+        first:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 100
+        after:
+          type: string
     ListResponse:
       type: object
       properties:
-        users:
+        items:
           type: array
           items:
             $ref: '#/components/schemas/User'
+        page:
+          $ref: '#/components/schemas/PageResponse'
+    PageResponse:
+      type: object
+      properties:
+        endCursor:
+          type: string
     User:
       type: object
       properties:

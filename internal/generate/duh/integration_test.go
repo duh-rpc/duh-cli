@@ -154,12 +154,14 @@ components:
         first:
           type: integer
           format: int32
+          minimum: 1
+          maximum: 100
         after:
           type: string
     ListResponse:
       type: object
       properties:
-        users:
+        items:
           type: array
           items:
             $ref: '#/components/schemas/User'
@@ -429,7 +431,7 @@ type ListResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
-	Users         []*User
+	Items         []*User
 	Page          *PageResponse
 }
 func (x *ListResponse) Reset() {}
@@ -761,7 +763,7 @@ type ListResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
-	Users         []*User
+	Items         []*User
 	Page          *PageResponse
 }
 func (x *ListResponse) Reset() {}
