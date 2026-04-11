@@ -153,6 +153,7 @@ components:
       properties:
         first:
           type: integer
+          format: int32
         after:
           type: string
     ListResponse:

@@ -264,6 +264,7 @@ components:
           example: "John Doe"
         age:
           type: integer
+          format: int32
           minimum: 0
           example: 30
 
@@ -315,6 +316,7 @@ components:
           example: "John Doe"
         age:
           type: integer
+          format: int32
           example: 30
         createdAt:
           type: string
@@ -338,6 +340,7 @@ components:
       properties:
         first:
           type: integer
+          format: int32
           minimum: 1
           maximum: 100
           default: 20
@@ -390,6 +393,7 @@ components:
           example: "jane@example.com"
         age:
           type: integer
+          format: int32
           minimum: 0
           example: 35
         status:
@@ -415,6 +419,7 @@ components:
           example: "Jane Doe"
         age:
           type: integer
+          format: int32
           example: 35
         status:
           type: string

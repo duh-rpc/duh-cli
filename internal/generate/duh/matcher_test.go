@@ -112,7 +112,7 @@ components:
     PageRequest:
       type: object
       properties:
-        first: {type: integer}
+        first: {type: integer, format: int32}
         after: {type: string}
     ListResponse:
       type: object
@@ -360,7 +360,7 @@ components:
     PageRequest:
       type: object
       properties:
-        first: {type: integer}
+        first: {type: integer, format: int32}
         after: {type: string}
     ListResponse:
       type: object

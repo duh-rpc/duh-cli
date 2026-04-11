@@ -443,6 +443,7 @@ components:
           type: string
         age:
           type: integer
+          format: int32
     CreateResponse:
       type: object
       properties:
@@ -471,6 +472,7 @@ components:
           type: string
         age:
           type: integer
+          format: int32
         created_at:
           type: string
           format: date-time
@@ -486,6 +488,7 @@ components:
       properties:
         first:
           type: integer
+          format: int32
         after:
           type: string
     ListResponse:
@@ -515,6 +518,7 @@ components:
           type: string
         age:
           type: integer
+          format: int32
         status:
           type: string
     UpdateResponse:
@@ -528,6 +532,7 @@ components:
           type: string
         age:
           type: integer
+          format: int32
         status:
           type: string
         updated_at:

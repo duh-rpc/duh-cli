@@ -29,6 +29,11 @@ func Validate(doc *v3.Document, filePath string) ValidationResult {
 		rules2.NewRPCRequestStandardNameRule(),
 		rules2.NewRPCResponseStandardNameRule(),
 		rules2.NewRPCRequestResponseUniqueRule(),
+		rules2.NewRPCIntegerFormatRequiredRule(),
+		rules2.NewRPCNoNullableRule(),
+		rules2.NewRPCNoNestedArraysRule(),
+		rules2.NewRPCTypedAdditionalPropertiesRule(),
+		rules2.NewRPCProhibitedOneOfAndAllOfRule(),
 	}
 
 	var violations []Violation
