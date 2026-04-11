@@ -109,6 +109,42 @@ paths:
                   message:
                     type: string
 
+  /items.list:
+    post:
+      operationId: listItems
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                page:
+                  type: object
+                  properties:
+                    first:
+                      type: string
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: string
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [message]
+                properties:
+                  message:
+                    type: string
+
 components:
   schemas:
     BadPayload:
@@ -122,3 +158,44 @@ components:
       properties:
         orderId:
           type: string
+
+    ProtoViolationInteger:
+      type: object
+      properties:
+        count:
+          type: integer
+
+    ProtoViolationNullable:
+      type: object
+      properties:
+        status:
+          type: string
+          nullable: true
+
+    ProtoViolationNestedArray:
+      type: object
+      properties:
+        matrix:
+          type: array
+          items:
+            type: array
+            items:
+              type: string
+
+    ProtoViolationAdditionalProps:
+      type: object
+      additionalProperties: true
+      properties:
+        name:
+          type: string
+
+    ProtoViolationOneOf:
+      oneOf:
+        - type: object
+          properties:
+            a:
+              type: string
+        - type: object
+          properties:
+            b:
+              type: string

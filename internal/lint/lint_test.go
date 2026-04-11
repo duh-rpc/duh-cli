@@ -117,6 +117,48 @@ func TestLinterAllRuleViolations(t *testing.T) {
 			expectedViolation: "[RPC_REQUEST_RESPONSE_UNIQUE]",
 			expectedExitCode:  1,
 		},
+		{
+			name:              "MissingIntegerFormat",
+			file:              "testdata/missing-integer-format.yaml",
+			expectedViolation: "[RPC_INTEGER_FORMAT_REQUIRED]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "NullableProperty",
+			file:              "testdata/nullable-property.yaml",
+			expectedViolation: "[RPC_NO_NULLABLE]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "NestedArray",
+			file:              "testdata/nested-array.yaml",
+			expectedViolation: "[RPC_NO_NESTED_ARRAYS]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "UntypedAdditionalProperties",
+			file:              "testdata/untyped-additional-properties.yaml",
+			expectedViolation: "[RPC_TYPED_ADDITIONAL_PROPERTIES]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "UsesOneOf",
+			file:              "testdata/uses-oneof.yaml",
+			expectedViolation: "[RPC_PROHIBITED_ONEOF_AND_ALLOF]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "BadPaginatedResponse",
+			file:              "testdata/bad-paginated-response.yaml",
+			expectedViolation: "[RESPONSE_PAGINATED_STRUCTURE]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "BadPaginationParams",
+			file:              "testdata/bad-pagination-params.yaml",
+			expectedViolation: "[PAGINATION_PARAMETERS]",
+			expectedExitCode:  1,
+		},
 	}
 
 	for _, test := range tests {
@@ -156,6 +198,13 @@ func TestLinterMultipleViolations(t *testing.T) {
 		"[RPC_REQUEST_STANDARD_NAME]",
 		"[RPC_RESPONSE_STANDARD_NAME]",
 		"[RPC_REQUEST_RESPONSE_UNIQUE]",
+		"[RPC_INTEGER_FORMAT_REQUIRED]",
+		"[RPC_NO_NULLABLE]",
+		"[RPC_NO_NESTED_ARRAYS]",
+		"[RPC_TYPED_ADDITIONAL_PROPERTIES]",
+		"[RPC_PROHIBITED_ONEOF_AND_ALLOF]",
+		"[RESPONSE_PAGINATED_STRUCTURE]",
+		"[PAGINATION_PARAMETERS]",
 	}
 
 	for _, violation := range expectedViolations {
@@ -165,9 +214,9 @@ func TestLinterMultipleViolations(t *testing.T) {
 	// Verify output structure
 	assert.Contains(t, output, "errors")
 
-	// Count violations - should have at least 12 (one for each rule type)
+	// Count violations - should have at least 19 (one for each rule type)
 	violationCount := strings.Count(output, "[ERROR]")
-	assert.GreaterOrEqual(t, violationCount, 12)
+	assert.GreaterOrEqual(t, violationCount, 19)
 }
 
 func TestLinterFileNotFound(t *testing.T) {
