@@ -159,6 +159,60 @@ func TestLinterAllRuleViolations(t *testing.T) {
 			expectedViolation: "[PAGINATION_PARAMETERS]",
 			expectedExitCode:  1,
 		},
+		{
+			name:              "UnderscoreInPath",
+			file:              "testdata/underscore-in-path.yaml",
+			expectedViolation: "[PATH_HYPHEN_SEPARATOR]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "SingularResource",
+			file:              "testdata/singular-resource.yaml",
+			expectedViolation: "[PATH_PLURAL_RESOURCES]",
+			expectedExitCode:  0,
+		},
+		{
+			name:              "MultiplePathParams",
+			file:              "testdata/multiple-path-params.yaml",
+			expectedViolation: "[PATH_MULTIPLE_PARAMETERS]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "InlineObject",
+			file:              "testdata/inline-object.yaml",
+			expectedViolation: "[SCHEMA_NO_INLINE_OBJECTS]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "NonCamelCaseProperty",
+			file:              "testdata/non-camelcase-property.yaml",
+			expectedViolation: "[PROPERTY_CAMELCASE]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "NullTypeArray",
+			file:              "testdata/null-type-array.yaml",
+			expectedViolation: "[NULLABLE_SYNTAX]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "ResponseAdditionalPropertiesFalse",
+			file:              "testdata/response-additional-properties-false.yaml",
+			expectedViolation: "[SCHEMA_ADDITIONAL_PROPERTIES_RESPONSE]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "NullableOptionalResponse",
+			file:              "testdata/nullable-optional-response.yaml",
+			expectedViolation: "[NULLABLE_OPTIONAL_RESPONSE]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "NullableNotRequired",
+			file:              "testdata/nullable-optional-response.yaml",
+			expectedViolation: "[NULLABLE_REQUIRED_ONLY]",
+			expectedExitCode:  1,
+		},
 	}
 
 	for _, test := range tests {
@@ -205,6 +259,15 @@ func TestLinterMultipleViolations(t *testing.T) {
 		"[RPC_PROHIBITED_ONEOF_AND_ALLOF]",
 		"[RESPONSE_PAGINATED_STRUCTURE]",
 		"[PAGINATION_PARAMETERS]",
+		"[PATH_HYPHEN_SEPARATOR]",
+		"[PATH_PLURAL_RESOURCES]",
+		"[PATH_MULTIPLE_PARAMETERS]",
+		"[SCHEMA_NO_INLINE_OBJECTS]",
+		"[PROPERTY_CAMELCASE]",
+		"[NULLABLE_SYNTAX]",
+		"[SCHEMA_ADDITIONAL_PROPERTIES_RESPONSE]",
+		"[NULLABLE_OPTIONAL_RESPONSE]",
+		"[NULLABLE_REQUIRED_ONLY]",
 	}
 
 	for _, violation := range expectedViolations {
@@ -214,9 +277,9 @@ func TestLinterMultipleViolations(t *testing.T) {
 	// Verify output structure
 	assert.Contains(t, output, "errors")
 
-	// Count violations - should have at least 19 (one for each rule type)
+	// Count violations - should have at least 28 (one for each rule type plus extras from new paths)
 	violationCount := strings.Count(output, "[ERROR]")
-	assert.GreaterOrEqual(t, violationCount, 19)
+	assert.GreaterOrEqual(t, violationCount, 28)
 }
 
 func TestLinterFileNotFound(t *testing.T) {

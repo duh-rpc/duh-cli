@@ -1,0 +1,55 @@
+openapi: 3.0.0
+info:
+  title: Multiple Path Params
+  version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
+paths:
+  /users/{id}/posts/{postId}:
+    post:
+      operationId: getUserPost
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetPostRequest'
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetPostResponse'
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetails'
+components:
+  schemas:
+    GetPostRequest:
+      type: object
+      properties:
+        includeComments:
+          type: boolean
+    GetPostResponse:
+      type: object
+      properties:
+        postId:
+          type: string
+    ErrorDetails:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+        code:
+          type: string
+        type:
+          type: string
+        details:
+          type: object
+          additionalProperties:
+            type: string

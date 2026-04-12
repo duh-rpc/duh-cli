@@ -145,6 +145,87 @@ paths:
                   message:
                     type: string
 
+  /user_accounts.create:
+    post:
+      operationId: createUserAccounts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserAccountsCreateRequest'
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserAccountsCreateResponse'
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [message]
+                properties:
+                  message:
+                    type: string
+
+  /pet.get:
+    post:
+      operationId: getPet
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PetGetRequest'
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PetGetResponse'
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [message]
+                properties:
+                  message:
+                    type: string
+
+  /users/{id}/posts/{postId}:
+    post:
+      operationId: getUserPost
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetPostRequest'
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetPostResponse'
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [message]
+                properties:
+                  message:
+                    type: string
+
 components:
   schemas:
     BadPayload:
@@ -155,9 +236,14 @@ components:
 
     BadResult:
       type: object
+      additionalProperties: false
+      required: [orderId]
       properties:
         orderId:
           type: string
+        note:
+          type: string
+          nullable: true
 
     ProtoViolationInteger:
       type: object
@@ -199,3 +285,53 @@ components:
           properties:
             b:
               type: string
+
+    UserAccountsCreateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+
+    UserAccountsCreateResponse:
+      type: object
+      properties:
+        accountId:
+          type: string
+
+    PetGetRequest:
+      type: object
+      properties:
+        petId:
+          type: string
+
+    PetGetResponse:
+      type: object
+      properties:
+        petId:
+          type: string
+
+    GetPostRequest:
+      type: object
+      properties:
+        includeComments:
+          type: boolean
+
+    GetPostResponse:
+      type: object
+      properties:
+        postId:
+          type: string
+
+    SchemaViolationCamelCase:
+      type: object
+      properties:
+        first_name:
+          type: string
+
+    SchemaViolationNullSyntax:
+      type: object
+      properties:
+        name:
+          type:
+            - string
+            - "null"

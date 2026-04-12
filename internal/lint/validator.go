@@ -43,6 +43,8 @@ func Validate(doc *v3.Document, filePath string) ValidationResult {
 		rules2.NewPropertyCamelCaseRule(),
 		rules2.NewNullableSyntaxRule(),
 		rules2.NewSchemaAdditionalPropertiesResponseRule(),
+		rules2.NewNullableOptionalResponseRule(),
+		rules2.NewNullableRequiredOnlyRule(),
 	}
 
 	var violations []Violation
