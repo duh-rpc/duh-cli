@@ -31,25 +31,41 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                page:
-                  type: object
-                  properties:
-                    first:
-                      type: integer
-                      format: int32
-                      minimum: 1
-                      maximum: 100
-                    after:
-                      type: string
+              $ref: '#/components/schemas/ListRequest'
       responses:
         200:
           description: Success
           content:
             application/json:
               schema:
-                type: object`,
+                type: object
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    ListRequest:
+      type: object
+      properties:
+        page:
+          type: object
+          properties:
+            first:
+              type: integer
+              format: int32
+              minimum: 1
+              maximum: 100
+            after:
+              type: string
+    Error:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string`,
 			expectedExit:   0,
 			expectedOutput: "compliant",
 		},
@@ -69,17 +85,34 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                limit:
-                  type: integer
+              $ref: '#/components/schemas/CreateRequest'
       responses:
         200:
           description: Success
           content:
             application/json:
               schema:
-                type: object`,
+                type: object
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    CreateRequest:
+      type: object
+      properties:
+        limit:
+          type: integer
+          format: int32
+    Error:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string`,
 			expectedExit:   0,
 			expectedOutput: "compliant",
 		},
@@ -99,27 +132,43 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                filter:
-                  type: string
-                page:
-                  type: object
-                  properties:
-                    first:
-                      type: integer
-                      format: int32
-                      minimum: 1
-                      maximum: 100
-                    after:
-                      type: string
+              $ref: '#/components/schemas/ListRequest'
       responses:
         200:
           description: Success
           content:
             application/json:
               schema:
-                type: object`,
+                type: object
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    ListRequest:
+      type: object
+      properties:
+        filter:
+          type: string
+        page:
+          type: object
+          properties:
+            first:
+              type: integer
+              format: int32
+              minimum: 1
+              maximum: 100
+            after:
+              type: string
+    Error:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string`,
 			expectedExit:   0,
 			expectedOutput: "compliant",
 		},

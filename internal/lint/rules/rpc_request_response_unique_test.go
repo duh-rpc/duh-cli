@@ -319,9 +319,6 @@ paths:
           application/json:
             schema:
               type: object
-              properties:
-                name:
-                  type: string
       responses:
         200:
           description: Success
@@ -334,11 +331,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                required: [message]
-                properties:
-                  message:
-                    type: string
+                $ref: '#/components/schemas/Error'
   /pets.update:
     post:
       requestBody:
@@ -347,9 +340,6 @@ paths:
           application/json:
             schema:
               type: object
-              properties:
-                name:
-                  type: string
       responses:
         200:
           description: Success
@@ -362,11 +352,15 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                required: [message]
-                properties:
-                  message:
-                    type: string`,
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    Error:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string`,
 			expectedExit:   0,
 			expectedOutput: "compliant",
 		},

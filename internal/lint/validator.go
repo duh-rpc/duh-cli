@@ -39,6 +39,10 @@ func Validate(doc *v3.Document, filePath string) ValidationResult {
 		rules2.NewPathHyphenSeparatorRule(),
 		rules2.NewPathPluralResourcesRule(),
 		rules2.NewPathMultipleParametersRule(),
+		rules2.NewSchemaNoInlineObjectsRule(),
+		rules2.NewPropertyCamelCaseRule(),
+		rules2.NewNullableSyntaxRule(),
+		rules2.NewSchemaAdditionalPropertiesResponseRule(),
 	}
 
 	var violations []Violation

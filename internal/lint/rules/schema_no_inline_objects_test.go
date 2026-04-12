@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestRPCResponseStandardNameRule(t *testing.T) {
+func TestSchemaNoInlineObjectsRule(t *testing.T) {
 	for _, test := range []struct {
 		name           string
 		spec           string
@@ -16,7 +16,7 @@ func TestRPCResponseStandardNameRule(t *testing.T) {
 		expectedOutput string
 	}{
 		{
-			name: "ValidMethodResponse",
+			name: "ValidRefSchemas",
 			spec: `openapi: 3.0.0
 info:
   title: Test
@@ -62,63 +62,20 @@ components:
       required: [message]
       properties:
         message:
-          type: string`,
+          type: string
+        code:
+          type: string
+        type:
+          type: string
+        details:
+          type: object
+          additionalProperties:
+            type: string`,
 			expectedExit:   0,
 			expectedOutput: "compliant",
 		},
 		{
-			name: "ValidServiceMethodResponse",
-			spec: `openapi: 3.0.0
-info:
-  title: Test
-  version: 1.0.0
-servers:
-  - url: https://api.example.com/v1
-paths:
-  /pets.create:
-    post:
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PetsCreateRequest'
-      responses:
-        200:
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PetsCreateResponse'
-        400:
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorDetails'
-components:
-  schemas:
-    PetsCreateRequest:
-      type: object
-      properties:
-        name:
-          type: string
-    PetsCreateResponse:
-      type: object
-      properties:
-        petId:
-          type: string
-    ErrorDetails:
-      type: object
-      required: [message]
-      properties:
-        message:
-          type: string`,
-			expectedExit:   0,
-			expectedOutput: "compliant",
-		},
-		{
-			name: "InvalidResponseName",
+			name: "ValidBareObjectNoProperties",
 			spec: `openapi: 3.0.0
 info:
   title: Test
@@ -140,7 +97,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PetResult'
+                type: object
         400:
           description: Bad request
           content:
@@ -154,79 +111,25 @@ components:
       properties:
         name:
           type: string
-    PetResult:
-      type: object
-      properties:
-        petId:
-          type: string
     ErrorDetails:
       type: object
       required: [message]
       properties:
         message:
-          type: string`,
-			expectedExit:   1,
-			expectedOutput: "[RPC_RESPONSE_STANDARD_NAME]",
-		},
-		{
-			name: "Valid201Response",
-			spec: `openapi: 3.0.0
-info:
-  title: Test
-  version: 1.0.0
-servers:
-  - url: https://api.example.com/v1
-paths:
-  /pets.create:
-    post:
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreateRequest'
-      responses:
-        200:
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CreateResponse'
-        201:
-          description: Created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CreateResponse'
-        400:
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorDetails'
-components:
-  schemas:
-    CreateRequest:
-      type: object
-      properties:
-        name:
           type: string
-    CreateResponse:
-      type: object
-      properties:
-        petId:
+        code:
           type: string
-    ErrorDetails:
-      type: object
-      required: [message]
-      properties:
-        message:
-          type: string`,
+        type:
+          type: string
+        details:
+          type: object
+          additionalProperties:
+            type: string`,
 			expectedExit:   0,
 			expectedOutput: "compliant",
 		},
 		{
-			name: "InlineSchemaSkipped",
+			name: "InvalidInlineRequestBody",
 			spec: `openapi: 3.0.0
 info:
   title: Test
@@ -242,6 +145,63 @@ paths:
           application/json:
             schema:
               type: object
+              properties:
+                name:
+                  type: string
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateResponse'
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetails'
+components:
+  schemas:
+    CreateResponse:
+      type: object
+      properties:
+        petId:
+          type: string
+    ErrorDetails:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+        code:
+          type: string
+        type:
+          type: string
+        details:
+          type: object
+          additionalProperties:
+            type: string`,
+			expectedExit:   1,
+			expectedOutput: "[SCHEMA_NO_INLINE_OBJECTS]",
+		},
+		{
+			name: "InvalidInline200Response",
+			spec: `openapi: 3.0.0
+info:
+  title: Test
+  version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
+paths:
+  /pets.create:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRequest'
       responses:
         200:
           description: Success
@@ -249,19 +209,92 @@ paths:
             application/json:
               schema:
                 type: object
+                properties:
+                  petId:
+                    type: string
         400:
           description: Bad request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/ErrorDetails'
 components:
   schemas:
-    Error:
+    CreateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+    ErrorDetails:
       type: object
       required: [message]
       properties:
         message:
+          type: string
+        code:
+          type: string
+        type:
+          type: string
+        details:
+          type: object
+          additionalProperties:
+            type: string`,
+			expectedExit:   1,
+			expectedOutput: "[SCHEMA_NO_INLINE_OBJECTS]",
+		},
+		{
+			name: "ValidInline400Response",
+			spec: `openapi: 3.0.0
+info:
+  title: Test
+  version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
+paths:
+  /pets.create:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRequest'
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateResponse'
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [message]
+                properties:
+                  message:
+                    type: string
+                  code:
+                    type: string
+                  type:
+                    type: string
+                  details:
+                    type: object
+                    additionalProperties:
+                      type: string
+components:
+  schemas:
+    CreateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+    CreateResponse:
+      type: object
+      properties:
+        petId:
           type: string`,
 			expectedExit:   0,
 			expectedOutput: "compliant",

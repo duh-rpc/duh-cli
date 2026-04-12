@@ -100,20 +100,38 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                name:
-                  type: string
+              $ref: '#/components/schemas/CreateRequest'
       responses:
         200:
           description: Success
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  id:
-                    type: string`,
+                $ref: '#/components/schemas/CreateResponse'
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    CreateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+    CreateResponse:
+      type: object
+      properties:
+        id:
+          type: string
+    Error:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string`,
 			expectedExit:   0,
 			expectedOutput: "compliant",
 		},

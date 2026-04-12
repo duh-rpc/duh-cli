@@ -526,7 +526,7 @@ func TestInlineSchemaReturnsError(t *testing.T) {
 	exitCode := duh.RunCmd(stdout, []string{"generate", specPath})
 
 	require.Equal(t, 2, exitCode)
-	assert.Contains(t, stdout.String(), "inline schema not supported")
+	assert.Contains(t, stdout.String(), "OpenAPI validation failed")
 }
 
 func TestParseExtractsModulePathAndProtoImport(t *testing.T) {

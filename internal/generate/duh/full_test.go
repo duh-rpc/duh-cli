@@ -447,24 +447,24 @@ components:
     CreateResponse:
       type: object
       properties:
-        user_id:
+        userId:
           type: string
         name:
           type: string
         email:
           type: string
-        created_at:
+        createdAt:
           type: string
           format: date-time
     GetRequest:
       type: object
       properties:
-        user_id:
+        userId:
           type: string
     GetResponse:
       type: object
       properties:
-        user_id:
+        userId:
           type: string
         name:
           type: string
@@ -473,7 +473,7 @@ components:
         age:
           type: integer
           format: int32
-        created_at:
+        createdAt:
           type: string
           format: date-time
     ListRequest:
@@ -481,7 +481,7 @@ components:
       properties:
         page:
           $ref: '#/components/schemas/PageRequest'
-        sort_by:
+        sortBy:
           type: string
     PageRequest:
       type: object
@@ -512,7 +512,7 @@ components:
     UpdateRequest:
       type: object
       properties:
-        user_id:
+        userId:
           type: string
         name:
           type: string
@@ -526,7 +526,7 @@ components:
     UpdateResponse:
       type: object
       properties:
-        user_id:
+        userId:
           type: string
         name:
           type: string
@@ -537,23 +537,23 @@ components:
           format: int32
         status:
           type: string
-        updated_at:
+        updatedAt:
           type: string
           format: date-time
-        created_at:
+        createdAt:
           type: string
           format: date-time
     DeleteRequest:
       type: object
       properties:
-        user_id:
+        userId:
           type: string
     DeleteResponse:
       type: object
       properties:
-        user_id:
+        userId:
           type: string
-        deleted_at:
+        deletedAt:
           type: string
           format: date-time
     Error:
