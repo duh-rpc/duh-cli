@@ -287,9 +287,9 @@ func TestGenerateOperationNameWithUnderscores(t *testing.T) {
 
 	exitCode := duh.RunCmd(stdout, []string{"generate", specPath})
 
-	require.Equal(t, 0, exitCode)
-	content := getServerContent(t, specPath)
-	assert.Contains(t, content, "UserProfilesGetById")
+	// Underscore paths are now rejected by PATH_HYPHEN_SEPARATOR rule
+	require.Equal(t, 2, exitCode)
+	assert.Contains(t, stdout.String(), "validation failed")
 }
 
 func TestGenerateOperationNamePathWithoutVersionPrefix(t *testing.T) {
@@ -335,7 +335,7 @@ func TestToCamelCaseWithUnderscores(t *testing.T) {
 
 	exitCode := duh.RunCmd(stdout, []string{"generate", specPath})
 
-	require.Equal(t, 0, exitCode)
-	content := getServerContent(t, specPath)
-	assert.Contains(t, content, "UserProfilesGetById")
+	// Underscore paths are now rejected by PATH_HYPHEN_SEPARATOR rule
+	require.Equal(t, 2, exitCode)
+	assert.Contains(t, stdout.String(), "validation failed")
 }

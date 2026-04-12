@@ -25,7 +25,7 @@ info:
 servers:
   - url: https://api.example.com/v1
 paths:
-  /test.action:
+  /tests.action:
     post:
       requestBody:
         required: true
@@ -70,7 +70,7 @@ info:
 servers:
   - url: https://api.example.com/v1
 paths:
-  /test.action:
+  /tests.action:
     post:
       requestBody:
         required: true
@@ -111,7 +111,7 @@ info:
   title: Test
   version: 1.0.0
 paths:
-  /test.action:
+  /tests.action:
     post:
       requestBody:
         required: true
@@ -137,7 +137,7 @@ paths:
                     type: string
 `,
 			expectedExit: 1,
-			expectedOutput: `[ERROR] [ERROR_SCHEMA] POST /test.action response 400 (application/json)
+			expectedOutput: `[ERROR] [ERROR_SCHEMA] POST /tests.action response 400 (application/json)
   error schema must have required field: message`,
 		},
 		{
@@ -148,7 +148,7 @@ info:
   title: Test
   version: 1.0.0
 paths:
-  /test.action:
+  /tests.action:
     post:
       requestBody:
         required: true
@@ -177,7 +177,7 @@ paths:
                     type: integer
 `,
 			expectedExit: 1,
-			expectedOutput: `[ERROR] [ERROR_SCHEMA] POST /test.action response 500 (application/json)
+			expectedOutput: `[ERROR] [ERROR_SCHEMA] POST /tests.action response 500 (application/json)
   message field must be type string`,
 		},
 		{
@@ -188,7 +188,7 @@ info:
   title: Test
   version: 1.0.0
 paths:
-  /test.action:
+  /tests.action:
     post:
       requestBody:
         required: true
@@ -214,7 +214,7 @@ paths:
                     type: string
 `,
 			expectedExit: 1,
-			expectedOutput: `[ERROR] [ERROR_SCHEMA] POST /test.action response 400 (application/json)
+			expectedOutput: `[ERROR] [ERROR_SCHEMA] POST /tests.action response 400 (application/json)
   error schema must have explicit type 'object'`,
 		},
 		{
@@ -225,7 +225,7 @@ info:
   title: Test
   version: 1.0.0
 paths:
-  /test.action:
+  /tests.action:
     post:
       requestBody:
         required: true
@@ -254,7 +254,7 @@ paths:
                     type: string
 `,
 			expectedExit: 1,
-			expectedOutput: `[ERROR] [ERROR_SCHEMA] POST /test.action response 400 (application/json)
+			expectedOutput: `[ERROR] [ERROR_SCHEMA] POST /tests.action response 400 (application/json)
   details field must be type object`,
 		},
 		{
@@ -265,7 +265,7 @@ info:
   title: Test
   version: 1.0.0
 paths:
-  /test.action:
+  /tests.action:
     post:
       requestBody:
         required: true
@@ -294,7 +294,7 @@ paths:
                     type: integer
 `,
 			expectedExit: 1,
-			expectedOutput: `[ERROR] [ERROR_SCHEMA] POST /test.action response 400 (application/json)
+			expectedOutput: `[ERROR] [ERROR_SCHEMA] POST /tests.action response 400 (application/json)
   code field must be type string`,
 		},
 		{
@@ -305,7 +305,7 @@ info:
   title: Test
   version: 1.0.0
 paths:
-  /test.action:
+  /tests.action:
     post:
       requestBody:
         required: true
@@ -334,7 +334,7 @@ paths:
                     type: integer
 `,
 			expectedExit: 1,
-			expectedOutput: `[ERROR] [ERROR_SCHEMA] POST /test.action response 400 (application/json)
+			expectedOutput: `[ERROR] [ERROR_SCHEMA] POST /tests.action response 400 (application/json)
   type field must be type string`,
 		},
 		{
@@ -347,7 +347,7 @@ info:
 servers:
   - url: https://api.example.com/v1
 paths:
-  /test.action:
+  /tests.action:
     post:
       requestBody:
         required: true
@@ -384,7 +384,7 @@ info:
   title: Test
   version: 1.0.0
 paths:
-  /test.action:
+  /tests.action:
     post:
       requestBody:
         required: true
@@ -413,7 +413,7 @@ paths:
                     type: object
 `,
 			expectedExit: 1,
-			expectedOutput: `[ERROR] [ERROR_SCHEMA] POST /test.action response 400 (application/json)
+			expectedOutput: `[ERROR] [ERROR_SCHEMA] POST /tests.action response 400 (application/json)
   details field must have additionalProperties with type string`,
 		},
 		{
@@ -424,7 +424,7 @@ info:
   title: Test
   version: 1.0.0
 paths:
-  /test.action:
+  /tests.action:
     post:
       requestBody:
         required: true
@@ -454,7 +454,7 @@ paths:
                     additionalProperties: true
 `,
 			expectedExit: 1,
-			expectedOutput: `[ERROR] [ERROR_SCHEMA] POST /test.action response 400 (application/json)
+			expectedOutput: `[ERROR] [ERROR_SCHEMA] POST /tests.action response 400 (application/json)
   details field must have additionalProperties with type string`,
 		},
 		{
@@ -467,7 +467,7 @@ info:
 servers:
   - url: https://api.example.com/v1
 paths:
-  /test.action:
+  /tests.action:
     post:
       requestBody:
         required: true
@@ -510,7 +510,7 @@ info:
 servers:
   - url: https://api.example.com/v1
 paths:
-  /test.action:
+  /tests.action:
     post:
       requestBody:
         required: true
@@ -559,7 +559,7 @@ info:
 servers:
   - url: https://api.example.com/v1
 paths:
-  /test.action:
+  /tests.action:
     post:
       requestBody:
         required: true
@@ -670,7 +670,7 @@ info:
 servers:
   - url: https://api.example.com/v1
 paths:
-  /test.action:
+  /tests.action:
     post:
       requestBody:
         required: true
@@ -733,7 +733,7 @@ info:
 servers:
   - url: https://api.example.com/v1
 paths:
-  /test.action:
+  /tests.action:
     post:
       requestBody:
         required: true

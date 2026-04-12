@@ -91,7 +91,7 @@ info:
 servers:
   - url: https://api.example.com/v1
 paths:
-  /beta.test:
+  /betas.test:
     post:
       requestBody:
         required: true

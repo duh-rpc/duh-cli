@@ -36,6 +36,9 @@ func Validate(doc *v3.Document, filePath string) ValidationResult {
 		rules2.NewRPCProhibitedOneOfAndAllOfRule(),
 		rules2.NewResponsePaginatedStructureRule(),
 		rules2.NewPaginationParametersRule(),
+		rules2.NewPathHyphenSeparatorRule(),
+		rules2.NewPathPluralResourcesRule(),
+		rules2.NewPathMultipleParametersRule(),
 	}
 
 	var violations []Violation
