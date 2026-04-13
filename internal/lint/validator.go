@@ -53,6 +53,13 @@ func Validate(doc *v3.Document, filePath string) ValidationResult {
 		rules2.NewProhibitedHATEOASRule(),
 		rules2.NewProhibitedParameterStylesRule(),
 		rules2.NewProhibitedMultipleExamplesRule(),
+		rules2.NewTimestampFormatRule(),
+		rules2.NewDateFormatRule(),
+		rules2.NewAmountDecimalStringRule(),
+		rules2.NewAmountSchemaPatternRule(),
+		rules2.NewOpenAPIVersionRule(),
+		rules2.NewIdempotencyKeyDefinitionRule(),
+		rules2.NewDescriptionRequiredRule(),
 	}
 
 	var violations []Violation

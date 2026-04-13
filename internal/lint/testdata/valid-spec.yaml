@@ -64,17 +64,21 @@ components:
         page:
           $ref: '#/components/schemas/PageRequest'
         status:
+          description: Filter pets by status
           type: string
 
     PageRequest:
+      description: Pagination parameters for cursor-based pagination
       type: object
       properties:
         first:
+          description: Maximum number of items to return
           type: integer
           format: int32
           minimum: 1
           maximum: 100
         after:
+          description: Cursor for the next page of results
           type: string
 
     ListResponse:
@@ -82,6 +86,7 @@ components:
       required: [items, page]
       properties:
         items:
+          description: List of pets matching the query
           type: array
           items:
             $ref: '#/components/schemas/Pet'
@@ -89,10 +94,12 @@ components:
           $ref: '#/components/schemas/PageResponse'
 
     PageResponse:
+      description: Pagination response with cursor information
       type: object
       required: [endCursor]
       properties:
         endCursor:
+          description: Cursor pointing to the last item in the current page
           type: string
 
     CreateRequest:
@@ -100,8 +107,10 @@ components:
       required: [name]
       properties:
         name:
+          description: Name of the pet to create
           type: string
         status:
+          description: Initial status of the pet
           type: string
 
     CreateResponse:
@@ -109,21 +118,28 @@ components:
       required: [petId, name]
       properties:
         petId:
+          description: Unique identifier for the created pet
           type: string
         name:
+          description: Name of the created pet
           type: string
         status:
+          description: Current status of the pet
           type: string
 
     Pet:
+      description: Represents a pet in the system
       type: object
       required: [petId, name]
       properties:
         petId:
+          description: Unique identifier for the pet
           type: string
         name:
+          description: Name of the pet
           type: string
         status:
+          description: Current status of the pet
           type: string
 
     ErrorDetails:
@@ -131,12 +147,16 @@ components:
       required: [message]
       properties:
         message:
+          description: Human-readable error message
           type: string
         code:
+          description: Machine-readable error code
           type: string
         type:
+          description: Error type classification
           type: string
         details:
+          description: Additional error context as key-value pairs
           type: object
           additionalProperties:
             type: string
