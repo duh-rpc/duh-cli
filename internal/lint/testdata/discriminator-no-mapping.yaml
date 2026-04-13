@@ -1,0 +1,76 @@
+openapi: 3.0.0
+info:
+  title: Discriminator No Mapping
+  version: 1.0.0
+
+servers:
+  - url: https://api.example.com/v1
+
+paths:
+  /pets.create:
+    post:
+      description: Create a pet
+      operationId: createPet
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRequest'
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateResponse'
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetails'
+
+components:
+  schemas:
+    CreateRequest:
+      type: object
+      properties:
+        name:
+          description: Name of the pet
+          type: string
+
+    CreateResponse:
+      oneOf:
+        - $ref: '#/components/schemas/DogResponse'
+        - $ref: '#/components/schemas/CatResponse'
+      discriminator:
+        propertyName: type
+
+    DogResponse:
+      type: object
+      properties:
+        type:
+          description: Animal type
+          type: string
+        breed:
+          description: Dog breed
+          type: string
+
+    CatResponse:
+      type: object
+      properties:
+        type:
+          description: Animal type
+          type: string
+        color:
+          description: Cat color
+          type: string
+
+    ErrorDetails:
+      type: object
+      required: [message]
+      properties:
+        message:
+          description: Error message
+          type: string

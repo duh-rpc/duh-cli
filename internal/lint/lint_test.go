@@ -213,6 +213,114 @@ func TestLinterAllRuleViolations(t *testing.T) {
 			expectedViolation: "[NULLABLE_REQUIRED_ONLY]",
 			expectedExitCode:  1,
 		},
+		{
+			name:              "UsesAnyOf",
+			file:              "testdata/uses-anyof.yaml",
+			expectedViolation: "[PROHIBITED_ANYOF]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "UsesAllOfUnion",
+			file:              "testdata/uses-allof-union.yaml",
+			expectedViolation: "[PROHIBITED_ALLOF_UNION]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "UsesReadOnly",
+			file:              "testdata/uses-readonly.yaml",
+			expectedViolation: "[PROHIBITED_READONLY_WRITEONLY]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "UsesXML",
+			file:              "testdata/uses-xml.yaml",
+			expectedViolation: "[PROHIBITED_XML]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "UsesCookieParam",
+			file:              "testdata/uses-cookie-param.yaml",
+			expectedViolation: "[PROHIBITED_COOKIES]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "ResponseHasLinks",
+			file:              "testdata/response-has-links.yaml",
+			expectedViolation: "[PROHIBITED_HATEOAS]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "ParamHasStyle",
+			file:              "testdata/param-has-style.yaml",
+			expectedViolation: "[PROHIBITED_PARAMETER_STYLES]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "UsesPluralExamples",
+			file:              "testdata/uses-plural-examples.yaml",
+			expectedViolation: "[PROHIBITED_MULTIPLE_EXAMPLES]",
+			expectedExitCode:  0,
+		},
+		{
+			name:              "BadTimestampFormat",
+			file:              "testdata/bad-timestamp-format.yaml",
+			expectedViolation: "[TIMESTAMP_FORMAT]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "BadDateFormat",
+			file:              "testdata/bad-date-format.yaml",
+			expectedViolation: "[DATE_FORMAT]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "AmountNotString",
+			file:              "testdata/amount-not-string.yaml",
+			expectedViolation: "[AMOUNT_DECIMAL_STRING]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "AmountMissingAssetType",
+			file:              "testdata/amount-missing-asset-type.yaml",
+			expectedViolation: "[AMOUNT_SCHEMA_PATTERN]",
+			expectedExitCode:  0,
+		},
+		{
+			name:              "MissingIdempotencyMaxLength",
+			file:              "testdata/missing-idempotency-max-length.yaml",
+			expectedViolation: "[IDEMPOTENCY_KEY_DEFINITION]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "MissingDescription",
+			file:              "testdata/missing-description.yaml",
+			expectedViolation: "[DESCRIPTION_REQUIRED]",
+			expectedExitCode:  0,
+		},
+		{
+			name:              "OneOfNoDiscriminator",
+			file:              "testdata/oneof-no-discriminator.yaml",
+			expectedViolation: "[DISCRIMINATOR_REQUIRED]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "DiscriminatorNoMapping",
+			file:              "testdata/discriminator-no-mapping.yaml",
+			expectedViolation: "[DISCRIMINATOR_MAPPING]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "DiscriminatorWrongProperty",
+			file:              "testdata/discriminator-wrong-property.yaml",
+			expectedViolation: "[DISCRIMINATOR_PROPERTY_NAME]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "DiscriminatorMissingVariantField",
+			file:              "testdata/discriminator-missing-variant-field.yaml",
+			expectedViolation: "[DISCRIMINATOR_VARIANT_FIELD]",
+			expectedExitCode:  1,
+		},
 	}
 
 	for _, test := range tests {
@@ -268,6 +376,24 @@ func TestLinterMultipleViolations(t *testing.T) {
 		"[SCHEMA_ADDITIONAL_PROPERTIES_RESPONSE]",
 		"[NULLABLE_OPTIONAL_RESPONSE]",
 		"[NULLABLE_REQUIRED_ONLY]",
+		"[PROHIBITED_ANYOF]",
+		"[PROHIBITED_ALLOF_UNION]",
+		"[PROHIBITED_READONLY_WRITEONLY]",
+		"[PROHIBITED_XML]",
+		"[PROHIBITED_COOKIES]",
+		"[PROHIBITED_HATEOAS]",
+		"[PROHIBITED_PARAMETER_STYLES]",
+		"[PROHIBITED_MULTIPLE_EXAMPLES]",
+		"[TIMESTAMP_FORMAT]",
+		"[DATE_FORMAT]",
+		"[AMOUNT_DECIMAL_STRING]",
+		"[AMOUNT_SCHEMA_PATTERN]",
+		"[IDEMPOTENCY_KEY_DEFINITION]",
+		"[DESCRIPTION_REQUIRED]",
+		"[DISCRIMINATOR_REQUIRED]",
+		"[DISCRIMINATOR_MAPPING]",
+		"[DISCRIMINATOR_PROPERTY_NAME]",
+		"[DISCRIMINATOR_VARIANT_FIELD]",
 	}
 
 	for _, violation := range expectedViolations {
@@ -277,9 +403,9 @@ func TestLinterMultipleViolations(t *testing.T) {
 	// Verify output structure
 	assert.Contains(t, output, "errors")
 
-	// Count violations - should have at least 28 (one for each rule type plus extras from new paths)
+	// Count violations - should have at least 42 (28 existing + 14 new ERROR violations)
 	violationCount := strings.Count(output, "[ERROR]")
-	assert.GreaterOrEqual(t, violationCount, 28)
+	assert.GreaterOrEqual(t, violationCount, 42)
 }
 
 func TestLinterFileNotFound(t *testing.T) {
