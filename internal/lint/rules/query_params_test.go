@@ -76,7 +76,7 @@ paths:
 			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
 		},
 		{
-			name: "CookieParametersAllowed",
+			name: "CookieParametersNotAllowed",
 			spec: `openapi: 3.0.0
 info:
   title: Test
@@ -105,8 +105,8 @@ paths:
             application/json:
               schema:
                 type: object`,
-			expectedExit:   0,
-			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
+			expectedExit:   1,
+			expectedOutput: "[PROHIBITED_COOKIES]",
 		},
 		{
 			name: "QueryParameterNotAllowed",

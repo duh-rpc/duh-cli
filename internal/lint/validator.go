@@ -45,6 +45,14 @@ func Validate(doc *v3.Document, filePath string) ValidationResult {
 		rules2.NewSchemaAdditionalPropertiesResponseRule(),
 		rules2.NewNullableOptionalResponseRule(),
 		rules2.NewNullableRequiredOnlyRule(),
+		rules2.NewProhibitedAnyOfRule(),
+		rules2.NewProhibitedAllOfUnionRule(),
+		rules2.NewProhibitedReadOnlyWriteOnlyRule(),
+		rules2.NewProhibitedXMLRule(),
+		rules2.NewProhibitedCookiesRule(),
+		rules2.NewProhibitedHATEOASRule(),
+		rules2.NewProhibitedParameterStylesRule(),
+		rules2.NewProhibitedMultipleExamplesRule(),
 	}
 
 	var violations []Violation
