@@ -60,6 +60,10 @@ func Validate(doc *v3.Document, filePath string) ValidationResult {
 		rules2.NewOpenAPIVersionRule(),
 		rules2.NewIdempotencyKeyDefinitionRule(),
 		rules2.NewDescriptionRequiredRule(),
+		rules2.NewDiscriminatorRequiredRule(),
+		rules2.NewDiscriminatorMappingRule(),
+		rules2.NewDiscriminatorPropertyNameRule(),
+		rules2.NewDiscriminatorVariantFieldRule(),
 	}
 
 	var violations []Violation
