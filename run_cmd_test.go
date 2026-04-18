@@ -244,3 +244,141 @@ func TestGenerateOapiCommandRemoved(t *testing.T) {
 	output := strings.ToLower(stdout.String())
 	require.Contains(t, output, "file not found")
 }
+
+func TestConfigDisableRules(t *testing.T) {
+	tempDir := t.TempDir()
+
+	// Spec that triggers DESCRIPTION_REQUIRED warning (missing operation description)
+	specContent := `openapi: 3.0.0
+info:
+  title: Test
+  version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
+paths:
+  /pets.create:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRequest'
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    CreateRequest:
+      type: object
+      properties:
+        name:
+          description: The name
+          type: string
+    Error:
+      type: object
+      required: [message]
+      properties:
+        message:
+          description: Error message
+          type: string`
+
+	specPath := filepath.Join(tempDir, "spec.yaml")
+	require.NoError(t, os.WriteFile(specPath, []byte(specContent), 0644))
+
+	// Without config, DESCRIPTION_REQUIRED should appear in output
+	var stdout1 bytes.Buffer
+	t.Cleanup(func() { _ = os.Chdir(testStartDir) })
+	require.NoError(t, os.Chdir(tempDir))
+
+	exitCode := lint.RunCmd(&stdout1, []string{"lint", specPath})
+	assert.Equal(t, 0, exitCode)
+	assert.Contains(t, stdout1.String(), "DESCRIPTION_REQUIRED")
+
+	// Write .duh.yaml disabling DESCRIPTION_REQUIRED
+	configContent := `lint:
+  disable:
+    - DESCRIPTION_REQUIRED
+`
+	require.NoError(t, os.WriteFile(filepath.Join(tempDir, ".duh.yaml"), []byte(configContent), 0644))
+
+	// With config, DESCRIPTION_REQUIRED should not appear
+	var stdout2 bytes.Buffer
+	exitCode = lint.RunCmd(&stdout2, []string{"lint", specPath})
+	assert.Equal(t, 0, exitCode)
+	assert.NotContains(t, stdout2.String(), "DESCRIPTION_REQUIRED")
+}
+
+func TestCliDisableFlag(t *testing.T) {
+	tempDir := t.TempDir()
+
+	// Spec that triggers DESCRIPTION_REQUIRED warning (missing operation description)
+	specContent := `openapi: 3.0.0
+info:
+  title: Test
+  version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
+paths:
+  /pets.create:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRequest'
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    CreateRequest:
+      type: object
+      properties:
+        name:
+          description: The name
+          type: string
+    Error:
+      type: object
+      required: [message]
+      properties:
+        message:
+          description: Error message
+          type: string`
+
+	specPath := filepath.Join(tempDir, "spec.yaml")
+	require.NoError(t, os.WriteFile(specPath, []byte(specContent), 0644))
+
+	// Without --disable, DESCRIPTION_REQUIRED appears
+	var stdout1 bytes.Buffer
+	exitCode := lint.RunCmd(&stdout1, []string{"lint", specPath})
+	assert.Equal(t, 0, exitCode)
+	assert.Contains(t, stdout1.String(), "DESCRIPTION_REQUIRED")
+
+	// With --disable DESCRIPTION_REQUIRED, it should not appear
+	var stdout2 bytes.Buffer
+	exitCode = lint.RunCmd(&stdout2, []string{"lint", "--disable", "DESCRIPTION_REQUIRED", specPath})
+	assert.Equal(t, 0, exitCode)
+	assert.NotContains(t, stdout2.String(), "DESCRIPTION_REQUIRED")
+}

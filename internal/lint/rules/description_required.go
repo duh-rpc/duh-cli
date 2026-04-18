@@ -62,6 +62,10 @@ func (r *DescriptionRequiredRule) Validate(doc *v3.Document) []Violation {
 					continue
 				}
 
+				if isOperationIgnored(operation, r.Name()) {
+					continue
+				}
+
 				if operation.Description == "" {
 					violations = append(violations, Violation{
 						Suggestion: "Add a description to document this element",
@@ -95,6 +99,10 @@ func (r *DescriptionRequiredRule) Validate(doc *v3.Document) []Violation {
 		for schemaName, schemaProxy := range doc.Components.Schemas.FromOldest() {
 			schema := schemaProxy.Schema()
 			if schema == nil || schema.Properties == nil {
+				continue
+			}
+
+			if isSchemaIgnored(schema, r.Name()) {
 				continue
 			}
 

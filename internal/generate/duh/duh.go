@@ -14,7 +14,7 @@ func Run(config RunConfig) error {
 		return err
 	}
 
-	result := lint.Validate(spec, config.SpecPath)
+	result := lint.Validate(spec, config.SpecPath, nil)
 	if !result.Valid() {
 		return fmt.Errorf("OpenAPI validation failed")
 	}

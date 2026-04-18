@@ -3,6 +3,7 @@ package duh
 import (
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/duh-rpc/duh-cli/internal/add"
 	"github.com/duh-rpc/duh-cli/internal/generate/duh"
@@ -58,7 +59,17 @@ Exit Codes:
 				return
 			}
 
-			result := lint.Validate(doc, filePath)
+			cfg := lint.LoadConfig()
+			disabled := cfg.Lint.Disable
+
+			disableFlag, _ := cmd.Flags().GetString("disable")
+			if disableFlag != "" {
+				for _, r := range strings.Split(disableFlag, ",") {
+					disabled = append(disabled, strings.TrimSpace(r))
+				}
+			}
+
+			result := lint.Validate(doc, filePath, disabled)
 			lint.Print(cmd.OutOrStdout(), result)
 
 			if result.Valid() {
@@ -68,6 +79,7 @@ Exit Codes:
 			}
 		},
 	}
+	lintCmd.Flags().String("disable", "", "Comma-separated list of rules to disable")
 
 	initCmd := &cobra.Command{
 		Use:   "init [openapi-file]",

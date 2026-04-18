@@ -11,8 +11,9 @@ type Rule interface {
 	Validate(doc *v3.Document) []Violation
 }
 
-// Validate runs all registered rules against the document
-func Validate(doc *v3.Document, filePath string) ValidationResult {
+// Validate runs all registered rules against the document.
+// The disabled parameter is a list of rule names to skip.
+func Validate(doc *v3.Document, filePath string, disabled []string) ValidationResult {
 	allRules := []Rule{
 		rules2.NewPathFormatRule(),
 		rules2.NewPathNoVersionPrefixRule(),
@@ -66,8 +67,16 @@ func Validate(doc *v3.Document, filePath string) ValidationResult {
 		rules2.NewDiscriminatorVariantFieldRule(),
 	}
 
+	disabledSet := make(map[string]bool, len(disabled))
+	for _, name := range disabled {
+		disabledSet[name] = true
+	}
+
 	var violations []Violation
 	for _, rule := range allRules {
+		if disabledSet[rule.Name()] {
+			continue
+		}
 		ruleViolations := rule.Validate(doc)
 		violations = append(violations, ruleViolations...)
 	}
