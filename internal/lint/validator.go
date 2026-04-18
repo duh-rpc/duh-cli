@@ -62,6 +62,9 @@ func Validate(doc *v3.Document, filePath string, disabled []string) ValidationRe
 		rules2.NewDiscriminatorMappingRule(),
 		rules2.NewDiscriminatorPropertyNameRule(),
 		rules2.NewDiscriminatorVariantFieldRule(),
+		rules2.NewNoPlainTextResponseRule(),
+		rules2.NewSchemaExampleValidationRule(),
+		rules2.NewPaginationNoLimitOffsetRule(),
 	}
 
 	disabledSet := make(map[string]bool, len(disabled))
