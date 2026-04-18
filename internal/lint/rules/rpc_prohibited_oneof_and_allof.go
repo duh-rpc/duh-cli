@@ -13,7 +13,7 @@ func NewRPCProhibitedOneOfAndAllOfRule() *RPCProhibitedOneOfAndAllOfRule {
 }
 
 func (r *RPCProhibitedOneOfAndAllOfRule) Name() string {
-	return "RPC_PROHIBITED_ONEOF_AND_ALLOF"
+	return "PROHIBITED_ONEOF"
 }
 
 func (r *RPCProhibitedOneOfAndAllOfRule) Validate(doc *v3.Document) []Violation {
@@ -35,16 +35,6 @@ func (r *RPCProhibitedOneOfAndAllOfRule) Validate(doc *v3.Document) []Violation 
 			violations = append(violations, Violation{
 				Suggestion: "Replace with a flat object using optional properties that map to proto3 optional message fields",
 				Message:    "Schema uses oneOf which cannot be mapped to proto3; use plain optional properties instead",
-				Location:   location,
-				RuleName:   r.Name(),
-				Severity:   SeverityError,
-			})
-		}
-
-		if len(schema.AllOf) > 0 {
-			violations = append(violations, Violation{
-				Suggestion: "Replace with a flat object using optional properties that map to proto3 optional message fields",
-				Message:    "Schema uses allOf which cannot be mapped to proto3; use plain optional properties instead",
 				Location:   location,
 				RuleName:   r.Name(),
 				Severity:   SeverityError,

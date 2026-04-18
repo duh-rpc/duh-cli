@@ -112,10 +112,10 @@ components:
         message:
           type: string`,
 			expectedExit:   1,
-			expectedOutput: "[RPC_PROHIBITED_ONEOF_AND_ALLOF]",
+			expectedOutput: "[PROHIBITED_ONEOF]",
 		},
 		{
-			name: "InvalidAllOf",
+			name: "AllOfHandledByProhibitedAllOf",
 			spec: `openapi: 3.0.0
 info:
   title: Test
@@ -163,7 +163,7 @@ components:
         message:
           type: string`,
 			expectedExit:   1,
-			expectedOutput: "[RPC_PROHIBITED_ONEOF_AND_ALLOF]",
+			expectedOutput: "[PROHIBITED_ALLOF]",
 		},
 		{
 			name: "InvalidBothOneOfAndAllOf",
@@ -215,7 +215,7 @@ components:
         message:
           type: string`,
 			expectedExit:   1,
-			expectedOutput: "[RPC_PROHIBITED_ONEOF_AND_ALLOF]",
+			expectedOutput: "[PROHIBITED_ONEOF]",
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {

@@ -13,7 +13,7 @@ func NewProhibitedAllOfUnionRule() *ProhibitedAllOfUnionRule {
 }
 
 func (r *ProhibitedAllOfUnionRule) Name() string {
-	return "PROHIBITED_ALLOF_UNION"
+	return "PROHIBITED_ALLOF"
 }
 
 func (r *ProhibitedAllOfUnionRule) Validate(doc *v3.Document) []Violation {
@@ -35,7 +35,7 @@ func (r *ProhibitedAllOfUnionRule) Validate(doc *v3.Document) []Violation {
 				Message:    "Schema uses allOf for type unions which is not allowed",
 				Location:   fmt.Sprintf("components/schemas/%s", schemaName),
 				RuleName:   r.Name(),
-				Severity:   SeverityWarning,
+				Severity:   SeverityError,
 			})
 		}
 	}

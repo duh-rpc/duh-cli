@@ -164,7 +164,7 @@ components:
         message:
           type: string`,
 			expectedExit:   1,
-			expectedOutput: "[RPC_NO_NESTED_ARRAYS]",
+			expectedOutput: "[NO_NESTED_ARRAYS]",
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {

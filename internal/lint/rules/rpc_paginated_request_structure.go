@@ -12,7 +12,7 @@ func NewRPCPaginatedRequestStructureRule() *RPCPaginatedRequestStructureRule {
 }
 
 func (r *RPCPaginatedRequestStructureRule) Name() string {
-	return "RPC_PAGINATED_REQUEST_STRUCTURE"
+	return "PAGINATED_REQUEST_STRUCTURE"
 }
 
 func (r *RPCPaginatedRequestStructureRule) Validate(doc *v3.Document) []Violation {

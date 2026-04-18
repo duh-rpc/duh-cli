@@ -268,7 +268,7 @@ components:
         message:
           type: string`,
 			expectedExit:   1,
-			expectedOutput: "[RPC_REQUEST_STANDARD_NAME]",
+			expectedOutput: "[REQUEST_STANDARD_NAME]",
 		},
 		{
 			name: "InlineSchemaSkipped",

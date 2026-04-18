@@ -136,7 +136,7 @@ components:
           additionalProperties:
             type: string`,
 			expectedExit:   1,
-			expectedOutput: "[RPC_NO_NULLABLE]",
+			expectedOutput: "[NO_NULLABLE]",
 			absentOutput:   "[NULLABLE_OPTIONAL_RESPONSE]",
 		},
 		{
@@ -262,7 +262,7 @@ components:
           additionalProperties:
             type: string`,
 			expectedExit:   1,
-			expectedOutput: "[RPC_NO_NULLABLE]",
+			expectedOutput: "[NO_NULLABLE]",
 			absentOutput:   "[NULLABLE_OPTIONAL_RESPONSE]",
 		},
 	} {

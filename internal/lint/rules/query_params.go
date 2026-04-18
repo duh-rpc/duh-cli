@@ -14,7 +14,7 @@ func NewQueryParamsRule() *QueryParamsRule {
 }
 
 func (r *QueryParamsRule) Name() string {
-	return "RPC_POST_NO_QUERY_PARAMS"
+	return "POST_NO_QUERY_PARAMS"
 }
 
 func (r *QueryParamsRule) Validate(doc *v3.Document) []Violation {

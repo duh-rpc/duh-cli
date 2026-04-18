@@ -293,7 +293,7 @@ components:
         message:
           type: string`,
 			expectedExit:   1,
-			expectedOutput: "[RPC_INTEGER_FORMAT_REQUIRED]",
+			expectedOutput: "[INTEGER_FORMAT_REQUIRED]",
 		},
 		{
 			name: "InvalidNumberNoFormat",
@@ -339,7 +339,7 @@ components:
         message:
           type: string`,
 			expectedExit:   1,
-			expectedOutput: "[RPC_INTEGER_FORMAT_REQUIRED]",
+			expectedOutput: "[INTEGER_FORMAT_REQUIRED]",
 		},
 		{
 			name: "InvalidIntegerWrongFormat",
@@ -386,7 +386,7 @@ components:
         message:
           type: string`,
 			expectedExit:   1,
-			expectedOutput: "[RPC_INTEGER_FORMAT_REQUIRED]",
+			expectedOutput: "[INTEGER_FORMAT_REQUIRED]",
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {

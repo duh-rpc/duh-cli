@@ -14,7 +14,7 @@ func NewRPCTypedAdditionalPropertiesRule() *RPCTypedAdditionalPropertiesRule {
 }
 
 func (r *RPCTypedAdditionalPropertiesRule) Name() string {
-	return "RPC_TYPED_ADDITIONAL_PROPERTIES"
+	return "TYPED_ADDITIONAL_PROPERTIES"
 }
 
 func (r *RPCTypedAdditionalPropertiesRule) Validate(doc *v3.Document) []Violation {

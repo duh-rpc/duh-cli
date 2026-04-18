@@ -110,7 +110,7 @@ components:
         message:
           type: string`,
 			expectedExit:   1,
-			expectedOutput: "[PROHIBITED_ALLOF_UNION]",
+			expectedOutput: "[PROHIBITED_ALLOF]",
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
@@ -122,9 +122,9 @@ components:
 			assert.Equal(t, test.expectedExit, exitCode)
 			assert.Contains(t, stdout.String(), test.expectedOutput)
 
-			// Verify warning severity for the allOf union case
+			// Verify error severity for the allOf case
 			if test.name == "InvalidAllOfUnion" {
-				assert.Contains(t, stdout.String(), "[WARNING] [PROHIBITED_ALLOF_UNION]")
+				assert.Contains(t, stdout.String(), "[ERROR] [PROHIBITED_ALLOF]")
 			}
 		})
 	}

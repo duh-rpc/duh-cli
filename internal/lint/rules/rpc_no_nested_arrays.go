@@ -13,7 +13,7 @@ func NewRPCNoNestedArraysRule() *RPCNoNestedArraysRule {
 }
 
 func (r *RPCNoNestedArraysRule) Name() string {
-	return "RPC_NO_NESTED_ARRAYS"
+	return "NO_NESTED_ARRAYS"
 }
 
 func (r *RPCNoNestedArraysRule) Validate(doc *v3.Document) []Violation {

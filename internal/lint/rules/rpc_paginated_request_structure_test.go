@@ -144,7 +144,7 @@ paths:
               schema:
                 type: object`,
 			expectedExit:   1,
-			expectedOutput: "[RPC_PAGINATED_REQUEST_STRUCTURE]",
+			expectedOutput: "[PAGINATED_REQUEST_STRUCTURE]",
 		},
 		{
 			name: "InvalidAfterAtRoot",
@@ -174,7 +174,7 @@ paths:
               schema:
                 type: object`,
 			expectedExit:   1,
-			expectedOutput: "[RPC_PAGINATED_REQUEST_STRUCTURE]",
+			expectedOutput: "[PAGINATED_REQUEST_STRUCTURE]",
 		},
 		{
 			name: "InvalidBothAtRoot",

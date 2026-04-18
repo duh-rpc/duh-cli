@@ -153,7 +153,7 @@ components:
         message:
           type: string`,
 			expectedExit:   1,
-			expectedOutput: "[RPC_NO_NULLABLE]",
+			expectedOutput: "[NO_NULLABLE]",
 		},
 		{
 			name: "InvalidTypeArrayWithNull",
@@ -201,7 +201,7 @@ components:
         message:
           type: string`,
 			expectedExit:   1,
-			expectedOutput: "[RPC_NO_NULLABLE]",
+			expectedOutput: "[NO_NULLABLE]",
 		},
 		{
 			name: "InvalidMultipleNullable",
@@ -251,7 +251,7 @@ components:
         message:
           type: string`,
 			expectedExit:   1,
-			expectedOutput: "[RPC_NO_NULLABLE]",
+			expectedOutput: "[NO_NULLABLE]",
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {

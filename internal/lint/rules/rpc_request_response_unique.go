@@ -12,7 +12,7 @@ func NewRPCRequestResponseUniqueRule() *RPCRequestResponseUniqueRule {
 }
 
 func (r *RPCRequestResponseUniqueRule) Name() string {
-	return "RPC_REQUEST_RESPONSE_UNIQUE"
+	return "REQUEST_RESPONSE_UNIQUE"
 }
 
 func (r *RPCRequestResponseUniqueRule) Validate(doc *v3.Document) []Violation {

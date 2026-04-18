@@ -14,7 +14,7 @@ func NewRPCResponseStandardNameRule() *RPCResponseStandardNameRule {
 }
 
 func (r *RPCResponseStandardNameRule) Name() string {
-	return "RPC_RESPONSE_STANDARD_NAME"
+	return "RESPONSE_STANDARD_NAME"
 }
 
 func (r *RPCResponseStandardNameRule) Validate(doc *v3.Document) []Violation {

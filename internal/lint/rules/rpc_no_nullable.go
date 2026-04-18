@@ -14,7 +14,7 @@ func NewRPCNoNullableRule() *RPCNoNullableRule {
 }
 
 func (r *RPCNoNullableRule) Name() string {
-	return "RPC_NO_NULLABLE"
+	return "NO_NULLABLE"
 }
 
 func (r *RPCNoNullableRule) Validate(doc *v3.Document) []Violation {

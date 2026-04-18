@@ -201,7 +201,7 @@ components:
         message:
           type: string`,
 			expectedExit:   1,
-			expectedOutput: "[RPC_TYPED_ADDITIONAL_PROPERTIES]",
+			expectedOutput: "[TYPED_ADDITIONAL_PROPERTIES]",
 		},
 		{
 			name: "InvalidAdditionalPropertiesEmpty",
@@ -248,7 +248,7 @@ components:
         message:
           type: string`,
 			expectedExit:   1,
-			expectedOutput: "[RPC_TYPED_ADDITIONAL_PROPERTIES]",
+			expectedOutput: "[TYPED_ADDITIONAL_PROPERTIES]",
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {

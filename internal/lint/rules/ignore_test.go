@@ -67,7 +67,7 @@ components:
 }
 
 func TestIgnoreAtSchemaLevel(t *testing.T) {
-	// Spec with x-duh-lint-ignore on a schema to suppress RPC_NO_NULLABLE
+	// Spec with x-duh-lint-ignore on a schema to suppress NO_NULLABLE
 	spec := `openapi: 3.0.0
 info:
   title: Test
@@ -102,7 +102,7 @@ components:
     CreateRequest:
       type: object
       x-duh-lint-ignore:
-        - RPC_NO_NULLABLE
+        - NO_NULLABLE
       properties:
         name:
           description: The name
@@ -121,7 +121,7 @@ components:
 	var stdout bytes.Buffer
 	exitCode := duh.RunCmd(&stdout, []string{"lint", filePath})
 
-	// RPC_NO_NULLABLE should not appear since schema has x-duh-lint-ignore
+	// NO_NULLABLE should not appear since schema has x-duh-lint-ignore
 	assert.Equal(t, 0, exitCode)
-	assert.NotContains(t, stdout.String(), "RPC_NO_NULLABLE")
+	assert.NotContains(t, stdout.String(), "NO_NULLABLE")
 }

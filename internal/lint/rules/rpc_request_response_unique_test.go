@@ -172,7 +172,7 @@ components:
         message:
           type: string`,
 			expectedExit:   1,
-			expectedOutput: "[RPC_REQUEST_RESPONSE_UNIQUE]",
+			expectedOutput: "[REQUEST_RESPONSE_UNIQUE]",
 		},
 		{
 			name: "SharedResponseSchema",
@@ -249,7 +249,7 @@ components:
         message:
           type: string`,
 			expectedExit:   1,
-			expectedOutput: "[RPC_REQUEST_RESPONSE_UNIQUE]",
+			expectedOutput: "[REQUEST_RESPONSE_UNIQUE]",
 		},
 		{
 			name: "SingleOperationNoViolation",

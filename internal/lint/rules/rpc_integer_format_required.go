@@ -13,7 +13,7 @@ func NewRPCIntegerFormatRequiredRule() *RPCIntegerFormatRequiredRule {
 }
 
 func (r *RPCIntegerFormatRequiredRule) Name() string {
-	return "RPC_INTEGER_FORMAT_REQUIRED"
+	return "INTEGER_FORMAT_REQUIRED"
 }
 
 func (r *RPCIntegerFormatRequiredRule) Validate(doc *v3.Document) []Violation {

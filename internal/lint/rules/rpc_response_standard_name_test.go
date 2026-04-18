@@ -166,7 +166,7 @@ components:
         message:
           type: string`,
 			expectedExit:   1,
-			expectedOutput: "[RPC_RESPONSE_STANDARD_NAME]",
+			expectedOutput: "[RESPONSE_STANDARD_NAME]",
 		},
 		{
 			name: "Valid201Response",
