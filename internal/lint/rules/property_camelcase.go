@@ -32,6 +32,10 @@ func (r *PropertyCamelCaseRule) Validate(doc *v3.Document) []Violation {
 			continue
 		}
 
+		if isSchemaIgnored(schema, r.Name()) {
+			continue
+		}
+
 		for propName := range schema.Properties.FromOldest() {
 			if !camelCaseRegex.MatchString(propName) {
 				violations = append(violations, Violation{

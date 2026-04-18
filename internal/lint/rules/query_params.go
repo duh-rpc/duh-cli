@@ -46,6 +46,10 @@ func (r *QueryParamsRule) Validate(doc *v3.Document) []Violation {
 				continue
 			}
 
+			if isOperationIgnored(operation, r.Name()) {
+				continue
+			}
+
 			// Check operation parameters
 			if operation.Parameters != nil {
 				for _, param := range operation.Parameters {

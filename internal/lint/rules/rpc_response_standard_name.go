@@ -33,6 +33,10 @@ func (r *RPCResponseStandardNameRule) Validate(doc *v3.Document) []Violation {
 			continue
 		}
 
+		if isOperationIgnored(pathItem.Post, r.Name()) {
+			continue
+		}
+
 		op := pathItem.Post
 		if op.Responses == nil || op.Responses.Codes == nil {
 			continue

@@ -30,6 +30,10 @@ func (r *RPCTypedAdditionalPropertiesRule) Validate(doc *v3.Document) []Violatio
 			continue
 		}
 
+		if isSchemaIgnored(schema, r.Name()) {
+			continue
+		}
+
 		if v := r.checkAdditionalProperties(schema, fmt.Sprintf("components/schemas/%s", schemaName)); v != nil {
 			violations = append(violations, *v)
 		}

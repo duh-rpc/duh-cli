@@ -90,6 +90,10 @@ func (r *SchemaAdditionalPropertiesResponseRule) Validate(doc *v3.Document) []Vi
 			continue
 		}
 
+		if isSchemaIgnored(schema, r.Name()) {
+			continue
+		}
+
 		if schema.AdditionalProperties != nil && schema.AdditionalProperties.IsB() && !schema.AdditionalProperties.B {
 			violations = append(violations, Violation{
 				Suggestion: "Remove additionalProperties: false from response schemas to allow forward-compatible extensions",

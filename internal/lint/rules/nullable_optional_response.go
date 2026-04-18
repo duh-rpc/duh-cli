@@ -70,6 +70,10 @@ func (r *NullableOptionalResponseRule) Validate(doc *v3.Document) []Violation {
 					continue
 				}
 
+				if isSchemaIgnored(schema, r.Name()) {
+					continue
+				}
+
 				if schema.Properties == nil {
 					continue
 				}

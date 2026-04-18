@@ -44,6 +44,10 @@ func (r *SchemaNoInlineObjectsRule) Validate(doc *v3.Document) []Violation {
 				continue
 			}
 
+			if isOperationIgnored(operation, r.Name()) {
+				continue
+			}
+
 			// Check request body
 			if operation.RequestBody != nil && operation.RequestBody.Content != nil {
 				for _, mediaType := range operation.RequestBody.Content.FromOldest() {

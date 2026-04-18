@@ -54,6 +54,10 @@ func (r *ProhibitedCookiesRule) Validate(doc *v3.Document) []Violation {
 					continue
 				}
 
+				if isOperationIgnored(operation, r.Name()) {
+					continue
+				}
+
 				for _, param := range operation.Parameters {
 					if param != nil && param.In == "cookie" {
 						violations = append(violations, Violation{

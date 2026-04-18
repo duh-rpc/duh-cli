@@ -342,9 +342,9 @@ requestBody:
 All error responses MUST reference a schema that conforms to the DUH Reply structure. The schema
 must satisfy:
 
-- `code` — **required**, type `string`. May be a numeric string matching the HTTP status code
+- `message` — **required**, type `string`. A human-readable description of the error.
+- `code` — **optional**, type `string`. May be a numeric string matching the HTTP status code
   (e.g. `"400"`) or a semantic string (e.g. `"CARD_DECLINED"`). Not an integer. Not an enum.
-- `message` — **optional**, type `string`. A human-readable description of the error.
 - `details` — **optional**. When present, MUST be defined as `additionalProperties: { type: string }`.
   Represents a flat map of string key/value pairs.
 
@@ -354,11 +354,11 @@ components:
   schemas:
     Error:
       type: object
-      required: [code]
+      required: [message]
       properties:
-        code:
-          type: string
         message:
+          type: string
+        code:
           type: string
         details:
           type: object

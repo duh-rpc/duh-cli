@@ -29,6 +29,10 @@ func (r *ProhibitedXMLRule) Validate(doc *v3.Document) []Violation {
 			continue
 		}
 
+		if isSchemaIgnored(schema, r.Name()) {
+			continue
+		}
+
 		if schema.XML != nil {
 			violations = append(violations, Violation{
 				Suggestion: "Remove the xml property; use application/json or application/protobuf",

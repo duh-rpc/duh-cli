@@ -31,6 +31,10 @@ func (r *RPCRequestResponseUniqueRule) Validate(doc *v3.Document) []Violation {
 			continue
 		}
 
+		if isOperationIgnored(pathItem.Post, r.Name()) {
+			continue
+		}
+
 		// Collect request body $ref
 		if pathItem.Post.RequestBody != nil && pathItem.Post.RequestBody.Content != nil {
 			jsonContent, ok := pathItem.Post.RequestBody.Content.Get("application/json")

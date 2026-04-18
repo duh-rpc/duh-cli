@@ -29,6 +29,10 @@ func (r *DiscriminatorMappingRule) Validate(doc *v3.Document) []Violation {
 			continue
 		}
 
+		if isSchemaIgnored(schema, r.Name()) {
+			continue
+		}
+
 		if len(schema.OneOf) > 0 && schema.Discriminator != nil {
 			if schema.Discriminator.Mapping == nil || schema.Discriminator.Mapping.Len() == 0 {
 				violations = append(violations, Violation{

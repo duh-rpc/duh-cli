@@ -31,6 +31,10 @@ func (r *SchemaExampleValidationRule) Validate(doc *v3.Document) []Violation {
 			continue
 		}
 
+		if isSchemaIgnored(schema, r.Name()) {
+			continue
+		}
+
 		for propName, propProxy := range schema.Properties.FromOldest() {
 			propSchema := propProxy.Schema()
 			if propSchema == nil || propSchema.Example == nil {

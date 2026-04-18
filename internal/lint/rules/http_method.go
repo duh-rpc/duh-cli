@@ -45,6 +45,9 @@ func (r *HTTPMethodRule) Validate(doc *v3.Document) []Violation {
 
 		for _, method := range methods {
 			if method.operation != nil {
+				if isOperationIgnored(method.operation, r.Name()) {
+					continue
+				}
 				violations = append(violations, Violation{
 					Message:    fmt.Sprintf("HTTP method %s is not allowed in DUH-RPC", method.name),
 					Suggestion: "Use POST method for all DUH-RPC operations",

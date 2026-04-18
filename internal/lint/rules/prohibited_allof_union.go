@@ -29,6 +29,10 @@ func (r *ProhibitedAllOfUnionRule) Validate(doc *v3.Document) []Violation {
 			continue
 		}
 
+		if isSchemaIgnored(schema, r.Name()) {
+			continue
+		}
+
 		if len(schema.AllOf) > 0 {
 			violations = append(violations, Violation{
 				Suggestion: "Use separate optional properties or a discriminated oneOf pattern instead",

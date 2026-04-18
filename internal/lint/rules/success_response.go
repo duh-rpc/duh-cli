@@ -39,6 +39,10 @@ func (r *SuccessResponseRule) Validate(doc *v3.Document) []Violation {
 				continue
 			}
 
+			if isOperationIgnored(op, r.Name()) {
+				continue
+			}
+
 			location := method + " " + path
 
 			// Check if 200 response exists

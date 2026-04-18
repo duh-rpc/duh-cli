@@ -29,6 +29,10 @@ func (r *RPCProhibitedOneOfAndAllOfRule) Validate(doc *v3.Document) []Violation 
 			continue
 		}
 
+		if isSchemaIgnored(schema, r.Name()) {
+			continue
+		}
+
 		location := fmt.Sprintf("components/schemas/%s", schemaName)
 
 		if len(schema.OneOf) > 0 {

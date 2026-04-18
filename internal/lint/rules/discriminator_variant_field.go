@@ -29,6 +29,10 @@ func (r *DiscriminatorVariantFieldRule) Validate(doc *v3.Document) []Violation {
 			continue
 		}
 
+		if isSchemaIgnored(schema, r.Name()) {
+			continue
+		}
+
 		if len(schema.OneOf) == 0 || schema.Discriminator == nil {
 			continue
 		}

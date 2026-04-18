@@ -29,6 +29,10 @@ func (r *DiscriminatorRequiredRule) Validate(doc *v3.Document) []Violation {
 			continue
 		}
 
+		if isSchemaIgnored(schema, r.Name()) {
+			continue
+		}
+
 		if len(schema.OneOf) > 0 && schema.Discriminator == nil {
 			violations = append(violations, Violation{
 				Suggestion: "Add a discriminator with propertyName: 'type' and a mapping for each variant",

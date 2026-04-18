@@ -39,6 +39,10 @@ func (r *RequestBodyRule) Validate(doc *v3.Document) []Violation {
 				continue
 			}
 
+			if isOperationIgnored(op, r.Name()) {
+				continue
+			}
+
 			location := method + " " + path
 
 			// Check if request body is missing

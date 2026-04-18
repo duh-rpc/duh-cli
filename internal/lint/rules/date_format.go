@@ -30,6 +30,10 @@ func (r *DateFormatRule) Validate(doc *v3.Document) []Violation {
 			continue
 		}
 
+		if isSchemaIgnored(schema, r.Name()) {
+			continue
+		}
+
 		for propName, propProxy := range schema.Properties.FromOldest() {
 			if !strings.HasSuffix(propName, "Date") {
 				continue

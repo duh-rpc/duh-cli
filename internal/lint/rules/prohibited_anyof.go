@@ -29,6 +29,10 @@ func (r *ProhibitedAnyOfRule) Validate(doc *v3.Document) []Violation {
 			continue
 		}
 
+		if isSchemaIgnored(schema, r.Name()) {
+			continue
+		}
+
 		if len(schema.AnyOf) > 0 {
 			violations = append(violations, Violation{
 				Suggestion: "Replace anyOf with a discriminated oneOf using a 'type' discriminator property",

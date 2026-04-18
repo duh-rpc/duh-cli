@@ -29,6 +29,10 @@ func (r *AmountSchemaPatternRule) Validate(doc *v3.Document) []Violation {
 			continue
 		}
 
+		if isSchemaIgnored(schema, r.Name()) {
+			continue
+		}
+
 		if _, hasAmount := schema.Properties.Get("amount"); hasAmount {
 			if _, hasAssetType := schema.Properties.Get("assetType"); !hasAssetType {
 				violations = append(violations, Violation{

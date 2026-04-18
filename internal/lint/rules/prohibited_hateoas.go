@@ -44,6 +44,10 @@ func (r *ProhibitedHATEOASRule) Validate(doc *v3.Document) []Violation {
 				continue
 			}
 
+			if isOperationIgnored(operation, r.Name()) {
+				continue
+			}
+
 			if operation.Responses == nil || operation.Responses.Codes == nil {
 				continue
 			}

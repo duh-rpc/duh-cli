@@ -30,6 +30,10 @@ func (r *TimestampFormatRule) Validate(doc *v3.Document) []Violation {
 			continue
 		}
 
+		if isSchemaIgnored(schema, r.Name()) {
+			continue
+		}
+
 		for propName, propProxy := range schema.Properties.FromOldest() {
 			if !strings.HasSuffix(propName, "At") && !strings.HasSuffix(propName, "Timestamp") {
 				continue

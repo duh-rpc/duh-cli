@@ -30,6 +30,10 @@ func (r *ResponsePaginatedStructureRule) Validate(doc *v3.Document) []Violation 
 			continue
 		}
 
+		if isOperationIgnored(pathItem.Post, r.Name()) {
+			continue
+		}
+
 		if pathItem.Post.Responses == nil || pathItem.Post.Responses.Codes == nil {
 			continue
 		}

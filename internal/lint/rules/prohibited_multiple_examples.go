@@ -57,6 +57,10 @@ func (r *ProhibitedMultipleExamplesRule) Validate(doc *v3.Document) []Violation 
 				continue
 			}
 
+			if isOperationIgnored(operation, r.Name()) {
+				continue
+			}
+
 			// Check operation parameters
 			for _, param := range operation.Parameters {
 				if param != nil && param.Examples != nil && param.Examples.Len() > 0 {

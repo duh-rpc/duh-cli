@@ -51,6 +51,10 @@ func (r *ContentTypeRule) Validate(doc *v3.Document) []Violation {
 				continue
 			}
 
+			if isOperationIgnored(operation, r.Name()) {
+				continue
+			}
+
 			// Check request body content types
 			if operation.RequestBody != nil && operation.RequestBody.Content != nil {
 				hasJSON := false

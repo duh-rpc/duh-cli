@@ -44,6 +44,10 @@ func (r *NoPlainTextResponseRule) Validate(doc *v3.Document) []Violation {
 				continue
 			}
 
+			if isOperationIgnored(op, r.Name()) {
+				continue
+			}
+
 			if op.Responses == nil || op.Responses.Codes == nil {
 				continue
 			}

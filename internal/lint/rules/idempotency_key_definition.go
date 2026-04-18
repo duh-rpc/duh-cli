@@ -29,6 +29,10 @@ func (r *IdempotencyKeyDefinitionRule) Validate(doc *v3.Document) []Violation {
 			continue
 		}
 
+		if isSchemaIgnored(schema, r.Name()) {
+			continue
+		}
+
 		for propName, propProxy := range schema.Properties.FromOldest() {
 			if propName != "idempotencyKey" {
 				continue

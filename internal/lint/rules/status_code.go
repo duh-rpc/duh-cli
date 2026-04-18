@@ -48,6 +48,10 @@ func (r *StatusCodeRule) Validate(doc *v3.Document) []Violation {
 				continue
 			}
 
+			if isOperationIgnored(op, r.Name()) {
+				continue
+			}
+
 			for statusCode := range op.Responses.Codes.FromOldest() {
 				if !allowedMap[statusCode] {
 					location := method + " " + path
