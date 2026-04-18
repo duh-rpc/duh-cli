@@ -1,0 +1,81 @@
+# .duh.yaml — DUH CLI configuration
+#
+# Place this file in your project root as .duh.yaml to configure duh lint.
+# Uncomment rules below to disable them. All rules are enabled by default.
+#
+# Rules can also be disabled per-run with:
+#   duh lint --disable RULE1,RULE2
+
+lint:
+  disable: []
+    ## ── Document Rules ──────────────────────────────────────────────────
+    # - OPENAPI_VERSION              # OpenAPI version must be 3.x
+    # - DESCRIPTION_REQUIRED         # Operations, parameters, and properties should have descriptions (WARNING)
+
+    ## ── HTTP Rules ──────────────────────────────────────────────────────
+    # - HTTP_METHOD_ALLOWED          # Only POST method is allowed
+    # - REQUEST_BODY_REQUIRED        # POST operations must define a request body
+    # - POST_NO_QUERY_PARAMS         # POST operations must not use query parameters
+    # - STATUS_CODE_ALLOWED          # Only DUH-RPC status codes are permitted
+    # - SUCCESS_RESPONSE             # Every operation must define a 200 response
+    # - NO_PLAIN_TEXT_RESPONSE       # Responses must not use text/plain content type
+
+    ## ── Path Rules ──────────────────────────────────────────────────────
+    # - PATH_FORMAT                  # Paths must follow /{resource}.{method} format
+    # - PATH_NO_VERSION_PREFIX       # Paths must not include version prefix like /v1/
+    # - SERVER_URL_VERSIONING        # Server URLs must end with /vN version segment
+    # - PATH_HYPHEN_SEPARATOR        # Multi-word path segments must use hyphens
+    # - PATH_PLURAL_RESOURCES        # Resource names should be plural (WARNING)
+    # - PATH_MULTIPLE_PARAMETERS     # Paths must not have more than one path parameter
+
+    ## ── Content Type Rules ──────────────────────────────────────────────
+    # - CONTENT_TYPE                 # JSON required, protobuf allowed, multipart prohibited
+
+    ## ── Schema Rules ────────────────────────────────────────────────────
+    # - ERROR_SCHEMA                 # Error responses must follow DUH Reply structure
+    # - SCHEMA_NO_INLINE_OBJECTS     # Object schemas must be in components/schemas via $ref
+    # - SCHEMA_ADDITIONAL_PROPERTIES_RESPONSE  # Response schemas must not use additionalProperties: false
+    # - SCHEMA_EXAMPLE_VALIDATION    # Example values must match schema type and constraints
+    # - PROHIBITED_READONLY_WRITEONLY # readOnly and writeOnly must not be used
+    # - NO_NULLABLE                  # Nullable fields are not permitted in any form
+    # - NULLABLE_OPTIONAL_RESPONSE   # Nullable response fields must be in required array
+
+    ## ── Protobuf Compatibility Rules ────────────────────────────────────
+    # - INTEGER_FORMAT_REQUIRED      # Integer/number fields must specify format (int32/int64/float/double)
+    # - NO_NESTED_ARRAYS             # Arrays of arrays are not allowed
+    # - TYPED_ADDITIONAL_PROPERTIES  # additionalProperties must specify a value type
+    # - PROHIBITED_ALLOF             # allOf is not allowed
+    # - PROHIBITED_ANYOF             # anyOf is not allowed
+    # - PROHIBITED_ONEOF             # oneOf is not allowed (strict proto3 compatibility)
+    # - DISCRIMINATOR_REQUIRED       # oneOf must have a discriminator (fallback when PROHIBITED_ONEOF disabled)
+    # - DISCRIMINATOR_MAPPING        # Discriminator must include explicit mapping
+    # - DISCRIMINATOR_VARIANT_FIELD  # Variant schemas must include the discriminator property
+
+    ## ── Naming Rules ────────────────────────────────────────────────────
+    # - PROPERTY_CAMELCASE           # Schema property names must be camelCase
+    # - DISCRIMINATOR_PROPERTY_NAME  # Discriminator propertyName must be 'type'
+    # - REQUEST_STANDARD_NAME        # Request schemas must follow {Method}Request naming
+    # - RESPONSE_STANDARD_NAME       # Response schemas must follow {Method}Response naming
+    # - REQUEST_RESPONSE_UNIQUE      # Each operation must use unique request/response schemas
+
+    ## ── Pagination Rules ────────────────────────────────────────────────
+    # - PAGINATION_PARAMETERS        # Paginated requests must use pagination.first and pagination.after
+    # - PAGINATION_NO_LIMIT_OFFSET   # limit, offset, and standalone page parameters are prohibited
+    # - PAGINATED_REQUEST_STRUCTURE  # first/after must be nested under pagination, not at root
+    # - RESPONSE_PAGINATED_STRUCTURE # Paginated responses must have items, pagination.endCursor, pagination.hasNextPage
+
+    ## ── Prohibited Feature Rules ────────────────────────────────────────
+    # - PROHIBITED_XML               # XML schema annotations are not allowed
+    # - PROHIBITED_COOKIES           # Cookie parameters and security schemes are not allowed
+    # - PROHIBITED_HATEOAS           # Response links (HATEOAS) are not allowed
+    # - PROHIBITED_PARAMETER_STYLES  # Parameter style and explode properties are not allowed
+    # - PROHIBITED_MULTIPLE_EXAMPLES # Use singular example instead of plural examples (WARNING)
+
+    ## ── Format Convention Rules ─────────────────────────────────────────
+    # - TIMESTAMP_FORMAT             # Fields ending in At/Timestamp must be string with format: date-time
+    # - DATE_FORMAT                  # Fields ending in Date must be string with format: date
+    # - AMOUNT_DECIMAL_STRING        # amount properties must be type string
+    # - AMOUNT_SCHEMA_PATTERN        # Schemas with amount should also have assetType (WARNING)
+
+    ## ── Idempotency Rules ───────────────────────────────────────────────
+    # - IDEMPOTENCY_KEY_DEFINITION   # idempotencyKey must be type string with maxLength: 128

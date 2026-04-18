@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	lint "github.com/duh-rpc/duh-cli"
+	duh "github.com/duh-rpc/duh-cli"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -22,8 +22,10 @@ openapi: 3.0.0
 info:
   title: Test
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/test.action:
+  /tests.action:
     post:
       requestBody:
         required: true
@@ -49,8 +51,10 @@ openapi: 3.0.0
 info:
   title: Test
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/test.action:
+  /tests.action:
     post:
       requestBody:
         required: true
@@ -74,14 +78,16 @@ paths:
 			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
 		},
 		{
-			name: "ValidOctetStreamContentType",
+			name: "InvalidOctetStreamContentType",
 			spec: `
 openapi: 3.0.0
 info:
   title: Test
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/test.action:
+  /tests.action:
     post:
       requestBody:
         required: true
@@ -101,8 +107,8 @@ paths:
               schema:
                 type: string
 `,
-			expectedExit:   0,
-			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
+			expectedExit: 1,
+			expectedOutput: `[ERROR] [CONTENT_TYPE]`,
 		},
 		{
 			name: "InvalidXMLContentType",
@@ -112,7 +118,7 @@ info:
   title: Test
   version: 1.0.0
 paths:
-  /v1/test.action:
+  /tests.action:
     post:
       requestBody:
         required: true
@@ -129,7 +135,7 @@ paths:
                 type: object
 `,
 			expectedExit: 1,
-			expectedOutput: `[content-type] POST /v1/test.action
+			expectedOutput: `[ERROR] [CONTENT_TYPE] POST /tests.action
   Invalid request body content type: application/xml`,
 		},
 		{
@@ -140,7 +146,7 @@ info:
   title: Test
   version: 1.0.0
 paths:
-  /v1/test.action:
+  /tests.action:
     post:
       requestBody:
         required: true
@@ -157,7 +163,7 @@ paths:
                 type: string
 `,
 			expectedExit: 1,
-			expectedOutput: `[content-type] POST /v1/test.action response 200
+			expectedOutput: `[ERROR] [CONTENT_TYPE] POST /tests.action response 200
   Invalid content type: text/html`,
 		},
 		{
@@ -168,7 +174,7 @@ info:
   title: Test
   version: 1.0.0
 paths:
-  /v1/test.action:
+  /tests.action:
     post:
       requestBody:
         required: true
@@ -185,8 +191,66 @@ paths:
                 type: string
 `,
 			expectedExit: 1,
-			expectedOutput: `[content-type] POST /v1/test.action response 200
+			expectedOutput: `[ERROR] [CONTENT_TYPE] POST /tests.action response 200
   Invalid content type: text/plain`,
+		},
+		{
+			name: "InvalidMultipartFormData",
+			spec: `
+openapi: 3.0.0
+info:
+  title: Test
+  version: 1.0.0
+paths:
+  /tests.action:
+    post:
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+`,
+			expectedExit: 1,
+			expectedOutput: `[ERROR] [CONTENT_TYPE] POST /tests.action
+  Multipart and form-encoded content types are not allowed
+  Use application/json or application/protobuf`,
+		},
+		{
+			name: "InvalidFormURLEncoded",
+			spec: `
+openapi: 3.0.0
+info:
+  title: Test
+  version: 1.0.0
+paths:
+  /tests.action:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+`,
+			expectedExit: 1,
+			expectedOutput: `[ERROR] [CONTENT_TYPE] POST /tests.action
+  Multipart and form-encoded content types are not allowed
+  Use application/json or application/protobuf`,
 		},
 		{
 			name: "MIMEParametersNotAllowed",
@@ -196,7 +260,7 @@ info:
   title: Test
   version: 1.0.0
 paths:
-  /v1/test.action:
+  /tests.action:
     post:
       requestBody:
         required: true
@@ -213,7 +277,7 @@ paths:
                 type: object
 `,
 			expectedExit: 1,
-			expectedOutput: `[content-type] POST /v1/test.action
+			expectedOutput: `[ERROR] [CONTENT_TYPE] POST /tests.action
   MIME parameters not allowed in request body content type`,
 		},
 		{
@@ -224,7 +288,7 @@ info:
   title: Test
   version: 1.0.0
 paths:
-  /v1/test.action:
+  /tests.action:
     post:
       requestBody:
         required: true
@@ -241,7 +305,7 @@ paths:
                 type: string
 `,
 			expectedExit: 1,
-			expectedOutput: `[content-type] POST /v1/test.action
+			expectedOutput: `[ERROR] [CONTENT_TYPE] POST /tests.action
   Request body must include application/json content type`,
 		},
 		{
@@ -252,7 +316,7 @@ info:
   title: Test
   version: 1.0.0
 paths:
-  /v1/test.action:
+  /tests.action:
     post:
       requestBody:
         required: true
@@ -269,7 +333,7 @@ paths:
                 type: string
 `,
 			expectedExit:   1,
-			expectedOutput: `[content-type]`,
+			expectedOutput: `[ERROR] [CONTENT_TYPE]`,
 		},
 		{
 			name: "CaseInsensitiveContentType",
@@ -278,8 +342,10 @@ openapi: 3.0.0
 info:
   title: Test
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/test.action:
+  /tests.action:
     post:
       requestBody:
         required: true
@@ -303,7 +369,7 @@ paths:
 			filePath := writeYAML(t, test.spec)
 
 			var stdout bytes.Buffer
-			exitCode := lint.RunCmd(&stdout, []string{"lint", filePath})
+			exitCode := duh.RunCmd(&stdout, []string{"lint", filePath})
 
 			assert.Equal(t, test.expectedExit, exitCode)
 			assert.Contains(t, stdout.String(), test.expectedOutput)

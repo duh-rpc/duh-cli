@@ -14,7 +14,7 @@ func NewHTTPMethodRule() *HTTPMethodRule {
 }
 
 func (r *HTTPMethodRule) Name() string {
-	return "http-method"
+	return "HTTP_METHOD_ALLOWED"
 }
 
 func (r *HTTPMethodRule) Validate(doc *v3.Document) []Violation {
@@ -45,11 +45,15 @@ func (r *HTTPMethodRule) Validate(doc *v3.Document) []Violation {
 
 		for _, method := range methods {
 			if method.operation != nil {
+				if isOperationIgnored(method.operation, r.Name()) {
+					continue
+				}
 				violations = append(violations, Violation{
-					RuleName:   r.Name(),
-					Location:   fmt.Sprintf("%s %s", method.name, path),
 					Message:    fmt.Sprintf("HTTP method %s is not allowed in DUH-RPC", method.name),
 					Suggestion: "Use POST method for all DUH-RPC operations",
+					Location:   fmt.Sprintf("%s %s", method.name, path),
+					RuleName:   r.Name(),
+					Severity:   SeverityError,
 				})
 			}
 		}

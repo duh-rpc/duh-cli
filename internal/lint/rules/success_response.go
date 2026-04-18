@@ -14,7 +14,7 @@ func NewSuccessResponseRule() *SuccessResponseRule {
 
 // Name returns the rule name
 func (r *SuccessResponseRule) Name() string {
-	return "success-response"
+	return "SUCCESS_RESPONSE"
 }
 
 // Validate checks that all operations have a 200 response with content
@@ -39,6 +39,10 @@ func (r *SuccessResponseRule) Validate(doc *v3.Document) []Violation {
 				continue
 			}
 
+			if isOperationIgnored(op, r.Name()) {
+				continue
+			}
+
 			location := method + " " + path
 
 			// Check if 200 response exists
@@ -56,6 +60,7 @@ func (r *SuccessResponseRule) Validate(doc *v3.Document) []Violation {
 					Message:    "Operation is missing a 200 (success) response",
 					Location:   location,
 					RuleName:   r.Name(),
+					Severity:   SeverityError,
 				})
 				continue
 			}
@@ -67,6 +72,7 @@ func (r *SuccessResponseRule) Validate(doc *v3.Document) []Violation {
 					Message:    "200 response is missing content",
 					Location:   location,
 					RuleName:   r.Name(),
+					Severity:   SeverityError,
 				})
 				continue
 			}
@@ -86,6 +92,7 @@ func (r *SuccessResponseRule) Validate(doc *v3.Document) []Violation {
 					Message:    "200 response content is missing a schema",
 					Location:   location,
 					RuleName:   r.Name(),
+					Severity:   SeverityError,
 				})
 			}
 		}

@@ -1,0 +1,60 @@
+openapi: 3.0.0
+info:
+  title: Response Has Links
+  version: 1.0.0
+
+servers:
+  - url: https://api.example.com/v1
+
+paths:
+  /pets.create:
+    post:
+      description: Create a pet
+      operationId: createPet
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRequest'
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateResponse'
+          links:
+            GetPet:
+              operationId: getPet
+              description: Get the created pet
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetails'
+
+components:
+  schemas:
+    CreateRequest:
+      type: object
+      properties:
+        name:
+          description: Name of the pet
+          type: string
+
+    CreateResponse:
+      type: object
+      properties:
+        petId:
+          description: ID of the pet
+          type: string
+
+    ErrorDetails:
+      type: object
+      required: [message]
+      properties:
+        message:
+          description: Error message
+          type: string

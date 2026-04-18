@@ -7,16 +7,20 @@ info:
   description: A comprehensive example of a DUH-RPC compliant API specification
   version: 1.0.0
 
+# DUH-RPC Rule: Version belongs in servers[].url, not in the path prefix
+servers:
+  - url: https://api.example.com/v1
+
 # DUH-RPC Path Requirements:
-# - Must follow format: /v{N}/{subject}.{method}
-# - Version must be an integer (v0, v1, v2, etc.)
-# - Subject and method must be lowercase alphanumeric with optional hyphens/underscores
+# - Must follow format: /{resource}.{method}
+# - Resource and method must be lowercase alphanumeric with optional hyphens/underscores
 # - Must start with a letter
 # - Maximum 50 characters each
 # - No path parameters allowed
+# - Version prefix (e.g., /v1/) must NOT appear in paths
 paths:
   # Example 1: Basic create endpoint with JSON and protobuf support
-  /v1/users.create:
+  /users.create:
     post:  # DUH-RPC Rule: Only POST method is allowed
       summary: Create a new user
       description: Creates a new user account in the system
@@ -28,7 +32,7 @@ paths:
           # DUH-RPC Rule: application/json is required, others are optional
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateUserRequest'
+              $ref: '#/components/schemas/CreateRequest'
           # Optional: Protocol Buffers support
           application/protobuf:
             schema:
@@ -41,12 +45,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CreateUserResponse'
+                $ref: '#/components/schemas/CreateResponse'
             application/protobuf:
               schema:
                 type: string
                 format: binary
-        # DUH-RPC Rule: Valid error status codes are 400-404, 429, 452-455, 500
+        # DUH-RPC Rule: Valid error status codes are 400, 401, 403, 404, 409, 429, 500
         '400':
           description: Bad request - invalid input data
           content:
@@ -67,7 +71,7 @@ paths:
                 $ref: '#/components/schemas/Error'
 
   # Example 2: Retrieval endpoint with identifier in request body
-  /v1/users.get:
+  /users.get:
     post:  # Even for retrievals, DUH-RPC uses POST
       summary: Get user by ID
       description: Retrieves a user's details by their unique identifier
@@ -77,7 +81,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/GetUserRequest'
+              $ref: '#/components/schemas/GetRequest'
           application/protobuf:
             schema:
               type: string
@@ -88,7 +92,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserResponse'
+                $ref: '#/components/schemas/GetResponse'
             application/protobuf:
               schema:
                 type: string
@@ -113,7 +117,7 @@ paths:
                 $ref: '#/components/schemas/Error'
 
   # Example 3: List endpoint with pagination
-  /v1/users.list:
+  /users.list:
     post:
       summary: List users with pagination
       description: Retrieves a paginated list of users
@@ -123,7 +127,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ListUsersRequest'
+              $ref: '#/components/schemas/ListRequest'
           application/protobuf:
             schema:
               type: string
@@ -134,7 +138,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ListUsersResponse'
+                $ref: '#/components/schemas/ListResponse'
             application/protobuf:
               schema:
                 type: string
@@ -153,7 +157,7 @@ paths:
                 $ref: '#/components/schemas/Error'
 
   # Example 4: Update endpoint demonstrating additional status codes
-  /v1/users.update:
+  /users.update:
     post:
       summary: Update a user
       description: Updates an existing user with new information
@@ -163,7 +167,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateUserRequest'
+              $ref: '#/components/schemas/UpdateRequest'
           application/protobuf:
             schema:
               type: string
@@ -174,7 +178,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UpdateUserResponse'
+                $ref: '#/components/schemas/UpdateResponse'
             application/protobuf:
               schema:
                 type: string
@@ -203,8 +207,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-        '453':
-          description: Custom business error - user account locked
+        '409':
+          description: Conflict - user account already exists
           content:
             application/json:
               schema:
@@ -219,33 +223,33 @@ paths:
 # Reusable schemas for request and response bodies
 components:
   schemas:
-    # DUH-RPC Rule: Error schema must have 'code' (integer) and 'message' (string)
-    # The 'details' field is optional
+    # DUH-RPC Rule: Error schema must have required 'message' (string)
+    # Optional fields: code (string), type (string), details (object with additionalProperties: { type: string })
     Error:
       type: object
       required:
-        - code
         - message
       properties:
-        code:
-          type: integer
-          description: Error code
-          example: 1001
         message:
           type: string
           description: Human-readable error message
           example: "Invalid input: email is required"
+        code:
+          type: string
+          description: Error code
+          example: "INVALID_INPUT"
+        type:
+          type: string
+          description: Error type classification
+          example: "VALIDATION_ERROR"
         details:
-          $ref: '#/components/schemas/ErrorDetails'
-
-    ErrorDetails:
-      type: object
-      description: Optional additional error details
-      additionalProperties:
-        type: string
+          type: object
+          description: Optional additional error details
+          additionalProperties:
+            type: string
 
     # User-related schemas
-    CreateUserRequest:
+    CreateRequest:
       type: object
       required:
         - email
@@ -260,10 +264,11 @@ components:
           example: "John Doe"
         age:
           type: integer
+          format: int32
           minimum: 0
           example: 30
 
-    CreateUserResponse:
+    CreateResponse:
       type: object
       required:
         - userId
@@ -284,7 +289,7 @@ components:
           format: date-time
           example: "2024-01-15T10:30:00Z"
 
-    GetUserRequest:
+    GetRequest:
       type: object
       required:
         - userId
@@ -293,7 +298,7 @@ components:
           type: string
           example: "usr_abc123"
 
-    UserResponse:
+    GetResponse:
       type: object
       required:
         - userId
@@ -311,54 +316,67 @@ components:
           example: "John Doe"
         age:
           type: integer
+          format: int32
           example: 30
         createdAt:
           type: string
           format: date-time
           example: "2024-01-15T10:30:00Z"
 
-    # User list schemas
-    ListUsersRequest:
+    # User list schemas - cursor-based pagination
+    ListRequest:
       type: object
       properties:
-        limit:
-          type: integer
-          minimum: 1
-          maximum: 100
-          default: 20
-          example: 20
-        offset:
-          type: integer
-          minimum: 0
-          default: 0
-          example: 0
+        pagination:
+          $ref: '#/components/schemas/PaginationRequest'
         sortBy:
           type: string
           enum: [name, email, createdAt]
           default: createdAt
           example: "name"
 
-    ListUsersResponse:
+    PaginationRequest:
+      type: object
+      properties:
+        first:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 100
+          default: 20
+          description: Number of items to return
+          example: 20
+        after:
+          type: string
+          description: Cursor for the next page
+          example: "cursor_abc123"
+
+    ListResponse:
       type: object
       required:
-        - users
-        - total
+        - items
       properties:
-        users:
+        items:
           type: array
           items:
-            $ref: '#/components/schemas/UserResponse'
-        total:
-          type: integer
-          description: Total number of users
-          example: 150
+            $ref: '#/components/schemas/GetResponse'
+        pagination:
+          $ref: '#/components/schemas/PaginationResponse'
+
+    PaginationResponse:
+      type: object
+      properties:
+        endCursor:
+          type: string
+          description: Cursor for the next page
+          example: "cursor_xyz789"
         hasMore:
           type: boolean
           description: Whether more results are available
           example: true
 
     # User update schemas
-    UpdateUserRequest:
+    UpdateRequest:
       type: object
       required:
         - userId
@@ -375,6 +393,7 @@ components:
           example: "jane@example.com"
         age:
           type: integer
+          format: int32
           minimum: 0
           example: 35
         status:
@@ -382,7 +401,7 @@ components:
           enum: [active, inactive, suspended]
           example: "active"
 
-    UpdateUserResponse:
+    UpdateResponse:
       type: object
       required:
         - userId
@@ -400,6 +419,7 @@ components:
           example: "Jane Doe"
         age:
           type: integer
+          format: int32
           example: 35
         status:
           type: string

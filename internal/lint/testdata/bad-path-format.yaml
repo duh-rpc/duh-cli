@@ -3,7 +3,7 @@ info:
   title: Bad Path Format
   version: 1.0.0
 paths:
-  /users.create:  # Missing version
+  /Users.create:  # Uppercase resource
     post:
       requestBody:
         required: true
@@ -18,7 +18,7 @@ paths:
             application/json:
               schema:
                 type: object
-  /v1/Users.get:  # Uppercase
+  /users:  # Missing dot separator
     post:
       requestBody:
         required: true

@@ -6,7 +6,7 @@ import (
 	"github.com/pb33f/libopenapi/datamodel/high/v3"
 )
 
-var allowedStatusCodes = []string{"200", "400", "401", "403", "404", "429", "452", "453", "454", "455", "500"}
+var allowedStatusCodes = []string{"200", "201", "202", "400", "401", "403", "404", "409", "429", "500"}
 
 // StatusCodeRule validates only allowed HTTP status codes are used
 type StatusCodeRule struct{}
@@ -18,7 +18,7 @@ func NewStatusCodeRule() *StatusCodeRule {
 
 // Name returns the rule name
 func (r *StatusCodeRule) Name() string {
-	return "status-code"
+	return "STATUS_CODE_ALLOWED"
 }
 
 // Validate checks that only allowed status codes are used
@@ -48,6 +48,10 @@ func (r *StatusCodeRule) Validate(doc *v3.Document) []Violation {
 				continue
 			}
 
+			if isOperationIgnored(op, r.Name()) {
+				continue
+			}
+
 			for statusCode := range op.Responses.Codes.FromOldest() {
 				if !allowedMap[statusCode] {
 					location := method + " " + path
@@ -56,6 +60,7 @@ func (r *StatusCodeRule) Validate(doc *v3.Document) []Violation {
 						Message:    fmt.Sprintf("Status code %s is not allowed", statusCode),
 						Location:   location,
 						RuleName:   r.Name(),
+						Severity:   SeverityError,
 					})
 				}
 			}

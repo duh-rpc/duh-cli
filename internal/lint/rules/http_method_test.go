@@ -21,8 +21,10 @@ func TestHTTPMethodRule(t *testing.T) {
 info:
   title: Test
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/users.create:
+  /users.create:
     post:
       requestBody:
         required: true
@@ -47,7 +49,7 @@ info:
   title: Test
   version: 1.0.0
 paths:
-  /v1/users.list:
+  /users.list:
     get:
       responses:
         200:
@@ -57,7 +59,7 @@ paths:
               schema:
                 type: array`,
 			expectedExit: 1,
-			expectedOutput: `[http-method] GET /v1/users.list
+			expectedOutput: `[ERROR] [HTTP_METHOD_ALLOWED] GET /users.list
   HTTP method GET is not allowed in DUH-RPC
   Use POST method for all DUH-RPC operations`,
 		},
@@ -68,7 +70,7 @@ info:
   title: Test
   version: 1.0.0
 paths:
-  /v1/users.update:
+  /users.update:
     put:
       requestBody:
         content:
@@ -83,7 +85,7 @@ paths:
               schema:
                 type: object`,
 			expectedExit: 1,
-			expectedOutput: `[http-method] PUT /v1/users.update
+			expectedOutput: `[ERROR] [HTTP_METHOD_ALLOWED] PUT /users.update
   HTTP method PUT is not allowed in DUH-RPC
   Use POST method for all DUH-RPC operations`,
 		},
@@ -94,7 +96,7 @@ info:
   title: Test
   version: 1.0.0
 paths:
-  /v1/users.delete:
+  /users.delete:
     delete:
       responses:
         200:
@@ -104,7 +106,7 @@ paths:
               schema:
                 type: object`,
 			expectedExit: 1,
-			expectedOutput: `[http-method] DELETE /v1/users.delete
+			expectedOutput: `[ERROR] [HTTP_METHOD_ALLOWED] DELETE /users.delete
   HTTP method DELETE is not allowed in DUH-RPC
   Use POST method for all DUH-RPC operations`,
 		},
@@ -115,7 +117,7 @@ info:
   title: Test
   version: 1.0.0
 paths:
-  /v1/users.patch:
+  /users.patch:
     patch:
       requestBody:
         content:
@@ -130,7 +132,7 @@ paths:
               schema:
                 type: object`,
 			expectedExit: 1,
-			expectedOutput: `[http-method] PATCH /v1/users.patch
+			expectedOutput: `[ERROR] [HTTP_METHOD_ALLOWED] PATCH /users.patch
   HTTP method PATCH is not allowed in DUH-RPC
   Use POST method for all DUH-RPC operations`,
 		},
@@ -141,7 +143,7 @@ info:
   title: Test
   version: 1.0.0
 paths:
-  /v1/users.manage:
+  /users.manage:
     get:
       responses:
         200:
@@ -172,7 +174,7 @@ paths:
               schema:
                 type: object`,
 			expectedExit: 1,
-			expectedOutput: `[http-method] GET /v1/users.manage
+			expectedOutput: `[ERROR] [HTTP_METHOD_ALLOWED] GET /users.manage
   HTTP method GET is not allowed in DUH-RPC
   Use POST method for all DUH-RPC operations`,
 		},
@@ -183,7 +185,7 @@ info:
   title: Test
   version: 1.0.0
 paths:
-  /v1/users.create:
+  /users.create:
     post:
       requestBody:
         required: true
@@ -207,7 +209,7 @@ paths:
               schema:
                 type: object`,
 			expectedExit: 1,
-			expectedOutput: `[http-method] GET /v1/users.create
+			expectedOutput: `[ERROR] [HTTP_METHOD_ALLOWED] GET /users.create
   HTTP method GET is not allowed in DUH-RPC
   Use POST method for all DUH-RPC operations`,
 		},

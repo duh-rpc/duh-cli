@@ -21,8 +21,10 @@ func TestStatusCodeRule(t *testing.T) {
 info:
   title: Test
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/users.create:
+  /users.create:
     post:
       requestBody:
         required: true
@@ -41,13 +43,81 @@ paths:
 			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
 		},
 		{
+			name: "AllowedStatusCode201",
+			spec: `openapi: 3.0.0
+info:
+  title: Test
+  version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
+paths:
+  /users.create:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+        201:
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object`,
+			expectedExit:   0,
+			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
+		},
+		{
+			name: "AllowedStatusCode202",
+			spec: `openapi: 3.0.0
+info:
+  title: Test
+  version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
+paths:
+  /users.create:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+        202:
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                type: object`,
+			expectedExit:   0,
+			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
+		},
+		{
 			name: "AllowedStatusCode400",
 			spec: `openapi: 3.0.0
 info:
   title: Test
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/users.create:
+  /users.create:
     post:
       requestBody:
         required: true
@@ -69,11 +139,46 @@ paths:
               schema:
                 type: object
                 required:
-                  - code
                   - message
                 properties:
-                  code:
-                    type: integer
+                  message:
+                    type: string`,
+			expectedExit:   0,
+			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
+		},
+		{
+			name: "AllowedStatusCode409",
+			spec: `openapi: 3.0.0
+info:
+  title: Test
+  version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
+paths:
+  /users.create:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+        409:
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
                   message:
                     type: string`,
 			expectedExit:   0,
@@ -85,8 +190,10 @@ paths:
 info:
   title: Test
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/users.create:
+  /users.create:
     post:
       requestBody:
         required: true
@@ -108,24 +215,21 @@ paths:
               schema:
                 type: object
                 required:
-                  - code
                   - message
                 properties:
-                  code:
-                    type: integer
                   message:
                     type: string`,
 			expectedExit:   0,
 			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
 		},
 		{
-			name: "AllowedStatusCode452",
+			name: "DisallowedStatusCode452",
 			spec: `openapi: 3.0.0
 info:
   title: Test
   version: 1.0.0
 paths:
-  /v1/users.create:
+  /users.create:
     post:
       requestBody:
         required: true
@@ -147,42 +251,14 @@ paths:
               schema:
                 type: object
                 required:
-                  - code
                   - message
                 properties:
-                  code:
-                    type: integer
                   message:
                     type: string`,
-			expectedExit:   0,
-			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
-		},
-		{
-			name: "DisallowedStatusCode201",
-			spec: `openapi: 3.0.0
-info:
-  title: Test
-  version: 1.0.0
-paths:
-  /v1/users.create:
-    post:
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        201:
-          description: Created
-          content:
-            application/json:
-              schema:
-                type: object`,
 			expectedExit: 1,
-			expectedOutput: `[status-code] POST /v1/users.create
-  Status code 201 is not allowed
-  Use one of the allowed status codes: [200 400 401 403 404 429 452 453 454 455 500]`,
+			expectedOutput: `[ERROR] [STATUS_CODE_ALLOWED] POST /users.create
+  Status code 452 is not allowed
+  Use one of the allowed status codes: [200 201 202 400 401 403 404 409 429 500]`,
 		},
 		{
 			name: "DisallowedStatusCode204",
@@ -191,7 +267,7 @@ info:
   title: Test
   version: 1.0.0
 paths:
-  /v1/users.delete:
+  /users.delete:
     post:
       requestBody:
         required: true
@@ -203,9 +279,9 @@ paths:
         204:
           description: No Content`,
 			expectedExit: 1,
-			expectedOutput: `[status-code] POST /v1/users.delete
+			expectedOutput: `[ERROR] [STATUS_CODE_ALLOWED] POST /users.delete
   Status code 204 is not allowed
-  Use one of the allowed status codes: [200 400 401 403 404 429 452 453 454 455 500]`,
+  Use one of the allowed status codes: [200 201 202 400 401 403 404 409 429 500]`,
 		},
 		{
 			name: "DisallowedStatusCode503",
@@ -214,7 +290,7 @@ info:
   title: Test
   version: 1.0.0
 paths:
-  /v1/users.create:
+  /users.create:
     post:
       requestBody:
         required: true
@@ -230,9 +306,9 @@ paths:
               schema:
                 type: object`,
 			expectedExit: 1,
-			expectedOutput: `[status-code] POST /v1/users.create
+			expectedOutput: `[ERROR] [STATUS_CODE_ALLOWED] POST /users.create
   Status code 503 is not allowed
-  Use one of the allowed status codes: [200 400 401 403 404 429 452 453 454 455 500]`,
+  Use one of the allowed status codes: [200 201 202 400 401 403 404 409 429 500]`,
 		},
 		{
 			name: "MultipleAllowedCodes",
@@ -240,8 +316,10 @@ paths:
 info:
   title: Test
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/users.create:
+  /users.create:
     post:
       requestBody:
         required: true
@@ -263,11 +341,8 @@ paths:
               schema:
                 type: object
                 required:
-                  - code
                   - message
                 properties:
-                  code:
-                    type: integer
                   message:
                     type: string
         500:
@@ -277,11 +352,8 @@ paths:
               schema:
                 type: object
                 required:
-                  - code
                   - message
                 properties:
-                  code:
-                    type: integer
                   message:
                     type: string`,
 			expectedExit:   0,

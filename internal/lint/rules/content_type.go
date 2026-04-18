@@ -15,16 +15,15 @@ func NewContentTypeRule() *ContentTypeRule {
 }
 
 func (r *ContentTypeRule) Name() string {
-	return "content-type"
+	return "CONTENT_TYPE"
 }
 
 func (r *ContentTypeRule) Validate(doc *v3.Document) []Violation {
 	var violations []Violation
 
 	allowedTypes := map[string]bool{
-		"application/json":         true,
-		"application/protobuf":     true,
-		"application/octet-stream": true,
+		"application/json":     true,
+		"application/protobuf": true,
 	}
 
 	if doc.Paths == nil || doc.Paths.PathItems == nil {
@@ -52,6 +51,10 @@ func (r *ContentTypeRule) Validate(doc *v3.Document) []Violation {
 				continue
 			}
 
+			if isOperationIgnored(operation, r.Name()) {
+				continue
+			}
+
 			// Check request body content types
 			if operation.RequestBody != nil && operation.RequestBody.Content != nil {
 				hasJSON := false
@@ -73,8 +76,9 @@ func (r *ContentTypeRule) Validate(doc *v3.Document) []Violation {
 					violations = append(violations, Violation{
 						Message:    "Request body must include application/json content type",
 						Suggestion: "Add application/json to request body content types",
-						RuleName:   r.Name(),
 						Location:   method + " " + pathName,
+						RuleName:   r.Name(),
+						Severity:   SeverityError,
 					})
 				}
 			}
@@ -114,8 +118,20 @@ func (r *ContentTypeRule) validateContentType(contentType string, allowedTypes m
 		return &Violation{
 			Message:    msg,
 			Suggestion: "Remove parameters from content type (use '" + strings.Split(normalized, ";")[0] + "' instead of '" + contentType + "')",
-			RuleName:   r.Name(),
 			Location:   method + " " + path,
+			RuleName:   r.Name(),
+			Severity:   SeverityError,
+		}
+	}
+
+	// Check for multipart and form-encoded content types
+	if strings.HasPrefix(normalized, "multipart/") || normalized == "application/x-www-form-urlencoded" {
+		return &Violation{
+			Message:    "Multipart and form-encoded content types are not allowed",
+			Suggestion: "Use application/json or application/protobuf",
+			Location:   method + " " + path,
+			RuleName:   r.Name(),
+			Severity:   SeverityError,
 		}
 	}
 
@@ -127,9 +143,10 @@ func (r *ContentTypeRule) validateContentType(contentType string, allowedTypes m
 		}
 		return &Violation{
 			Message:    msg,
-			Suggestion: "Use one of: application/json, application/protobuf, application/octet-stream",
-			RuleName:   r.Name(),
+			Suggestion: "Use one of: application/json, application/protobuf",
 			Location:   method + " " + path,
+			RuleName:   r.Name(),
+			Severity:   SeverityError,
 		}
 	}
 

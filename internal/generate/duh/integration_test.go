@@ -17,8 +17,10 @@ const fullSpec = `openapi: 3.0.3
 info:
   title: DUH-RPC Example API
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/users.create:
+  /users.create:
     post:
       summary: Create a new user
       requestBody:
@@ -26,21 +28,21 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateUserRequest'
+              $ref: '#/components/schemas/CreateRequest'
       responses:
         '200':
           description: User created successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CreateUserResponse'
+                $ref: '#/components/schemas/CreateResponse'
         '400':
           description: Bad request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-  /v1/users.get:
+                $ref: '#/components/schemas/ErrorDetails'
+  /users.get:
     post:
       summary: Get user by ID
       requestBody:
@@ -48,21 +50,21 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/GetUserRequest'
+              $ref: '#/components/schemas/GetRequest'
       responses:
         '200':
           description: User found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserResponse'
+                $ref: '#/components/schemas/GetResponse'
         '400':
           description: Invalid user ID
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-  /v1/users.list:
+                $ref: '#/components/schemas/ErrorDetails'
+  /users.list:
     post:
       summary: List users with pagination
       requestBody:
@@ -70,21 +72,21 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ListUsersRequest'
+              $ref: '#/components/schemas/ListRequest'
       responses:
         '200':
           description: Users retrieved
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ListUsersResponse'
+                $ref: '#/components/schemas/ListResponse'
         '400':
           description: Invalid pagination
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-  /v1/users.update:
+                $ref: '#/components/schemas/ErrorDetails'
+  /users.update:
     post:
       summary: Update a user
       requestBody:
@@ -92,82 +94,101 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateUserRequest'
+              $ref: '#/components/schemas/UpdateRequest'
       responses:
         '200':
           description: User updated
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UpdateUserResponse'
+                $ref: '#/components/schemas/UpdateResponse'
         '400':
           description: Invalid user data
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/ErrorDetails'
 components:
   schemas:
-    Error:
+    ErrorDetails:
       type: object
       required:
-        - code
         - message
       properties:
-        code:
-          type: integer
         message:
           type: string
-    CreateUserRequest:
+    CreateRequest:
       type: object
       properties:
         name:
           type: string
         email:
           type: string
-    CreateUserResponse:
+    CreateResponse:
       type: object
       properties:
         userId:
           type: string
         name:
           type: string
-    GetUserRequest:
+    GetRequest:
       type: object
       properties:
         userId:
           type: string
-    UserResponse:
+    GetResponse:
       type: object
       properties:
         userId:
           type: string
         name:
           type: string
-    ListUsersRequest:
+    ListRequest:
       type: object
       properties:
-        offset:
-          type: integer
-        limit:
-          type: integer
-    ListUsersResponse:
+        pagination:
+          $ref: '#/components/schemas/PaginationRequest'
+    PaginationRequest:
       type: object
       properties:
-        users:
+        first:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 100
+        after:
+          type: string
+    ListResponse:
+      type: object
+      properties:
+        items:
           type: array
           items:
-            $ref: '#/components/schemas/UserResponse'
-        total:
-          type: integer
-    UpdateUserRequest:
+            $ref: '#/components/schemas/User'
+        pagination:
+          $ref: '#/components/schemas/PaginationResponse'
+    PaginationResponse:
+      type: object
+      properties:
+        endCursor:
+          type: string
+        hasMore:
+          type: boolean
+    User:
       type: object
       properties:
         userId:
           type: string
         name:
           type: string
-    UpdateUserResponse:
+    UpdateRequest:
+      type: object
+      properties:
+        userId:
+          type: string
+        name:
+          type: string
+    UpdateResponse:
       type: object
       properties:
         userId:
@@ -180,74 +201,78 @@ const specWithoutListOps = `openapi: 3.0.0
 info:
   title: Test API
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/users.create:
+  /users.create:
     post:
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateUserRequest'
+              $ref: '#/components/schemas/CreateRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserResponse'
+                $ref: '#/components/schemas/CreateResponse'
         '400':
           description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-  /v1/users.get:
+                $ref: '#/components/schemas/ErrorDetails'
+  /users.get:
     post:
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/GetUserRequest'
+              $ref: '#/components/schemas/GetRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserResponse'
+                $ref: '#/components/schemas/GetResponse'
         '400':
           description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/ErrorDetails'
 components:
   schemas:
-    CreateUserRequest:
+    CreateRequest:
       type: object
       properties:
         name:
           type: string
-    GetUserRequest:
+    GetRequest:
       type: object
       properties:
         userId:
           type: string
-    UserResponse:
+    CreateResponse:
       type: object
       properties:
         id:
           type: string
-    Error:
+    GetResponse:
+      type: object
+      properties:
+        id:
+          type: string
+    ErrorDetails:
       type: object
       required:
-        - code
         - message
       properties:
-        code:
-          type: integer
         message:
           type: string
 `
@@ -313,105 +338,142 @@ import (
 	"google.golang.org/protobuf/runtime/protoimpl"
 )
 
-type CreateUserRequest struct {
+type CreateRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 }
-func (x *CreateUserRequest) Reset() {}
-func (x *CreateUserRequest) String() string { return "CreateUserRequest{}" }
-func (x *CreateUserRequest) ProtoMessage() {}
-func (x *CreateUserRequest) ProtoReflect() protoreflect.Message {
+func (x *CreateRequest) Reset() {}
+func (x *CreateRequest) String() string { return "CreateRequest{}" }
+func (x *CreateRequest) ProtoMessage() {}
+func (x *CreateRequest) ProtoReflect() protoreflect.Message {
 	return (&protoimpl.MessageInfo{}).MessageOf(x)
 }
 
-type CreateUserResponse struct {
+type CreateResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 }
-func (x *CreateUserResponse) Reset() {}
-func (x *CreateUserResponse) String() string { return "CreateUserResponse{}" }
-func (x *CreateUserResponse) ProtoMessage() {}
-func (x *CreateUserResponse) ProtoReflect() protoreflect.Message {
+func (x *CreateResponse) Reset() {}
+func (x *CreateResponse) String() string { return "CreateResponse{}" }
+func (x *CreateResponse) ProtoMessage() {}
+func (x *CreateResponse) ProtoReflect() protoreflect.Message {
 	return (&protoimpl.MessageInfo{}).MessageOf(x)
 }
 
-type GetUserRequest struct {
+type GetRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 }
-func (x *GetUserRequest) Reset() {}
-func (x *GetUserRequest) String() string { return "GetUserRequest{}" }
-func (x *GetUserRequest) ProtoMessage() {}
-func (x *GetUserRequest) ProtoReflect() protoreflect.Message {
+func (x *GetRequest) Reset() {}
+func (x *GetRequest) String() string { return "GetRequest{}" }
+func (x *GetRequest) ProtoMessage() {}
+func (x *GetRequest) ProtoReflect() protoreflect.Message {
 	return (&protoimpl.MessageInfo{}).MessageOf(x)
 }
 
-type UserResponse struct {
+type GetResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
-	Users         []*UserResponse
-	Total         int32
 }
-func (x *UserResponse) Reset() {}
-func (x *UserResponse) String() string { return "UserResponse{}" }
-func (x *UserResponse) ProtoMessage() {}
-func (x *UserResponse) ProtoReflect() protoreflect.Message {
+func (x *GetResponse) Reset() {}
+func (x *GetResponse) String() string { return "GetResponse{}" }
+func (x *GetResponse) ProtoMessage() {}
+func (x *GetResponse) ProtoReflect() protoreflect.Message {
 	return (&protoimpl.MessageInfo{}).MessageOf(x)
 }
 
-type ListUsersRequest struct {
+type PaginationRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
-	Offset        int32
-	Limit         int32
+	First         int32
+	After         string
 }
-func (x *ListUsersRequest) Reset() {}
-func (x *ListUsersRequest) String() string { return "ListUsersRequest{}" }
-func (x *ListUsersRequest) ProtoMessage() {}
-func (x *ListUsersRequest) ProtoReflect() protoreflect.Message {
+func (x *PaginationRequest) Reset() {}
+func (x *PaginationRequest) String() string { return "PaginationRequest{}" }
+func (x *PaginationRequest) ProtoMessage() {}
+func (x *PaginationRequest) ProtoReflect() protoreflect.Message {
 	return (&protoimpl.MessageInfo{}).MessageOf(x)
 }
 
-type ListUsersResponse struct {
+type PaginationResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
-	Users         []*UserResponse
-	Total         int32
+	EndCursor     string
+	HasMore       bool
 }
-func (x *ListUsersResponse) Reset() {}
-func (x *ListUsersResponse) String() string { return "ListUsersResponse{}" }
-func (x *ListUsersResponse) ProtoMessage() {}
-func (x *ListUsersResponse) ProtoReflect() protoreflect.Message {
+func (x *PaginationResponse) Reset() {}
+func (x *PaginationResponse) String() string { return "PaginationResponse{}" }
+func (x *PaginationResponse) ProtoMessage() {}
+func (x *PaginationResponse) ProtoReflect() protoreflect.Message {
 	return (&protoimpl.MessageInfo{}).MessageOf(x)
 }
 
-type UpdateUserRequest struct {
+type ListRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
+	Pagination    *PaginationRequest
 }
-func (x *UpdateUserRequest) Reset() {}
-func (x *UpdateUserRequest) String() string { return "UpdateUserRequest{}" }
-func (x *UpdateUserRequest) ProtoMessage() {}
-func (x *UpdateUserRequest) ProtoReflect() protoreflect.Message {
+func (x *ListRequest) Reset() {}
+func (x *ListRequest) String() string { return "ListRequest{}" }
+func (x *ListRequest) ProtoMessage() {}
+func (x *ListRequest) ProtoReflect() protoreflect.Message {
 	return (&protoimpl.MessageInfo{}).MessageOf(x)
 }
 
-type UpdateUserResponse struct {
+type ListResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+	Items         []*User
+	Pagination    *PaginationResponse
+}
+func (x *ListResponse) Reset() {}
+func (x *ListResponse) String() string { return "ListResponse{}" }
+func (x *ListResponse) ProtoMessage() {}
+func (x *ListResponse) ProtoReflect() protoreflect.Message {
+	return (&protoimpl.MessageInfo{}).MessageOf(x)
+}
+
+type User struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 }
-func (x *UpdateUserResponse) Reset() {}
-func (x *UpdateUserResponse) String() string { return "UpdateUserResponse{}" }
-func (x *UpdateUserResponse) ProtoMessage() {}
-func (x *UpdateUserResponse) ProtoReflect() protoreflect.Message {
+func (x *User) Reset() {}
+func (x *User) String() string { return "User{}" }
+func (x *User) ProtoMessage() {}
+func (x *User) ProtoReflect() protoreflect.Message {
+	return (&protoimpl.MessageInfo{}).MessageOf(x)
+}
+
+type UpdateRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+func (x *UpdateRequest) Reset() {}
+func (x *UpdateRequest) String() string { return "UpdateRequest{}" }
+func (x *UpdateRequest) ProtoMessage() {}
+func (x *UpdateRequest) ProtoReflect() protoreflect.Message {
+	return (&protoimpl.MessageInfo{}).MessageOf(x)
+}
+
+type UpdateResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+func (x *UpdateResponse) Reset() {}
+func (x *UpdateResponse) String() string { return "UpdateResponse{}" }
+func (x *UpdateResponse) ProtoMessage() {}
+func (x *UpdateResponse) ProtoReflect() protoreflect.Message {
 	return (&protoimpl.MessageInfo{}).MessageOf(x)
 }
 `
@@ -608,105 +670,142 @@ import (
 	"google.golang.org/protobuf/runtime/protoimpl"
 )
 
-type CreateUserRequest struct {
+type CreateRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 }
-func (x *CreateUserRequest) Reset() {}
-func (x *CreateUserRequest) String() string { return "CreateUserRequest{}" }
-func (x *CreateUserRequest) ProtoMessage() {}
-func (x *CreateUserRequest) ProtoReflect() protoreflect.Message {
+func (x *CreateRequest) Reset() {}
+func (x *CreateRequest) String() string { return "CreateRequest{}" }
+func (x *CreateRequest) ProtoMessage() {}
+func (x *CreateRequest) ProtoReflect() protoreflect.Message {
 	return (&protoimpl.MessageInfo{}).MessageOf(x)
 }
 
-type CreateUserResponse struct {
+type CreateResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 }
-func (x *CreateUserResponse) Reset() {}
-func (x *CreateUserResponse) String() string { return "CreateUserResponse{}" }
-func (x *CreateUserResponse) ProtoMessage() {}
-func (x *CreateUserResponse) ProtoReflect() protoreflect.Message {
+func (x *CreateResponse) Reset() {}
+func (x *CreateResponse) String() string { return "CreateResponse{}" }
+func (x *CreateResponse) ProtoMessage() {}
+func (x *CreateResponse) ProtoReflect() protoreflect.Message {
 	return (&protoimpl.MessageInfo{}).MessageOf(x)
 }
 
-type GetUserRequest struct {
+type GetRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 }
-func (x *GetUserRequest) Reset() {}
-func (x *GetUserRequest) String() string { return "GetUserRequest{}" }
-func (x *GetUserRequest) ProtoMessage() {}
-func (x *GetUserRequest) ProtoReflect() protoreflect.Message {
+func (x *GetRequest) Reset() {}
+func (x *GetRequest) String() string { return "GetRequest{}" }
+func (x *GetRequest) ProtoMessage() {}
+func (x *GetRequest) ProtoReflect() protoreflect.Message {
 	return (&protoimpl.MessageInfo{}).MessageOf(x)
 }
 
-type UserResponse struct {
+type GetResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
-	Users         []*UserResponse
-	Total         int32
 }
-func (x *UserResponse) Reset() {}
-func (x *UserResponse) String() string { return "UserResponse{}" }
-func (x *UserResponse) ProtoMessage() {}
-func (x *UserResponse) ProtoReflect() protoreflect.Message {
+func (x *GetResponse) Reset() {}
+func (x *GetResponse) String() string { return "GetResponse{}" }
+func (x *GetResponse) ProtoMessage() {}
+func (x *GetResponse) ProtoReflect() protoreflect.Message {
 	return (&protoimpl.MessageInfo{}).MessageOf(x)
 }
 
-type ListUsersRequest struct {
+type PaginationRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
-	Offset        int32
-	Limit         int32
+	First         int32
+	After         string
 }
-func (x *ListUsersRequest) Reset() {}
-func (x *ListUsersRequest) String() string { return "ListUsersRequest{}" }
-func (x *ListUsersRequest) ProtoMessage() {}
-func (x *ListUsersRequest) ProtoReflect() protoreflect.Message {
+func (x *PaginationRequest) Reset() {}
+func (x *PaginationRequest) String() string { return "PaginationRequest{}" }
+func (x *PaginationRequest) ProtoMessage() {}
+func (x *PaginationRequest) ProtoReflect() protoreflect.Message {
 	return (&protoimpl.MessageInfo{}).MessageOf(x)
 }
 
-type ListUsersResponse struct {
+type PaginationResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
-	Users         []*UserResponse
-	Total         int32
+	EndCursor     string
+	HasMore       bool
 }
-func (x *ListUsersResponse) Reset() {}
-func (x *ListUsersResponse) String() string { return "ListUsersResponse{}" }
-func (x *ListUsersResponse) ProtoMessage() {}
-func (x *ListUsersResponse) ProtoReflect() protoreflect.Message {
+func (x *PaginationResponse) Reset() {}
+func (x *PaginationResponse) String() string { return "PaginationResponse{}" }
+func (x *PaginationResponse) ProtoMessage() {}
+func (x *PaginationResponse) ProtoReflect() protoreflect.Message {
 	return (&protoimpl.MessageInfo{}).MessageOf(x)
 }
 
-type UpdateUserRequest struct {
+type ListRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
+	Pagination    *PaginationRequest
 }
-func (x *UpdateUserRequest) Reset() {}
-func (x *UpdateUserRequest) String() string { return "UpdateUserRequest{}" }
-func (x *UpdateUserRequest) ProtoMessage() {}
-func (x *UpdateUserRequest) ProtoReflect() protoreflect.Message {
+func (x *ListRequest) Reset() {}
+func (x *ListRequest) String() string { return "ListRequest{}" }
+func (x *ListRequest) ProtoMessage() {}
+func (x *ListRequest) ProtoReflect() protoreflect.Message {
 	return (&protoimpl.MessageInfo{}).MessageOf(x)
 }
 
-type UpdateUserResponse struct {
+type ListResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+	Items         []*User
+	Pagination    *PaginationResponse
+}
+func (x *ListResponse) Reset() {}
+func (x *ListResponse) String() string { return "ListResponse{}" }
+func (x *ListResponse) ProtoMessage() {}
+func (x *ListResponse) ProtoReflect() protoreflect.Message {
+	return (&protoimpl.MessageInfo{}).MessageOf(x)
+}
+
+type User struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 }
-func (x *UpdateUserResponse) Reset() {}
-func (x *UpdateUserResponse) String() string { return "UpdateUserResponse{}" }
-func (x *UpdateUserResponse) ProtoMessage() {}
-func (x *UpdateUserResponse) ProtoReflect() protoreflect.Message {
+func (x *User) Reset() {}
+func (x *User) String() string { return "User{}" }
+func (x *User) ProtoMessage() {}
+func (x *User) ProtoReflect() protoreflect.Message {
+	return (&protoimpl.MessageInfo{}).MessageOf(x)
+}
+
+type UpdateRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+func (x *UpdateRequest) Reset() {}
+func (x *UpdateRequest) String() string { return "UpdateRequest{}" }
+func (x *UpdateRequest) ProtoMessage() {}
+func (x *UpdateRequest) ProtoReflect() protoreflect.Message {
+	return (&protoimpl.MessageInfo{}).MessageOf(x)
+}
+
+type UpdateResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+func (x *UpdateResponse) Reset() {}
+func (x *UpdateResponse) String() string { return "UpdateResponse{}" }
+func (x *UpdateResponse) ProtoMessage() {}
+func (x *UpdateResponse) ProtoReflect() protoreflect.Message {
 	return (&protoimpl.MessageInfo{}).MessageOf(x)
 }
 `

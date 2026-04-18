@@ -3,7 +3,7 @@ info:
   title: Invalid Status Codes
   version: 1.0.0
 paths:
-  /v1/users.create:
+  /users.create:
     post:
       requestBody:
         required: true
@@ -12,12 +12,8 @@ paths:
             schema:
               type: object
       responses:
-        201:  # Not allowed, should be 200
-          description: Created
-          content:
-            application/json:
-              schema:
-                type: object
+        204:  # Not allowed
+          description: No Content
         503:  # Not allowed, should be 500
           description: Service Unavailable
           content:

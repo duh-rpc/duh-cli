@@ -15,48 +15,47 @@ const simpleValidSpec = `openapi: 3.0.0
 info:
   title: Test API
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/users.create:
+  /users.create:
     post:
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateUserRequest'
+              $ref: '#/components/schemas/CreateRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserResponse'
+                $ref: '#/components/schemas/CreateResponse'
         '400':
           description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/ErrorDetails'
 components:
   schemas:
-    CreateUserRequest:
+    CreateRequest:
       type: object
       properties:
         name:
           type: string
-    UserResponse:
+    CreateResponse:
       type: object
       properties:
         id:
           type: string
-    Error:
+    ErrorDetails:
       type: object
       required:
-        - code
         - message
       properties:
-        code:
-          type: integer
         message:
           type: string
 `
@@ -65,59 +64,73 @@ const specWithListOp = `openapi: 3.0.0
 info:
   title: Test API
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/users.list:
+  /users.list:
     post:
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ListUsersRequest'
+              $ref: '#/components/schemas/ListRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ListUsersResponse'
+                $ref: '#/components/schemas/ListResponse'
         '400':
           description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/ErrorDetails'
 components:
   schemas:
-    ListUsersRequest:
+    ListRequest:
       type: object
       properties:
-        offset:
-          type: integer
-        limit:
-          type: integer
-    ListUsersResponse:
+        pagination:
+          $ref: '#/components/schemas/PaginationRequest'
+    PaginationRequest:
       type: object
       properties:
-        users:
+        first:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 100
+        after:
+          type: string
+    ListResponse:
+      type: object
+      properties:
+        items:
           type: array
           items:
-            $ref: '#/components/schemas/UserResponse'
-        total:
-          type: integer
-    UserResponse:
+            $ref: '#/components/schemas/User'
+        pagination:
+          $ref: '#/components/schemas/PaginationResponse'
+    PaginationResponse:
+      type: object
+      properties:
+        endCursor:
+          type: string
+        hasMore:
+          type: boolean
+    User:
       type: object
       properties:
         id:
           type: string
-    Error:
+    ErrorDetails:
       type: object
       required:
-        - code
         - message
       properties:
-        code:
-          type: integer
         message:
           type: string
 `

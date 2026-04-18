@@ -1,0 +1,82 @@
+openapi: 3.0.0
+info:
+  title: Shared Schemas
+  version: 1.0.0
+  description: Spec with shared request/response schemas across operations
+
+servers:
+  - url: https://api.example.com/v1
+
+paths:
+  /pets.create:
+    post:
+      operationId: createPet
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SharedRequest'
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateResponse'
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetails'
+
+  /pets.update:
+    post:
+      operationId: updatePet
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SharedRequest'
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateResponse'
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetails'
+
+components:
+  schemas:
+    SharedRequest:
+      type: object
+      properties:
+        name:
+          type: string
+
+    CreateResponse:
+      type: object
+      properties:
+        petId:
+          type: string
+
+    UpdateResponse:
+      type: object
+      properties:
+        petId:
+          type: string
+
+    ErrorDetails:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string

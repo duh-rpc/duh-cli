@@ -30,49 +30,289 @@ func TestLinterAllRuleViolations(t *testing.T) {
 		{
 			name:              "BadPathFormat",
 			file:              "testdata/bad-path-format.yaml",
-			expectedViolation: "[path-format]",
+			expectedViolation: "[PATH_FORMAT]",
 			expectedExitCode:  1,
 		},
 		{
 			name:              "WrongHTTPMethod",
 			file:              "testdata/wrong-http-method.yaml",
-			expectedViolation: "[http-method]",
+			expectedViolation: "[HTTP_METHOD_ALLOWED]",
 			expectedExitCode:  1,
 		},
 		{
 			name:              "HasQueryParams",
 			file:              "testdata/has-query-params.yaml",
-			expectedViolation: "[query-parameters]",
+			expectedViolation: "[POST_NO_QUERY_PARAMS]",
 			expectedExitCode:  1,
 		},
 		{
 			name:              "MissingRequestBody",
 			file:              "testdata/missing-request-body.yaml",
-			expectedViolation: "[request-body-required]",
+			expectedViolation: "[REQUEST_BODY_REQUIRED]",
 			expectedExitCode:  1,
 		},
 		{
 			name:              "InvalidStatusCode",
 			file:              "testdata/invalid-status-code.yaml",
-			expectedViolation: "[status-code]",
+			expectedViolation: "[STATUS_CODE_ALLOWED]",
 			expectedExitCode:  1,
 		},
 		{
 			name:              "MissingSuccessResponse",
 			file:              "testdata/missing-success-response.yaml",
-			expectedViolation: "[success-response]",
+			expectedViolation: "[SUCCESS_RESPONSE]",
 			expectedExitCode:  1,
 		},
 		{
 			name:              "InvalidContentType",
 			file:              "testdata/invalid-content-type.yaml",
-			expectedViolation: "[content-type]",
+			expectedViolation: "[CONTENT_TYPE]",
 			expectedExitCode:  1,
 		},
 		{
 			name:              "BadErrorSchema",
 			file:              "testdata/bad-error-schema.yaml",
-			expectedViolation: "[error-response-schema]",
+			expectedViolation: "[ERROR_SCHEMA]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "VersionPrefixInPath",
+			file:              "testdata/version-prefix-in-path.yaml",
+			expectedViolation: "[PATH_NO_VERSION_PREFIX]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "MissingServerVersion",
+			file:              "testdata/missing-server-version.yaml",
+			expectedViolation: "[SERVER_URL_VERSIONING]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "PaginationUsesLimit",
+			file:              "testdata/pagination-uses-limit.yaml",
+			expectedViolation: "[PAGINATION_PARAMETERS]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "PaginationNotNested",
+			file:              "testdata/pagination-not-nested.yaml",
+			expectedViolation: "[PAGINATED_REQUEST_STRUCTURE]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "BadRequestName",
+			file:              "testdata/bad-request-name.yaml",
+			expectedViolation: "[REQUEST_STANDARD_NAME]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "BadResponseName",
+			file:              "testdata/bad-response-name.yaml",
+			expectedViolation: "[RESPONSE_STANDARD_NAME]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "SharedSchemas",
+			file:              "testdata/shared-schemas.yaml",
+			expectedViolation: "[REQUEST_RESPONSE_UNIQUE]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "MissingIntegerFormat",
+			file:              "testdata/missing-integer-format.yaml",
+			expectedViolation: "[INTEGER_FORMAT_REQUIRED]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "NullableProperty",
+			file:              "testdata/nullable-property.yaml",
+			expectedViolation: "[NO_NULLABLE]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "NestedArray",
+			file:              "testdata/nested-array.yaml",
+			expectedViolation: "[NO_NESTED_ARRAYS]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "UntypedAdditionalProperties",
+			file:              "testdata/untyped-additional-properties.yaml",
+			expectedViolation: "[TYPED_ADDITIONAL_PROPERTIES]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "UsesOneOf",
+			file:              "testdata/uses-oneof.yaml",
+			expectedViolation: "[PROHIBITED_ONEOF]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "BadPaginatedResponse",
+			file:              "testdata/bad-paginated-response.yaml",
+			expectedViolation: "[RESPONSE_PAGINATED_STRUCTURE]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "BadPaginationParams",
+			file:              "testdata/bad-pagination-params.yaml",
+			expectedViolation: "[PAGINATION_PARAMETERS]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "UnderscoreInPath",
+			file:              "testdata/underscore-in-path.yaml",
+			expectedViolation: "[PATH_HYPHEN_SEPARATOR]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "SingularResource",
+			file:              "testdata/singular-resource.yaml",
+			expectedViolation: "[PATH_PLURAL_RESOURCES]",
+			expectedExitCode:  0,
+		},
+		{
+			name:              "MultiplePathParams",
+			file:              "testdata/multiple-path-params.yaml",
+			expectedViolation: "[PATH_MULTIPLE_PARAMETERS]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "InlineObject",
+			file:              "testdata/inline-object.yaml",
+			expectedViolation: "[SCHEMA_NO_INLINE_OBJECTS]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "NonCamelCaseProperty",
+			file:              "testdata/non-camelcase-property.yaml",
+			expectedViolation: "[PROPERTY_CAMELCASE]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "NullTypeArray",
+			file:              "testdata/null-type-array.yaml",
+			expectedViolation: "[NO_NULLABLE]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "ResponseAdditionalPropertiesFalse",
+			file:              "testdata/response-additional-properties-false.yaml",
+			expectedViolation: "[SCHEMA_ADDITIONAL_PROPERTIES_RESPONSE]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "NullableOptionalResponse",
+			file:              "testdata/nullable-optional-response.yaml",
+			expectedViolation: "[NULLABLE_OPTIONAL_RESPONSE]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "UsesAnyOf",
+			file:              "testdata/uses-anyof.yaml",
+			expectedViolation: "[PROHIBITED_ANYOF]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "UsesAllOfUnion",
+			file:              "testdata/uses-allof-union.yaml",
+			expectedViolation: "[PROHIBITED_ALLOF]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "UsesReadOnly",
+			file:              "testdata/uses-readonly.yaml",
+			expectedViolation: "[PROHIBITED_READONLY_WRITEONLY]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "UsesXML",
+			file:              "testdata/uses-xml.yaml",
+			expectedViolation: "[PROHIBITED_XML]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "UsesCookieParam",
+			file:              "testdata/uses-cookie-param.yaml",
+			expectedViolation: "[PROHIBITED_COOKIES]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "ResponseHasLinks",
+			file:              "testdata/response-has-links.yaml",
+			expectedViolation: "[PROHIBITED_HATEOAS]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "ParamHasStyle",
+			file:              "testdata/param-has-style.yaml",
+			expectedViolation: "[PROHIBITED_PARAMETER_STYLES]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "UsesPluralExamples",
+			file:              "testdata/uses-plural-examples.yaml",
+			expectedViolation: "[PROHIBITED_MULTIPLE_EXAMPLES]",
+			expectedExitCode:  0,
+		},
+		{
+			name:              "BadTimestampFormat",
+			file:              "testdata/bad-timestamp-format.yaml",
+			expectedViolation: "[TIMESTAMP_FORMAT]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "BadDateFormat",
+			file:              "testdata/bad-date-format.yaml",
+			expectedViolation: "[DATE_FORMAT]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "AmountNotString",
+			file:              "testdata/amount-not-string.yaml",
+			expectedViolation: "[AMOUNT_DECIMAL_STRING]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "AmountMissingAssetType",
+			file:              "testdata/amount-missing-asset-type.yaml",
+			expectedViolation: "[AMOUNT_SCHEMA_PATTERN]",
+			expectedExitCode:  0,
+		},
+		{
+			name:              "MissingIdempotencyMaxLength",
+			file:              "testdata/missing-idempotency-max-length.yaml",
+			expectedViolation: "[IDEMPOTENCY_KEY_DEFINITION]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "MissingDescription",
+			file:              "testdata/missing-description.yaml",
+			expectedViolation: "[DESCRIPTION_REQUIRED]",
+			expectedExitCode:  0,
+		},
+		{
+			name:              "OneOfNoDiscriminator",
+			file:              "testdata/oneof-no-discriminator.yaml",
+			expectedViolation: "[DISCRIMINATOR_REQUIRED]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "DiscriminatorNoMapping",
+			file:              "testdata/discriminator-no-mapping.yaml",
+			expectedViolation: "[DISCRIMINATOR_MAPPING]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "DiscriminatorWrongProperty",
+			file:              "testdata/discriminator-wrong-property.yaml",
+			expectedViolation: "[DISCRIMINATOR_PROPERTY_NAME]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "DiscriminatorMissingVariantField",
+			file:              "testdata/discriminator-missing-variant-field.yaml",
+			expectedViolation: "[DISCRIMINATOR_VARIANT_FIELD]",
 			expectedExitCode:  1,
 		},
 	}
@@ -86,8 +326,7 @@ func TestLinterAllRuleViolations(t *testing.T) {
 			assert.Equal(t, test.expectedExitCode, exitCode)
 			output := stdout.String()
 			assert.Contains(t, output, test.expectedViolation)
-			assert.Contains(t, output, "ERRORS FOUND:")
-			assert.Contains(t, output, "Summary:")
+			assert.Contains(t, output, "errors")
 		})
 	}
 }
@@ -103,14 +342,50 @@ func TestLinterMultipleViolations(t *testing.T) {
 
 	// Verify expected violations are reported
 	expectedViolations := []string{
-		"[path-format]",
-		"[http-method]",
-		"[query-parameters]",
-		"[request-body-required]",
-		"[status-code]",
-		"[content-type]",
-		"[error-response-schema]",
-		"[success-response]",
+		"[PATH_FORMAT]",
+		"[PATH_NO_VERSION_PREFIX]",
+		"[HTTP_METHOD_ALLOWED]",
+		"[POST_NO_QUERY_PARAMS]",
+		"[REQUEST_BODY_REQUIRED]",
+		"[STATUS_CODE_ALLOWED]",
+		"[CONTENT_TYPE]",
+		"[ERROR_SCHEMA]",
+		"[SUCCESS_RESPONSE]",
+		"[REQUEST_STANDARD_NAME]",
+		"[RESPONSE_STANDARD_NAME]",
+		"[REQUEST_RESPONSE_UNIQUE]",
+		"[INTEGER_FORMAT_REQUIRED]",
+		"[NO_NULLABLE]",
+		"[NO_NESTED_ARRAYS]",
+		"[TYPED_ADDITIONAL_PROPERTIES]",
+		"[PROHIBITED_ONEOF]",
+		"[RESPONSE_PAGINATED_STRUCTURE]",
+		"[PAGINATION_PARAMETERS]",
+		"[PATH_HYPHEN_SEPARATOR]",
+		"[PATH_PLURAL_RESOURCES]",
+		"[PATH_MULTIPLE_PARAMETERS]",
+		"[SCHEMA_NO_INLINE_OBJECTS]",
+		"[PROPERTY_CAMELCASE]",
+		"[SCHEMA_ADDITIONAL_PROPERTIES_RESPONSE]",
+		"[NULLABLE_OPTIONAL_RESPONSE]",
+		"[PROHIBITED_ANYOF]",
+		"[PROHIBITED_ALLOF]",
+		"[PROHIBITED_READONLY_WRITEONLY]",
+		"[PROHIBITED_XML]",
+		"[PROHIBITED_COOKIES]",
+		"[PROHIBITED_HATEOAS]",
+		"[PROHIBITED_PARAMETER_STYLES]",
+		"[PROHIBITED_MULTIPLE_EXAMPLES]",
+		"[TIMESTAMP_FORMAT]",
+		"[DATE_FORMAT]",
+		"[AMOUNT_DECIMAL_STRING]",
+		"[AMOUNT_SCHEMA_PATTERN]",
+		"[IDEMPOTENCY_KEY_DEFINITION]",
+		"[DESCRIPTION_REQUIRED]",
+		"[DISCRIMINATOR_REQUIRED]",
+		"[DISCRIMINATOR_MAPPING]",
+		"[DISCRIMINATOR_PROPERTY_NAME]",
+		"[DISCRIMINATOR_VARIANT_FIELD]",
 	}
 
 	for _, violation := range expectedViolations {
@@ -118,12 +393,11 @@ func TestLinterMultipleViolations(t *testing.T) {
 	}
 
 	// Verify output structure
-	assert.Contains(t, output, "ERRORS FOUND:")
-	assert.Contains(t, output, "Summary:")
+	assert.Contains(t, output, "errors")
 
-	// Count violations - should have at least 8 (one for each rule type)
-	violationCount := strings.Count(output, "[")
-	assert.GreaterOrEqual(t, violationCount, 8)
+	// Count violations - should have at least 42 (28 existing + 14 new ERROR violations)
+	violationCount := strings.Count(output, "[ERROR]")
+	assert.GreaterOrEqual(t, violationCount, 42)
 }
 
 func TestLinterFileNotFound(t *testing.T) {

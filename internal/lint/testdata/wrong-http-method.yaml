@@ -3,7 +3,7 @@ info:
   title: Wrong HTTP Methods
   version: 1.0.0
 paths:
-  /v1/users.list:
+  /users.list:
     get:  # Should be POST
       responses:
         200:
@@ -12,7 +12,7 @@ paths:
             application/json:
               schema:
                 type: array
-  /v1/users.update:
+  /users.update:
     put:  # Should be POST
       requestBody:
         content:

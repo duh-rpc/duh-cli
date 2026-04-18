@@ -8,11 +8,10 @@ import (
 
 // Page represents a page of results from paginated API
 type Page[T any] struct {
-	Items      []T
-	Total      int
-	Page       int
-	PerPage    int
-	TotalPages int
+	Items   []T
+	Page    int
+	PerPage int
+	HasMore bool
 }
 
 // Iterator provides iteration over paginated API resources
@@ -30,7 +29,7 @@ type PageFetcher[T any] interface {
 type GenericIterator[T any] struct {
 	fetcher     PageFetcher[T]
 	currentPage int
-	totalPages  int
+	hasMore     bool
 	err         error
 	initialized bool
 }
@@ -39,6 +38,7 @@ type GenericIterator[T any] struct {
 func NewGenericIterator[T any](fetcher PageFetcher[T]) *GenericIterator[T] {
 	return &GenericIterator[T]{
 		fetcher: fetcher,
+		hasMore: true,
 	}
 }
 
@@ -58,7 +58,7 @@ func (it *GenericIterator[T]) Next(ctx context.Context, page *Page[T]) bool {
 		it.initialized = true
 	}
 
-	if it.totalPages > 0 && it.currentPage >= it.totalPages {
+	if !it.hasMore {
 		return false
 	}
 
@@ -69,13 +69,10 @@ func (it *GenericIterator[T]) Next(ctx context.Context, page *Page[T]) bool {
 		return false
 	}
 
-	if it.currentPage == 1 {
-		it.totalPages = fetchedPage.TotalPages
-	}
-
+	it.hasMore = fetchedPage.HasMore
 	*page = *fetchedPage
 
-	return it.currentPage <= it.totalPages
+	return true
 }
 
 // Err returns any error encountered during iteration

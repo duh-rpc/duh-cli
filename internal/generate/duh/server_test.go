@@ -16,8 +16,10 @@ const multiOpSpec = `openapi: 3.0.0
 info:
   title: Test API
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/users.create:
+  /users.create:
     post:
       summary: Create a new user
       requestBody:
@@ -25,21 +27,21 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateUserRequest'
+              $ref: '#/components/schemas/CreateRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserResponse'
+                $ref: '#/components/schemas/CreateResponse'
         '400':
           description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-  /v1/users.get:
+                $ref: '#/components/schemas/ErrorDetails'
+  /users.get:
     post:
       summary: Get user by ID
       requestBody:
@@ -47,21 +49,21 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/GetUserRequest'
+              $ref: '#/components/schemas/GetRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserResponse'
+                $ref: '#/components/schemas/GetResponse'
         '400':
           description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-  /v1/users.update:
+                $ref: '#/components/schemas/ErrorDetails'
+  /users.update:
     post:
       summary: Update a user
       requestBody:
@@ -69,57 +71,59 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateUserRequest'
+              $ref: '#/components/schemas/UpdateRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UpdateUserResponse'
+                $ref: '#/components/schemas/UpdateResponse'
         '400':
           description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/ErrorDetails'
 components:
   schemas:
-    CreateUserRequest:
+    CreateRequest:
       type: object
       properties:
         name:
           type: string
-    GetUserRequest:
+    GetRequest:
       type: object
       properties:
         id:
           type: string
-    UpdateUserRequest:
+    UpdateRequest:
       type: object
       properties:
         id:
           type: string
         name:
           type: string
-    UserResponse:
+    CreateResponse:
       type: object
       properties:
         id:
           type: string
-    UpdateUserResponse:
+    GetResponse:
       type: object
       properties:
         id:
           type: string
-    Error:
+    UpdateResponse:
+      type: object
+      properties:
+        id:
+          type: string
+    ErrorDetails:
       type: object
       required:
-        - code
         - message
       properties:
-        code:
-          type: integer
         message:
           type: string
 `
@@ -138,8 +142,8 @@ func TestGeneratedServerCompiles(t *testing.T) {
 
 package duh.api.v1;
 
-message CreateUserRequest {}
-message UserResponse {}
+message CreateRequest {}
+message CreateResponse {}
 `
 	require.NoError(t, os.WriteFile(filepath.Join(protoDir, "api.proto"), []byte(protoStub), 0644))
 
@@ -150,29 +154,29 @@ import (
 	"google.golang.org/protobuf/runtime/protoimpl"
 )
 
-type CreateUserRequest struct {
+type CreateRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 }
 
-func (x *CreateUserRequest) Reset() {}
-func (x *CreateUserRequest) String() string { return "CreateUserRequest{}" }
-func (x *CreateUserRequest) ProtoMessage() {}
-func (x *CreateUserRequest) ProtoReflect() protoreflect.Message {
+func (x *CreateRequest) Reset() {}
+func (x *CreateRequest) String() string { return "CreateRequest{}" }
+func (x *CreateRequest) ProtoMessage() {}
+func (x *CreateRequest) ProtoReflect() protoreflect.Message {
 	return (&protoimpl.MessageInfo{}).MessageOf(x)
 }
 
-type UserResponse struct {
+type CreateResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 }
 
-func (x *UserResponse) Reset() {}
-func (x *UserResponse) String() string { return "UserResponse{}" }
-func (x *UserResponse) ProtoMessage() {}
-func (x *UserResponse) ProtoReflect() protoreflect.Message {
+func (x *CreateResponse) Reset() {}
+func (x *CreateResponse) String() string { return "CreateResponse{}" }
+func (x *CreateResponse) ProtoMessage() {}
+func (x *CreateResponse) ProtoReflect() protoreflect.Message {
 	return (&protoimpl.MessageInfo{}).MessageOf(x)
 }
 `

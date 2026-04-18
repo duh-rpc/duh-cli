@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	lint "github.com/duh-rpc/duh-cli"
+	duh "github.com/duh-rpc/duh-cli"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -22,8 +22,10 @@ openapi: 3.0.0
 info:
   title: Test
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/test.action:
+  /tests.action:
     post:
       requestBody:
         required: true
@@ -44,12 +46,16 @@ paths:
             application/json:
               schema:
                 type: object
-                required: [code, message]
+                required: [message]
                 properties:
-                  code:
-                    type: integer
                   message:
                     type: string
+                  code:
+                    type: string
+                  details:
+                    type: object
+                    additionalProperties:
+                      type: string
 `,
 			expectedExit:   0,
 			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
@@ -61,8 +67,10 @@ openapi: 3.0.0
 info:
   title: Test
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/test.action:
+  /tests.action:
     post:
       requestBody:
         required: true
@@ -83,14 +91,14 @@ paths:
             application/json:
               schema:
                 type: object
-                required: [code, message]
+                required: [message]
                 properties:
-                  code:
-                    type: integer
                   message:
                     type: string
                   details:
                     type: object
+                    additionalProperties:
+                      type: string
 `,
 			expectedExit:   0,
 			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
@@ -103,7 +111,7 @@ info:
   title: Test
   version: 1.0.0
 paths:
-  /v1/test.action:
+  /tests.action:
     post:
       requestBody:
         required: true
@@ -129,8 +137,8 @@ paths:
                     type: string
 `,
 			expectedExit: 1,
-			expectedOutput: `[error-response-schema] POST /v1/test.action response 400 (application/json)
-  error schema must have required fields: code and message`,
+			expectedOutput: `[ERROR] [ERROR_SCHEMA] POST /tests.action response 400 (application/json)
+  error schema must have required field: message`,
 		},
 		{
 			name: "WrongFieldTypes",
@@ -140,7 +148,7 @@ info:
   title: Test
   version: 1.0.0
 paths:
-  /v1/test.action:
+  /tests.action:
     post:
       requestBody:
         required: true
@@ -169,8 +177,8 @@ paths:
                     type: integer
 `,
 			expectedExit: 1,
-			expectedOutput: `[error-response-schema] POST /v1/test.action response 500 (application/json)
-  code field must be type integer`,
+			expectedOutput: `[ERROR] [ERROR_SCHEMA] POST /tests.action response 500 (application/json)
+  message field must be type string`,
 		},
 		{
 			name: "MissingObjectType",
@@ -180,7 +188,7 @@ info:
   title: Test
   version: 1.0.0
 paths:
-  /v1/test.action:
+  /tests.action:
     post:
       requestBody:
         required: true
@@ -200,15 +208,13 @@ paths:
           content:
             application/json:
               schema:
-                required: [code, message]
+                required: [message]
                 properties:
-                  code:
-                    type: integer
                   message:
                     type: string
 `,
 			expectedExit: 1,
-			expectedOutput: `[error-response-schema] POST /v1/test.action response 400 (application/json)
+			expectedOutput: `[ERROR] [ERROR_SCHEMA] POST /tests.action response 400 (application/json)
   error schema must have explicit type 'object'`,
 		},
 		{
@@ -219,7 +225,7 @@ info:
   title: Test
   version: 1.0.0
 paths:
-  /v1/test.action:
+  /tests.action:
     post:
       requestBody:
         required: true
@@ -240,18 +246,259 @@ paths:
             application/json:
               schema:
                 type: object
-                required: [code, message]
+                required: [message]
                 properties:
-                  code:
-                    type: integer
                   message:
                     type: string
                   details:
                     type: string
 `,
 			expectedExit: 1,
-			expectedOutput: `[error-response-schema] POST /v1/test.action response 400 (application/json)
+			expectedOutput: `[ERROR] [ERROR_SCHEMA] POST /tests.action response 400 (application/json)
   details field must be type object`,
+		},
+		{
+			name: "CodeAsInteger",
+			spec: `
+openapi: 3.0.0
+info:
+  title: Test
+  version: 1.0.0
+paths:
+  /tests.action:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [message]
+                properties:
+                  message:
+                    type: string
+                  code:
+                    type: integer
+`,
+			expectedExit: 1,
+			expectedOutput: `[ERROR] [ERROR_SCHEMA] POST /tests.action response 400 (application/json)
+  code field must be type string`,
+		},
+		{
+			name: "TypeFieldAsInteger",
+			spec: `
+openapi: 3.0.0
+info:
+  title: Test
+  version: 1.0.0
+paths:
+  /tests.action:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [message]
+                properties:
+                  message:
+                    type: string
+                  type:
+                    type: integer
+`,
+			expectedExit: 1,
+			expectedOutput: `[ERROR] [ERROR_SCHEMA] POST /tests.action response 400 (application/json)
+  type field must be type string`,
+		},
+		{
+			name: "CodeAbsentIsValid",
+			spec: `
+openapi: 3.0.0
+info:
+  title: Test
+  version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
+paths:
+  /tests.action:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [message]
+                properties:
+                  message:
+                    type: string
+`,
+			expectedExit:   0,
+			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
+		},
+		{
+			name: "DetailsWithoutAdditionalProperties",
+			spec: `
+openapi: 3.0.0
+info:
+  title: Test
+  version: 1.0.0
+paths:
+  /tests.action:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [message]
+                properties:
+                  message:
+                    type: string
+                  details:
+                    type: object
+`,
+			expectedExit: 1,
+			expectedOutput: `[ERROR] [ERROR_SCHEMA] POST /tests.action response 400 (application/json)
+  details field must have additionalProperties with type string`,
+		},
+		{
+			name: "DetailsWithAdditionalPropertiesTrue",
+			spec: `
+openapi: 3.0.0
+info:
+  title: Test
+  version: 1.0.0
+paths:
+  /tests.action:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [message]
+                properties:
+                  message:
+                    type: string
+                  details:
+                    type: object
+                    additionalProperties: true
+`,
+			expectedExit: 1,
+			expectedOutput: `[ERROR] [ERROR_SCHEMA] POST /tests.action response 400 (application/json)
+  details field must have additionalProperties with type string`,
+		},
+		{
+			name: "DetailsWithValidAdditionalProperties",
+			spec: `
+openapi: 3.0.0
+info:
+  title: Test
+  version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
+paths:
+  /tests.action:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [message]
+                properties:
+                  message:
+                    type: string
+                  details:
+                    type: object
+                    additionalProperties:
+                      type: string
+`,
+			expectedExit:   0,
+			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
 		},
 		{
 			name: "MultipleErrorStatusCodes",
@@ -260,8 +507,10 @@ openapi: 3.0.0
 info:
   title: Test
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/test.action:
+  /tests.action:
     post:
       requestBody:
         required: true
@@ -282,10 +531,8 @@ paths:
             application/json:
               schema:
                 type: object
-                required: [code, message]
+                required: [message]
                 properties:
-                  code:
-                    type: integer
                   message:
                     type: string
         500:
@@ -294,10 +541,8 @@ paths:
             application/json:
               schema:
                 type: object
-                required: [code, message]
+                required: [message]
                 properties:
-                  code:
-                    type: integer
                   message:
                     type: string
 `,
@@ -311,8 +556,10 @@ openapi: 3.0.0
 info:
   title: Test
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/test.action:
+  /tests.action:
     post:
       requestBody:
         required: true
@@ -333,10 +580,8 @@ paths:
             application/json:
               schema:
                 type: object
-                required: [code, message]
+                required: [message]
                 properties:
-                  code:
-                    type: integer
                   message:
                     type: string
         401:
@@ -345,10 +590,8 @@ paths:
             application/json:
               schema:
                 type: object
-                required: [code, message]
+                required: [message]
                 properties:
-                  code:
-                    type: integer
                   message:
                     type: string
         403:
@@ -357,10 +600,8 @@ paths:
             application/json:
               schema:
                 type: object
-                required: [code, message]
+                required: [message]
                 properties:
-                  code:
-                    type: integer
                   message:
                     type: string
         404:
@@ -369,10 +610,18 @@ paths:
             application/json:
               schema:
                 type: object
-                required: [code, message]
+                required: [message]
                 properties:
-                  code:
-                    type: integer
+                  message:
+                    type: string
+        409:
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [message]
+                properties:
                   message:
                     type: string
         429:
@@ -381,22 +630,8 @@ paths:
             application/json:
               schema:
                 type: object
-                required: [code, message]
+                required: [message]
                 properties:
-                  code:
-                    type: integer
-                  message:
-                    type: string
-        452:
-          description: Custom Error
-          content:
-            application/json:
-              schema:
-                type: object
-                required: [code, message]
-                properties:
-                  code:
-                    type: integer
                   message:
                     type: string
         500:
@@ -405,10 +640,8 @@ paths:
             application/json:
               schema:
                 type: object
-                required: [code, message]
+                required: [message]
                 properties:
-                  code:
-                    type: integer
                   message:
                     type: string
 `,
@@ -420,7 +653,7 @@ paths:
 			filePath := writeYAML(t, test.spec)
 
 			var stdout bytes.Buffer
-			exitCode := lint.RunCmd(&stdout, []string{"lint", filePath})
+			exitCode := duh.RunCmd(&stdout, []string{"lint", filePath})
 
 			assert.Equal(t, test.expectedExit, exitCode)
 			assert.Contains(t, stdout.String(), test.expectedOutput)
@@ -434,8 +667,10 @@ openapi: 3.0.0
 info:
   title: Test
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/test.action:
+  /tests.action:
     post:
       requestBody:
         required: true
@@ -455,31 +690,35 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/ErrorDetails'
         500:
           description: Server Error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/ErrorDetails'
 components:
   schemas:
-    Error:
+    ErrorDetails:
       type: object
-      required: [code, message]
+      required: [message]
       properties:
-        code:
-          type: integer
         message:
+          type: string
+        code:
+          type: string
+        type:
           type: string
         details:
           type: object
+          additionalProperties:
+            type: string
 `
 
 	filePath := writeYAML(t, spec)
 
 	var stdout bytes.Buffer
-	exitCode := lint.RunCmd(&stdout, []string{"lint", filePath})
+	exitCode := duh.RunCmd(&stdout, []string{"lint", filePath})
 
 	assert.Equal(t, 0, exitCode)
 	assert.Contains(t, stdout.String(), "✓ spec.yaml is DUH-RPC compliant")
@@ -491,8 +730,10 @@ openapi: 3.0.0
 info:
   title: Test
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/test.action:
+  /tests.action:
     post:
       requestBody:
         required: true
@@ -518,22 +759,24 @@ paths:
                     properties:
                       details:
                         type: object
+                        additionalProperties:
+                          type: string
 components:
   schemas:
     BaseError:
       type: object
-      required: [code, message]
+      required: [message]
       properties:
-        code:
-          type: integer
         message:
+          type: string
+        code:
           type: string
 `
 
 	filePath := writeYAML(t, spec)
 
 	var stdout bytes.Buffer
-	exitCode := lint.RunCmd(&stdout, []string{"lint", filePath})
+	exitCode := duh.RunCmd(&stdout, []string{"lint", filePath})
 
 	assert.Equal(t, 0, exitCode)
 	assert.Contains(t, stdout.String(), "✓ spec.yaml is DUH-RPC compliant")

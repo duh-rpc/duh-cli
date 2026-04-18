@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	lint "github.com/duh-rpc/duh-cli"
+	duh "github.com/duh-rpc/duh-cli"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -25,7 +25,7 @@ func TestMain(m *testing.M) {
 
 func TestRunCmdHelp(t *testing.T) {
 	var stdout bytes.Buffer
-	exitCode := lint.RunCmd(&stdout, []string{"--help"})
+	exitCode := duh.RunCmd(&stdout, []string{"--help"})
 
 	assert.Equal(t, 0, exitCode)
 	assert.Contains(t, stdout.String(), "duh is a command-line tool")
@@ -35,7 +35,7 @@ func TestRunCmdHelp(t *testing.T) {
 
 func TestRunCmdVersion(t *testing.T) {
 	var stdout bytes.Buffer
-	exitCode := lint.RunCmd(&stdout, []string{"--version"})
+	exitCode := duh.RunCmd(&stdout, []string{"--version"})
 
 	assert.Equal(t, 0, exitCode)
 	assert.Contains(t, stdout.String(), "duh version")
@@ -44,7 +44,7 @@ func TestRunCmdVersion(t *testing.T) {
 
 func TestRunCmdFileNotFound(t *testing.T) {
 	var stdout bytes.Buffer
-	exitCode := lint.RunCmd(&stdout, []string{"lint", "nonexistent.yaml"})
+	exitCode := duh.RunCmd(&stdout, []string{"lint", "nonexistent.yaml"})
 
 	assert.Equal(t, 2, exitCode)
 	assert.Contains(t, stdout.String(), "Error:")
@@ -67,7 +67,7 @@ func TestRunCmdNoArguments(t *testing.T) {
 	require.NoError(t, err)
 
 	var stdout bytes.Buffer
-	exitCode := lint.RunCmd(&stdout, []string{"lint"})
+	exitCode := duh.RunCmd(&stdout, []string{"lint"})
 
 	assert.Equal(t, 0, exitCode)
 	assert.Contains(t, stdout.String(), "✓")
@@ -76,7 +76,7 @@ func TestRunCmdNoArguments(t *testing.T) {
 
 func TestRunCmdMultipleArguments(t *testing.T) {
 	var stdout bytes.Buffer
-	exitCode := lint.RunCmd(&stdout, []string{"lint", "file1.yaml", "file2.yaml"})
+	exitCode := duh.RunCmd(&stdout, []string{"lint", "file1.yaml", "file2.yaml"})
 
 	assert.Equal(t, 2, exitCode)
 	output := strings.ToLower(stdout.String())
@@ -98,7 +98,7 @@ func TestLintWithDefaultFile(t *testing.T) {
 	require.NoError(t, err)
 
 	var stdout bytes.Buffer
-	exitCode := lint.RunCmd(&stdout, []string{"lint"})
+	exitCode := duh.RunCmd(&stdout, []string{"lint"})
 
 	assert.Equal(t, 0, exitCode)
 	assert.Contains(t, stdout.String(), "✓")
@@ -113,7 +113,7 @@ func TestLintWithDefaultFileNotFound(t *testing.T) {
 	require.NoError(t, err)
 
 	var stdout bytes.Buffer
-	exitCode := lint.RunCmd(&stdout, []string{"lint"})
+	exitCode := duh.RunCmd(&stdout, []string{"lint"})
 
 	assert.Equal(t, 2, exitCode)
 	assert.Contains(t, stdout.String(), "Error:")
@@ -137,7 +137,7 @@ func TestLintWithExplicitFile(t *testing.T) {
 	require.NoError(t, err)
 
 	var stdout bytes.Buffer
-	exitCode := lint.RunCmd(&stdout, []string{"lint", customFile})
+	exitCode := duh.RunCmd(&stdout, []string{"lint", customFile})
 
 	assert.Equal(t, 0, exitCode)
 	assert.Contains(t, stdout.String(), "✓")
@@ -153,7 +153,7 @@ func TestInitCommandWithDefaultPath(t *testing.T) {
 
 	var stdout bytes.Buffer
 	const defaultOutput = "openapi.yaml"
-	exitCode := lint.RunCmd(&stdout, []string{"init"})
+	exitCode := duh.RunCmd(&stdout, []string{"init"})
 
 	require.Equal(t, 0, exitCode)
 	require.Contains(t, stdout.String(), "✓ Created DUH-RPC compliant OpenAPI spec")
@@ -170,7 +170,7 @@ func TestInitCommandWithCustomPath(t *testing.T) {
 	customPath := filepath.Join(tempDir, "custom-api.yaml")
 
 	var stdout bytes.Buffer
-	exitCode := lint.RunCmd(&stdout, []string{"init", customPath})
+	exitCode := duh.RunCmd(&stdout, []string{"init", customPath})
 
 	require.Equal(t, 0, exitCode)
 	require.Contains(t, stdout.String(), "✓ Created DUH-RPC compliant OpenAPI spec")
@@ -190,7 +190,7 @@ func TestInitCommandFileAlreadyExists(t *testing.T) {
 	require.NoError(t, err)
 
 	var stdout bytes.Buffer
-	exitCode := lint.RunCmd(&stdout, []string{"init", existingFile})
+	exitCode := duh.RunCmd(&stdout, []string{"init", existingFile})
 
 	require.Equal(t, 2, exitCode)
 	require.Contains(t, stdout.String(), "Error:")
@@ -202,7 +202,7 @@ func TestInitCommandCreatesNestedDirectories(t *testing.T) {
 	nestedPath := filepath.Join(tempDir, "api", "v1", "openapi.yaml")
 
 	var stdout bytes.Buffer
-	exitCode := lint.RunCmd(&stdout, []string{"init", nestedPath})
+	exitCode := duh.RunCmd(&stdout, []string{"init", nestedPath})
 
 	require.Equal(t, 0, exitCode)
 
@@ -216,11 +216,11 @@ func TestInitGeneratedFilePassesLint(t *testing.T) {
 	outputPath := filepath.Join(tempDir, "openapi.yaml")
 
 	var initStdout bytes.Buffer
-	initExitCode := lint.RunCmd(&initStdout, []string{"init", outputPath})
+	initExitCode := duh.RunCmd(&initStdout, []string{"init", outputPath})
 	require.Equal(t, 0, initExitCode)
 
 	var lintStdout bytes.Buffer
-	lintExitCode := lint.RunCmd(&lintStdout, []string{"lint", outputPath})
+	lintExitCode := duh.RunCmd(&lintStdout, []string{"lint", outputPath})
 	require.Equal(t, 0, lintExitCode)
 	require.Contains(t, lintStdout.String(), "✓")
 	require.Contains(t, lintStdout.String(), "DUH-RPC compliant")
@@ -228,7 +228,7 @@ func TestInitGeneratedFilePassesLint(t *testing.T) {
 
 func TestInitCommandHelp(t *testing.T) {
 	var stdout bytes.Buffer
-	exitCode := lint.RunCmd(&stdout, []string{"init", "--help"})
+	exitCode := duh.RunCmd(&stdout, []string{"init", "--help"})
 
 	require.Equal(t, 0, exitCode)
 	require.Contains(t, stdout.String(), "init")
@@ -238,9 +238,147 @@ func TestInitCommandHelp(t *testing.T) {
 
 func TestGenerateOapiCommandRemoved(t *testing.T) {
 	var stdout bytes.Buffer
-	exitCode := lint.RunCmd(&stdout, []string{"generate", "oapi"})
+	exitCode := duh.RunCmd(&stdout, []string{"generate", "oapi"})
 
 	require.Equal(t, 2, exitCode)
 	output := strings.ToLower(stdout.String())
 	require.Contains(t, output, "file not found")
+}
+
+func TestConfigDisableRules(t *testing.T) {
+	tempDir := t.TempDir()
+
+	// Spec that triggers DESCRIPTION_REQUIRED warning (missing operation description)
+	specContent := `openapi: 3.0.0
+info:
+  title: Test
+  version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
+paths:
+  /pets.create:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRequest'
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    CreateRequest:
+      type: object
+      properties:
+        name:
+          description: The name
+          type: string
+    Error:
+      type: object
+      required: [message]
+      properties:
+        message:
+          description: Error message
+          type: string`
+
+	specPath := filepath.Join(tempDir, "spec.yaml")
+	require.NoError(t, os.WriteFile(specPath, []byte(specContent), 0644))
+
+	// Without config, DESCRIPTION_REQUIRED should appear in output
+	var stdout1 bytes.Buffer
+	t.Cleanup(func() { _ = os.Chdir(testStartDir) })
+	require.NoError(t, os.Chdir(tempDir))
+
+	exitCode := duh.RunCmd(&stdout1, []string{"lint", specPath})
+	assert.Equal(t, 0, exitCode)
+	assert.Contains(t, stdout1.String(), "DESCRIPTION_REQUIRED")
+
+	// Write .duh.yaml disabling DESCRIPTION_REQUIRED
+	configContent := `lint:
+  disable:
+    - DESCRIPTION_REQUIRED
+`
+	require.NoError(t, os.WriteFile(filepath.Join(tempDir, ".duh.yaml"), []byte(configContent), 0644))
+
+	// With config, DESCRIPTION_REQUIRED should not appear
+	var stdout2 bytes.Buffer
+	exitCode = duh.RunCmd(&stdout2, []string{"lint", specPath})
+	assert.Equal(t, 0, exitCode)
+	assert.NotContains(t, stdout2.String(), "DESCRIPTION_REQUIRED")
+}
+
+func TestCliDisableFlag(t *testing.T) {
+	tempDir := t.TempDir()
+
+	// Spec that triggers DESCRIPTION_REQUIRED warning (missing operation description)
+	specContent := `openapi: 3.0.0
+info:
+  title: Test
+  version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
+paths:
+  /pets.create:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRequest'
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    CreateRequest:
+      type: object
+      properties:
+        name:
+          description: The name
+          type: string
+    Error:
+      type: object
+      required: [message]
+      properties:
+        message:
+          description: Error message
+          type: string`
+
+	specPath := filepath.Join(tempDir, "spec.yaml")
+	require.NoError(t, os.WriteFile(specPath, []byte(specContent), 0644))
+
+	// Without --disable, DESCRIPTION_REQUIRED appears
+	var stdout1 bytes.Buffer
+	exitCode := duh.RunCmd(&stdout1, []string{"lint", specPath})
+	assert.Equal(t, 0, exitCode)
+	assert.Contains(t, stdout1.String(), "DESCRIPTION_REQUIRED")
+
+	// With --disable DESCRIPTION_REQUIRED, it should not appear
+	var stdout2 bytes.Buffer
+	exitCode = duh.RunCmd(&stdout2, []string{"lint", "--disable", "DESCRIPTION_REQUIRED", specPath})
+	assert.Equal(t, 0, exitCode)
+	assert.NotContains(t, stdout2.String(), "DESCRIPTION_REQUIRED")
 }

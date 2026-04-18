@@ -3,7 +3,7 @@ info:
   title: Invalid Content Types
   version: 1.0.0
 paths:
-  /v1/users.create:
+  /users.create:
     post:
       requestBody:
         required: true
@@ -18,7 +18,7 @@ paths:
             application/json:
               schema:
                 type: object
-  /v1/users.update:
+  /users.update:
     post:
       requestBody:
         required: true

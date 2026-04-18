@@ -14,7 +14,7 @@ paths:
           schema:
             type: string
       responses:
-        201:  # VIOLATION: invalid status code
+        201:
           description: Created
           content:
             application/xml:  # VIOLATION: invalid content type
@@ -26,20 +26,20 @@ paths:
             application/json:
               schema:
                 type: object
-                # VIOLATION: bad error schema (missing required fields)
+                # VIOLATION: bad error schema (missing required field: message)
                 properties:
                   error:
                     type: string
 
-  /v1/products.list:
+  /v1/products.list:  # VIOLATION: PATH_NO_VERSION_PREFIX
     post:
       # VIOLATION: missing request body
       responses:
         200:
           description: Success
           # VIOLATION: missing content in 200 response
-        202:  # VIOLATION: invalid status code
-          description: Accepted
+        204:  # VIOLATION: invalid status code
+          description: No Content
           content:
             application/json:
               schema:
@@ -50,9 +50,430 @@ paths:
             application/json:
               schema:
                 type: object
-                required: [code, message]
+                required: [message]
                 properties:
-                  code:
-                    type: integer
                   message:
                     type: string
+
+  /orders.create:
+    post:
+      operationId: createOrder
+      parameters:
+        - name: session
+          in: cookie
+          schema:
+            type: string
+        - name: traceId
+          in: header
+          style: simple
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BadPayload'
+            examples:
+              example1:
+                summary: Example order
+                value:
+                  name: Order1
+              example2:
+                summary: Another order
+                value:
+                  name: Order2
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadResult'
+          links:
+            GetOrder:
+              operationId: getOrder
+              description: Get the created order
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [message]
+                properties:
+                  message:
+                    type: string
+
+  /orders.update:
+    post:
+      operationId: updateOrder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BadPayload'
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadResult'
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [message]
+                properties:
+                  message:
+                    type: string
+
+  /items.list:
+    post:
+      operationId: listItems
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                page:
+                  type: object
+                  properties:
+                    first:
+                      type: string
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: string
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [message]
+                properties:
+                  message:
+                    type: string
+
+  /user_accounts.create:
+    post:
+      operationId: createUserAccounts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserAccountsCreateRequest'
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserAccountsCreateResponse'
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [message]
+                properties:
+                  message:
+                    type: string
+
+  /pet.get:
+    post:
+      operationId: getPet
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PetGetRequest'
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PetGetResponse'
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [message]
+                properties:
+                  message:
+                    type: string
+
+  /users/{id}/posts/{postId}:
+    post:
+      operationId: getUserPost
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetPostRequest'
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetPostResponse'
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [message]
+                properties:
+                  message:
+                    type: string
+
+components:
+  schemas:
+    BadPayload:
+      type: object
+      properties:
+        name:
+          type: string
+
+    BadResult:
+      type: object
+      additionalProperties: false
+      required: [orderId]
+      properties:
+        orderId:
+          type: string
+        note:
+          type: string
+          nullable: true
+
+    ProtoViolationInteger:
+      type: object
+      properties:
+        count:
+          type: integer
+
+    ProtoViolationNullable:
+      type: object
+      properties:
+        status:
+          type: string
+          nullable: true
+
+    ProtoViolationNestedArray:
+      type: object
+      properties:
+        matrix:
+          type: array
+          items:
+            type: array
+            items:
+              type: string
+
+    ProtoViolationAdditionalProps:
+      type: object
+      additionalProperties: true
+      properties:
+        name:
+          type: string
+
+    ProtoViolationOneOf:
+      oneOf:
+        - type: object
+          properties:
+            a:
+              type: string
+        - type: object
+          properties:
+            b:
+              type: string
+
+    UserAccountsCreateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+
+    UserAccountsCreateResponse:
+      type: object
+      properties:
+        accountId:
+          type: string
+
+    PetGetRequest:
+      type: object
+      properties:
+        petId:
+          type: string
+
+    PetGetResponse:
+      type: object
+      properties:
+        petId:
+          type: string
+
+    GetPostRequest:
+      type: object
+      properties:
+        includeComments:
+          type: boolean
+
+    GetPostResponse:
+      type: object
+      properties:
+        postId:
+          type: string
+
+    SchemaViolationCamelCase:
+      type: object
+      properties:
+        first_name:
+          type: string
+
+    SchemaViolationNullSyntax:
+      type: object
+      properties:
+        name:
+          type:
+            - string
+            - "null"
+
+    ViolationAnyOf:
+      anyOf:
+        - type: object
+          properties:
+            a:
+              type: string
+        - type: object
+          properties:
+            b:
+              type: string
+
+    ViolationAllOfUnion:
+      allOf:
+        - type: object
+          properties:
+            x:
+              type: string
+        - type: object
+          properties:
+            y:
+              type: string
+
+    ViolationReadOnly:
+      type: object
+      properties:
+        status:
+          type: string
+          readOnly: true
+
+    ViolationXML:
+      type: object
+      xml:
+        name: XmlSchema
+      properties:
+        name:
+          type: string
+
+    ViolationTimestamp:
+      type: object
+      properties:
+        createdAt:
+          type: integer
+          format: int32
+
+    ViolationDate:
+      type: object
+      properties:
+        startDate:
+          type: integer
+          format: int32
+
+    ViolationAmount:
+      type: object
+      properties:
+        amount:
+          type: number
+          format: double
+
+    ViolationIdempotencyKey:
+      type: object
+      properties:
+        idempotencyKey:
+          type: integer
+
+    ViolationDiscriminatorNoMapping:
+      oneOf:
+        - type: object
+          properties:
+            type:
+              type: string
+            a:
+              type: string
+        - type: object
+          properties:
+            type:
+              type: string
+            b:
+              type: string
+      discriminator:
+        propertyName: type
+
+    ViolationDiscriminatorWrongProp:
+      oneOf:
+        - type: object
+          properties:
+            kind:
+              type: string
+            c:
+              type: string
+        - type: object
+          properties:
+            kind:
+              type: string
+            d:
+              type: string
+      discriminator:
+        propertyName: kind
+        mapping:
+          first: '#/components/schemas/First'
+          second: '#/components/schemas/Second'
+
+    ViolationDiscriminatorMissingField:
+      oneOf:
+        - type: object
+          properties:
+            type:
+              type: string
+            e:
+              type: string
+        - type: object
+          properties:
+            f:
+              type: string
+      discriminator:
+        propertyName: type
+        mapping:
+          first: '#/components/schemas/VariantA'
+          second: '#/components/schemas/VariantB'

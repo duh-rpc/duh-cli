@@ -14,8 +14,10 @@ const initTemplateSpec = `openapi: 3.0.3
 info:
   title: Test API
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/users.create:
+  /users.create:
     post:
       operationId: createUser
       requestBody:
@@ -23,15 +25,15 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateUserRequest'
+              $ref: '#/components/schemas/CreateRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CreateUserResponse'
-  /v1/users.get:
+                $ref: '#/components/schemas/CreateResponse'
+  /users.get:
     post:
       operationId: getUserById
       requestBody:
@@ -39,15 +41,15 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/GetUserByIdRequest'
+              $ref: '#/components/schemas/GetRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GetUserByIdResponse'
-  /v1/users.list:
+                $ref: '#/components/schemas/GetResponse'
+  /users.list:
     post:
       operationId: listUsers
       requestBody:
@@ -55,15 +57,15 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ListUsersRequest'
+              $ref: '#/components/schemas/ListRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ListUsersResponse'
-  /v1/users.update:
+                $ref: '#/components/schemas/ListResponse'
+  /users.update:
     post:
       operationId: updateUser
       requestBody:
@@ -71,54 +73,66 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateUserRequest'
+              $ref: '#/components/schemas/UpdateRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UpdateUserResponse'
+                $ref: '#/components/schemas/UpdateResponse'
 components:
   schemas:
     Error:
       type: object
-      required: [code, message]
+      required: [message]
       properties:
-        code: {type: integer}
         message: {type: string}
-    CreateUserRequest:
+    CreateRequest:
       type: object
       properties:
         name: {type: string}
-    CreateUserResponse:
+    CreateResponse:
       type: object
       properties:
         id: {type: string}
-    GetUserByIdRequest:
+    GetRequest:
       type: object
       properties:
         id: {type: string}
-    GetUserByIdResponse:
+    GetResponse:
       type: object
       properties:
         id: {type: string}
-    ListUsersRequest:
+    ListRequest:
       type: object
       properties:
-        offset: {type: integer}
-    ListUsersResponse:
+        pagination:
+          $ref: '#/components/schemas/PaginationRequest'
+    PaginationRequest:
       type: object
       properties:
-        users:
+        first: {type: integer, format: int32, minimum: 1, maximum: 100}
+        after: {type: string}
+    ListResponse:
+      type: object
+      properties:
+        items:
           type: array
           items:
-            $ref: '#/components/schemas/GetUserByIdResponse'
-    UpdateUserRequest:
+            $ref: '#/components/schemas/GetResponse'
+        pagination:
+          $ref: '#/components/schemas/PaginationResponse'
+    PaginationResponse:
+      type: object
+      properties:
+        endCursor: {type: string}
+        hasMore: {type: boolean}
+    UpdateRequest:
       type: object
       properties:
         id: {type: string}
-    UpdateUserResponse:
+    UpdateResponse:
       type: object
       properties:
         id: {type: string}
@@ -128,8 +142,10 @@ const partialSpec = `openapi: 3.0.3
 info:
   title: Test API
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/users.create:
+  /users.create:
     post:
       operationId: createUser
       requestBody:
@@ -137,15 +153,15 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateUserRequest'
+              $ref: '#/components/schemas/CreateRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CreateUserResponse'
-  /v1/users.get:
+                $ref: '#/components/schemas/CreateResponse'
+  /users.get:
     post:
       operationId: getUserById
       requestBody:
@@ -153,35 +169,34 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/GetUserByIdRequest'
+              $ref: '#/components/schemas/GetRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GetUserByIdResponse'
+                $ref: '#/components/schemas/GetResponse'
 components:
   schemas:
     Error:
       type: object
-      required: [code, message]
+      required: [message]
       properties:
-        code: {type: integer}
         message: {type: string}
-    CreateUserRequest:
+    CreateRequest:
       type: object
       properties:
         name: {type: string}
-    CreateUserResponse:
+    CreateResponse:
       type: object
       properties:
         id: {type: string}
-    GetUserByIdRequest:
+    GetRequest:
       type: object
       properties:
         id: {type: string}
-    GetUserByIdResponse:
+    GetResponse:
       type: object
       properties:
         id: {type: string}
@@ -191,8 +206,10 @@ const customSpec = `openapi: 3.0.3
 info:
   title: Custom API
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/products.create:
+  /products.create:
     post:
       operationId: createProduct
       requestBody:
@@ -200,27 +217,26 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateProductRequest'
+              $ref: '#/components/schemas/ProductsCreateRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CreateProductResponse'
+                $ref: '#/components/schemas/ProductsCreateResponse'
 components:
   schemas:
     Error:
       type: object
-      required: [code, message]
+      required: [message]
       properties:
-        code: {type: integer}
         message: {type: string}
-    CreateProductRequest:
+    ProductsCreateRequest:
       type: object
       properties:
         name: {type: string}
-    CreateProductResponse:
+    ProductsCreateResponse:
       type: object
       properties:
         id: {type: string}
@@ -230,8 +246,10 @@ const extraEndpointsSpec = `openapi: 3.0.3
 info:
   title: Test API
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/users.create:
+  /users.create:
     post:
       operationId: createUser
       requestBody:
@@ -239,15 +257,15 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateUserRequest'
+              $ref: '#/components/schemas/CreateRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CreateUserResponse'
-  /v1/users.get:
+                $ref: '#/components/schemas/CreateResponse'
+  /users.get:
     post:
       operationId: getUserById
       requestBody:
@@ -255,15 +273,15 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/GetUserByIdRequest'
+              $ref: '#/components/schemas/GetRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GetUserByIdResponse'
-  /v1/users.list:
+                $ref: '#/components/schemas/GetResponse'
+  /users.list:
     post:
       operationId: listUsers
       requestBody:
@@ -271,15 +289,15 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ListUsersRequest'
+              $ref: '#/components/schemas/ListRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ListUsersResponse'
-  /v1/users.update:
+                $ref: '#/components/schemas/ListResponse'
+  /users.update:
     post:
       operationId: updateUser
       requestBody:
@@ -287,15 +305,15 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateUserRequest'
+              $ref: '#/components/schemas/UpdateRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UpdateUserResponse'
-  /v1/products.create:
+                $ref: '#/components/schemas/UpdateResponse'
+  /products.create:
     post:
       operationId: createProduct
       requestBody:
@@ -303,62 +321,74 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateProductRequest'
+              $ref: '#/components/schemas/ProductsCreateRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CreateProductResponse'
+                $ref: '#/components/schemas/ProductsCreateResponse'
 components:
   schemas:
     Error:
       type: object
-      required: [code, message]
+      required: [message]
       properties:
-        code: {type: integer}
         message: {type: string}
-    CreateUserRequest:
+    CreateRequest:
       type: object
       properties:
         name: {type: string}
-    CreateUserResponse:
+    CreateResponse:
       type: object
       properties:
         id: {type: string}
-    GetUserByIdRequest:
+    GetRequest:
       type: object
       properties:
         id: {type: string}
-    GetUserByIdResponse:
+    GetResponse:
       type: object
       properties:
         id: {type: string}
-    ListUsersRequest:
+    ListRequest:
       type: object
       properties:
-        offset: {type: integer}
-    ListUsersResponse:
+        pagination:
+          $ref: '#/components/schemas/PaginationRequest'
+    PaginationRequest:
       type: object
       properties:
-        users:
+        first: {type: integer, format: int32, minimum: 1, maximum: 100}
+        after: {type: string}
+    ListResponse:
+      type: object
+      properties:
+        items:
           type: array
           items:
-            $ref: '#/components/schemas/GetUserByIdResponse'
-    UpdateUserRequest:
+            $ref: '#/components/schemas/GetResponse'
+        pagination:
+          $ref: '#/components/schemas/PaginationResponse'
+    PaginationResponse:
+      type: object
+      properties:
+        endCursor: {type: string}
+        hasMore: {type: boolean}
+    UpdateRequest:
       type: object
       properties:
         id: {type: string}
-    UpdateUserResponse:
+    UpdateResponse:
       type: object
       properties:
         id: {type: string}
-    CreateProductRequest:
+    ProductsCreateRequest:
       type: object
       properties:
         name: {type: string}
-    CreateProductResponse:
+    ProductsCreateResponse:
       type: object
       properties:
         id: {type: string}

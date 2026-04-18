@@ -3,7 +3,7 @@ info:
   title: Missing Success Response
   version: 1.0.0
 paths:
-  /v1/users.create:
+  /users.create:
     post:
       requestBody:
         required: true
@@ -18,7 +18,7 @@ paths:
             application/json:
               schema:
                 type: object
-  /v1/users.list:
+  /users.list:
     post:
       requestBody:
         required: true

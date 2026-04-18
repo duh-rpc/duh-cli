@@ -22,8 +22,10 @@ const multiOperationSpec = `openapi: 3.0.0
 info:
   title: Test API
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/users.create:
+  /users.create:
     post:
       summary: Create a new user
       requestBody:
@@ -31,21 +33,21 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateUserRequest'
+              $ref: '#/components/schemas/CreateRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserResponse'
+                $ref: '#/components/schemas/CreateResponse'
         '400':
           description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-  /v1/users.get:
+                $ref: '#/components/schemas/ErrorDetails'
+  /users.get:
     post:
       summary: Get user by ID
       requestBody:
@@ -53,21 +55,21 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/GetUserRequest'
+              $ref: '#/components/schemas/GetRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserResponse'
+                $ref: '#/components/schemas/GetResponse'
         '400':
           description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-  /v1/users.update:
+                $ref: '#/components/schemas/ErrorDetails'
+  /users.update:
     post:
       summary: Update user
       requestBody:
@@ -75,54 +77,61 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateUserRequest'
+              $ref: '#/components/schemas/UpdateRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserResponse'
+                $ref: '#/components/schemas/UpdateResponse'
         '400':
           description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/ErrorDetails'
 components:
   schemas:
-    CreateUserRequest:
+    CreateRequest:
       type: object
       properties:
         name:
           type: string
-    GetUserRequest:
+    GetRequest:
       type: object
       properties:
         id:
           type: string
-    UpdateUserRequest:
-      type: object
-      properties:
-        id:
-          type: string
-        name:
-          type: string
-    UserResponse:
+    UpdateRequest:
       type: object
       properties:
         id:
           type: string
         name:
           type: string
-    Error:
+    CreateResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+    GetResponse:
+      type: object
+      properties:
+        id:
+          type: string
+    UpdateResponse:
+      type: object
+      properties:
+        id:
+          type: string
+    ErrorDetails:
       type: object
       required:
-        - code
         - message
       properties:
-        code:
-          type: integer
         message:
           type: string
 `
@@ -131,8 +140,10 @@ const inlineSchemaSpec = `openapi: 3.0.0
 info:
   title: Test API
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/users.create:
+  /users.create:
     post:
       requestBody:
         required: true
@@ -149,28 +160,25 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserResponse'
+                $ref: '#/components/schemas/CreateResponse'
         '400':
           description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/ErrorDetails'
 components:
   schemas:
-    UserResponse:
+    CreateResponse:
       type: object
       properties:
         id:
           type: string
-    Error:
+    ErrorDetails:
       type: object
       required:
-        - code
         - message
       properties:
-        code:
-          type: integer
         message:
           type: string
 `
@@ -179,98 +187,110 @@ const listOperationVariantsSpec = `openapi: 3.0.0
 info:
   title: Test API
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/users.list:
+  /users.list:
     post:
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ListUsersRequest'
+              $ref: '#/components/schemas/ListRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ListUsersResponse'
+                $ref: '#/components/schemas/ListResponse'
         '400':
           description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-  /v1/users.list-active:
+                $ref: '#/components/schemas/ErrorDetails'
+  /users.list-active:
     post:
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ListActiveUsersRequest'
+              $ref: '#/components/schemas/ListActiveRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ListActiveUsersResponse'
+                $ref: '#/components/schemas/ListActiveResponse'
         '400':
           description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/ErrorDetails'
 components:
   schemas:
-    ListUsersRequest:
+    ListRequest:
       type: object
       properties:
-        offset:
-          type: integer
-        limit:
-          type: integer
-    ListUsersResponse:
+        pagination:
+          $ref: '#/components/schemas/PaginationRequest'
+    PaginationRequest:
       type: object
       properties:
-        users:
+        first:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 100
+        after:
+          type: string
+    ListResponse:
+      type: object
+      properties:
+        items:
           type: array
           items:
-            $ref: '#/components/schemas/UserResponse'
-        total:
-          type: integer
-    ListActiveUsersRequest:
+            $ref: '#/components/schemas/User'
+        pagination:
+          $ref: '#/components/schemas/PaginationResponse'
+    PaginationResponse:
       type: object
       properties:
-        offset:
-          type: integer
-        limit:
-          type: integer
-    ListActiveUsersResponse:
+        endCursor:
+          type: string
+        hasMore:
+          type: boolean
+    ListActiveRequest:
       type: object
       properties:
-        active_users:
+        pagination:
+          $ref: '#/components/schemas/PaginationRequest'
+    ListActiveResponse:
+      type: object
+      properties:
+        items:
           type: array
           items:
-            $ref: '#/components/schemas/UserResponse'
-        total:
-          type: integer
-    UserResponse:
+            $ref: '#/components/schemas/User'
+        pagination:
+          $ref: '#/components/schemas/PaginationResponse'
+    User:
       type: object
       properties:
         id:
           type: string
         name:
           type: string
-    Error:
+    ErrorDetails:
       type: object
       required:
-        - code
         - message
       properties:
-        code:
-          type: integer
         message:
           type: string
 `
@@ -279,42 +299,50 @@ const arrayOrderSpec = `openapi: 3.0.0
 info:
   title: Test API
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/data.list:
+  /data.list:
     post:
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ListDataRequest'
+              $ref: '#/components/schemas/DataListRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ListDataResponse'
+                $ref: '#/components/schemas/DataListResponse'
         '400':
           description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/ErrorDetails'
 components:
   schemas:
-    ListDataRequest:
+    DataListRequest:
       type: object
       properties:
-        offset:
-          type: integer
-        limit:
-          type: integer
-    ListDataResponse:
+        pagination:
+          $ref: '#/components/schemas/DataPaginationRequest'
+    DataPaginationRequest:
       type: object
       properties:
-        total:
+        first:
           type: integer
+          format: int32
+          minimum: 1
+          maximum: 100
+        after:
+          type: string
+    DataListResponse:
+      type: object
+      properties:
         items:
           type: array
           items:
@@ -323,6 +351,13 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/MetadataItem'
+        pagination:
+          $ref: '#/components/schemas/DataPaginationResponse'
+    DataPaginationResponse:
+      type: object
+      properties:
+        endCursor:
+          type: string
     DataItem:
       type: object
       properties:
@@ -333,71 +368,86 @@ components:
       properties:
         key:
           type: string
-    Error:
+    ErrorDetails:
       type: object
       required:
-        - code
         - message
       properties:
-        code:
-          type: integer
         message:
           type: string
 `
 
-const notListNoOffsetSpec = `openapi: 3.0.0
+const notListNoPageSpec = `openapi: 3.0.0
 info:
   title: Test API
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/users.list:
+  /users.list:
     post:
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ListUsersRequest'
+              $ref: '#/components/schemas/ListRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ListUsersResponse'
+                $ref: '#/components/schemas/ListResponse'
         '400':
           description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/ErrorDetails'
 components:
   schemas:
-    ListUsersRequest:
+    ListRequest:
       type: object
       properties:
-        limit:
+        filter:
+          type: string
+        pagination:
+          $ref: '#/components/schemas/PaginationRequest'
+    PaginationRequest:
+      type: object
+      properties:
+        first:
           type: integer
-    ListUsersResponse:
+          format: int32
+          minimum: 1
+          maximum: 100
+        after:
+          type: string
+    ListResponse:
       type: object
       properties:
-        users:
+        items:
           type: array
           items:
-            $ref: '#/components/schemas/UserResponse'
-    UserResponse:
+            $ref: '#/components/schemas/User'
+        pagination:
+          $ref: '#/components/schemas/PaginationResponse'
+    PaginationResponse:
+      type: object
+      properties:
+        endCursor:
+          type: string
+    User:
       type: object
       properties:
         id:
           type: string
-    Error:
+    ErrorDetails:
       type: object
       required:
-        - code
         - message
       properties:
-        code:
-          type: integer
         message:
           type: string
 `
@@ -421,8 +471,8 @@ func TestParseOperationsExtractsPbPrefixedTypes(t *testing.T) {
 
 	require.Equal(t, 0, exitCode)
 	content := getServerContentForParser(t, specPath)
-	assert.Contains(t, content, "pb.CreateUserRequest")
-	assert.Contains(t, content, "pb.UserResponse")
+	assert.Contains(t, content, "pb.CreateRequest")
+	assert.Contains(t, content, "pb.CreateResponse")
 }
 
 func TestDetectListOperationsWith3Criteria(t *testing.T) {
@@ -452,8 +502,8 @@ func TestIsListOperationChecksMethodPortion(t *testing.T) {
 	assert.Contains(t, stdout.String(), "✓")
 }
 
-func TestIsListOperationWithoutOffset(t *testing.T) {
-	specPath, stdout := setupTest(t, notListNoOffsetSpec)
+func TestIsListOperationWithoutPage(t *testing.T) {
+	specPath, stdout := setupTest(t, notListNoPageSpec)
 
 	exitCode := duh.RunCmd(stdout, []string{"generate", specPath})
 
@@ -476,7 +526,7 @@ func TestInlineSchemaReturnsError(t *testing.T) {
 	exitCode := duh.RunCmd(stdout, []string{"generate", specPath})
 
 	require.Equal(t, 2, exitCode)
-	assert.Contains(t, stdout.String(), "inline schema not supported")
+	assert.Contains(t, stdout.String(), "OpenAPI validation failed")
 }
 
 func TestParseExtractsModulePathAndProtoImport(t *testing.T) {

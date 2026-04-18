@@ -84,48 +84,43 @@ func (c *Client) Close(ctx context.Context) error {
 
 {{if .HasListOps}}
 {{range .ListOps}}
-// {{.FetcherName}} implements PageFetcher for {{.MethodName}} pagination
+// {{.FetcherName}} implements PageFetcher for {{.MethodName}} cursor-based pagination
 type {{.FetcherName}} struct {
 	client *Client
-	limit  int32
+	first  int32
 }
 
-// FetchPage fetches a specific page of {{.ResponseField}} by converting page number to offset
+// FetchPage fetches a page of {{.ResponseField}} using cursor-based pagination
 func (f *{{.FetcherName}}) FetchPage(ctx context.Context, pageNum int) (*Page[{{.ItemType}}], error) {
-	offset := int32((pageNum - 1) * int(f.limit))
-
 	var resp {{.ResponseType}}
 	err := f.client.{{.MethodName}}(ctx, &{{.RequestType}}{
-		Offset: offset,
-		Limit:  f.limit,
+		Pagination: &pb.PaginationRequest{
+			First: f.first,
+		},
 	}, &resp)
 	if err != nil {
 		return nil, err
 	}
 
-	totalPages := int(resp.Total) / int(f.limit)
-	if int(resp.Total)%int(f.limit) != 0 {
-		totalPages++
-	}
+	hasMore := resp.Pagination != nil && resp.Pagination.HasMore
 
 	return &Page[{{.ItemType}}]{
-		Items:      resp.{{.ResponseField}},
-		Total:      int(resp.Total),
-		Page:       pageNum,
-		PerPage:    int(f.limit),
-		TotalPages: totalPages,
+		Items:   resp.{{.ResponseField}},
+		Page:    pageNum,
+		PerPage: int(f.first),
+		HasMore: hasMore,
 	}, nil
 }
 
 // {{.IteratorName}} creates an iterator for paginating through {{.ResponseField}}
-func (c *Client) {{.IteratorName}}(limit int32) Iterator[{{.ItemType}}] {
-	if limit <= 0 {
-		limit = 10
+func (c *Client) {{.IteratorName}}(first int32) Iterator[{{.ItemType}}] {
+	if first <= 0 {
+		first = 10
 	}
 
 	fetcher := &{{.FetcherName}}{
 		client: c,
-		limit:  limit,
+		first:  first,
 	}
 
 	return NewGenericIterator[{{.ItemType}}](fetcher)

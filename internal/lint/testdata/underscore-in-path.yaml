@@ -1,0 +1,55 @@
+openapi: 3.0.0
+info:
+  title: Underscore In Path
+  version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
+paths:
+  /user_accounts.create:
+    post:
+      operationId: createUserAccounts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserAccountsCreateRequest'
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserAccountsCreateResponse'
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetails'
+components:
+  schemas:
+    UserAccountsCreateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+    UserAccountsCreateResponse:
+      type: object
+      properties:
+        accountId:
+          type: string
+    ErrorDetails:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+        code:
+          type: string
+        type:
+          type: string
+        details:
+          type: object
+          additionalProperties:
+            type: string

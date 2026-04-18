@@ -14,7 +14,7 @@ func NewQueryParamsRule() *QueryParamsRule {
 }
 
 func (r *QueryParamsRule) Name() string {
-	return "query-parameters"
+	return "POST_NO_QUERY_PARAMS"
 }
 
 func (r *QueryParamsRule) Validate(doc *v3.Document) []Violation {
@@ -46,15 +46,20 @@ func (r *QueryParamsRule) Validate(doc *v3.Document) []Violation {
 				continue
 			}
 
+			if isOperationIgnored(operation, r.Name()) {
+				continue
+			}
+
 			// Check operation parameters
 			if operation.Parameters != nil {
 				for _, param := range operation.Parameters {
 					if param != nil && param.In == "query" {
 						violations = append(violations, Violation{
-							RuleName:   r.Name(),
-							Location:   fmt.Sprintf("%s %s", method, path),
 							Message:    fmt.Sprintf("Query parameter '%s' is not allowed in DUH-RPC", param.Name),
 							Suggestion: fmt.Sprintf("Move '%s' to request body", param.Name),
+							Location:   fmt.Sprintf("%s %s", method, path),
+							RuleName:   r.Name(),
+							Severity:   SeverityError,
 						})
 					}
 				}

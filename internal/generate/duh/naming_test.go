@@ -14,156 +14,8 @@ const usersCreateSpec = `openapi: 3.0.0
 info:
   title: Test API
   version: 1.0.0
-paths:
-  /v1/users.create:
-    post:
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreateUserRequest'
-      responses:
-        '200':
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserResponse'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-components:
-  schemas:
-    CreateUserRequest:
-      type: object
-      properties:
-        name:
-          type: string
-    UserResponse:
-      type: object
-      properties:
-        id:
-          type: string
-    Error:
-      type: object
-      required:
-        - code
-        - message
-      properties:
-        code:
-          type: integer
-        message:
-          type: string
-`
-
-const userProfilesGetByIdSpec = `openapi: 3.0.0
-info:
-  title: Test API
-  version: 1.0.0
-paths:
-  /v1/user-profiles.get-by-id:
-    post:
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GetUserProfileRequest'
-      responses:
-        '200':
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserProfileResponse'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-components:
-  schemas:
-    GetUserProfileRequest:
-      type: object
-      properties:
-        id:
-          type: string
-    UserProfileResponse:
-      type: object
-      properties:
-        id:
-          type: string
-    Error:
-      type: object
-      required:
-        - code
-        - message
-      properties:
-        code:
-          type: integer
-        message:
-          type: string
-`
-
-const underscoreSpec = `openapi: 3.0.0
-info:
-  title: Test API
-  version: 1.0.0
-paths:
-  /v1/user_profiles.get_by_id:
-    post:
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GetUserProfileRequest'
-      responses:
-        '200':
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserProfileResponse'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-components:
-  schemas:
-    GetUserProfileRequest:
-      type: object
-      properties:
-        id:
-          type: string
-    UserProfileResponse:
-      type: object
-      properties:
-        id:
-          type: string
-    Error:
-      type: object
-      required:
-        - code
-        - message
-      properties:
-        code:
-          type: integer
-        message:
-          type: string
-`
-
-const invalidPathNoVersionSpec = `openapi: 3.0.0
-info:
-  title: Test API
-  version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
   /users.create:
     post:
@@ -172,40 +24,184 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateUserRequest'
+              $ref: '#/components/schemas/CreateRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserResponse'
+                $ref: '#/components/schemas/CreateResponse'
         '400':
           description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/ErrorDetails'
 components:
   schemas:
-    CreateUserRequest:
+    CreateRequest:
       type: object
       properties:
         name:
           type: string
-    UserResponse:
+    CreateResponse:
       type: object
       properties:
         id:
           type: string
-    Error:
+    ErrorDetails:
       type: object
       required:
-        - code
         - message
       properties:
-        code:
-          type: integer
+        message:
+          type: string
+`
+
+const userProfilesGetByIdSpec = `openapi: 3.0.0
+info:
+  title: Test API
+  version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
+paths:
+  /user-profiles.get-by-id:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetByIdRequest'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetByIdResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetails'
+components:
+  schemas:
+    GetByIdRequest:
+      type: object
+      properties:
+        id:
+          type: string
+    GetByIdResponse:
+      type: object
+      properties:
+        id:
+          type: string
+    ErrorDetails:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+`
+
+const underscoreSpec = `openapi: 3.0.0
+info:
+  title: Test API
+  version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
+paths:
+  /user_profiles.get_by_id:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Get_by_idRequest'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Get_by_idResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetails'
+components:
+  schemas:
+    Get_by_idRequest:
+      type: object
+      properties:
+        id:
+          type: string
+    Get_by_idResponse:
+      type: object
+      properties:
+        id:
+          type: string
+    ErrorDetails:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+`
+
+const invalidPathNoVersionSpec = `openapi: 3.0.0
+info:
+  title: Test API
+  version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
+paths:
+  /users.create:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRequest'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetails'
+components:
+  schemas:
+    CreateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+    CreateResponse:
+      type: object
+      properties:
+        id:
+          type: string
+    ErrorDetails:
+      type: object
+      required:
+        - message
+      properties:
         message:
           type: string
 `
@@ -251,11 +247,8 @@ components:
     Error:
       type: object
       required:
-        - code
         - message
       properties:
-        code:
-          type: integer
         message:
           type: string
 `
@@ -294,17 +287,19 @@ func TestGenerateOperationNameWithUnderscores(t *testing.T) {
 
 	exitCode := duh.RunCmd(stdout, []string{"generate", specPath})
 
-	require.Equal(t, 0, exitCode)
-	content := getServerContent(t, specPath)
-	assert.Contains(t, content, "UserProfilesGetById")
+	// Underscore paths are now rejected by PATH_HYPHEN_SEPARATOR rule
+	require.Equal(t, 2, exitCode)
+	assert.Contains(t, stdout.String(), "validation failed")
 }
 
-func TestGenerateOperationNameInvalidPathNoVersion(t *testing.T) {
+func TestGenerateOperationNamePathWithoutVersionPrefix(t *testing.T) {
 	specPath, stdout := setupTest(t, invalidPathNoVersionSpec)
 
 	exitCode := duh.RunCmd(stdout, []string{"generate", specPath})
 
-	require.Equal(t, 2, exitCode)
+	require.Equal(t, 0, exitCode)
+	content := getServerContent(t, specPath)
+	assert.Contains(t, content, "UsersCreate")
 }
 
 func TestGenerateOperationNameInvalidPathNoMethod(t *testing.T) {
@@ -340,7 +335,7 @@ func TestToCamelCaseWithUnderscores(t *testing.T) {
 
 	exitCode := duh.RunCmd(stdout, []string{"generate", specPath})
 
-	require.Equal(t, 0, exitCode)
-	content := getServerContent(t, specPath)
-	assert.Contains(t, content, "UserProfilesGetById")
+	// Underscore paths are now rejected by PATH_HYPHEN_SEPARATOR rule
+	require.Equal(t, 2, exitCode)
+	assert.Contains(t, stdout.String(), "validation failed")
 }

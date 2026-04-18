@@ -3,7 +3,7 @@ info:
   title: Bad Error Schema
   version: 1.0.0
 paths:
-  /v1/users.create:
+  /users.create:
     post:
       requestBody:
         required: true

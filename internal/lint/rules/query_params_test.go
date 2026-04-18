@@ -21,8 +21,10 @@ func TestQueryParamsRule(t *testing.T) {
 info:
   title: Test
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/users.create:
+  /users.create:
     post:
       requestBody:
         required: true
@@ -46,8 +48,10 @@ paths:
 info:
   title: Test
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/users.create:
+  /users.create:
     post:
       parameters:
         - name: X-API-Key
@@ -72,13 +76,15 @@ paths:
 			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
 		},
 		{
-			name: "CookieParametersAllowed",
+			name: "CookieParametersNotAllowed",
 			spec: `openapi: 3.0.0
 info:
   title: Test
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/users.create:
+  /users.create:
     post:
       parameters:
         - name: session
@@ -99,8 +105,8 @@ paths:
             application/json:
               schema:
                 type: object`,
-			expectedExit:   0,
-			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
+			expectedExit:   1,
+			expectedOutput: "[PROHIBITED_COOKIES]",
 		},
 		{
 			name: "QueryParameterNotAllowed",
@@ -109,7 +115,7 @@ info:
   title: Test
   version: 1.0.0
 paths:
-  /v1/users.search:
+  /users.search:
     post:
       parameters:
         - name: query
@@ -130,7 +136,7 @@ paths:
               schema:
                 type: object`,
 			expectedExit: 1,
-			expectedOutput: `[query-parameters] POST /v1/users.search
+			expectedOutput: `[ERROR] [POST_NO_QUERY_PARAMS] POST /users.search
   Query parameter 'query' is not allowed in DUH-RPC
   Move 'query' to request body`,
 		},
@@ -141,7 +147,7 @@ info:
   title: Test
   version: 1.0.0
 paths:
-  /v1/users.search:
+  /users.search:
     post:
       parameters:
         - name: query
@@ -170,7 +176,7 @@ paths:
               schema:
                 type: object`,
 			expectedExit: 1,
-			expectedOutput: `[query-parameters] POST /v1/users.search
+			expectedOutput: `[ERROR] [POST_NO_QUERY_PARAMS] POST /users.search
   Query parameter 'query' is not allowed in DUH-RPC
   Move 'query' to request body`,
 		},
@@ -181,7 +187,7 @@ info:
   title: Test
   version: 1.0.0
 paths:
-  /v1/users.search:
+  /users.search:
     post:
       parameters:
         - name: X-API-Key
@@ -211,7 +217,7 @@ paths:
               schema:
                 type: object`,
 			expectedExit: 1,
-			expectedOutput: `[query-parameters] POST /v1/users.search
+			expectedOutput: `[ERROR] [POST_NO_QUERY_PARAMS] POST /users.search
   Query parameter 'query' is not allowed in DUH-RPC
   Move 'query' to request body`,
 		},

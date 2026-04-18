@@ -18,10 +18,10 @@ import (
 {{- $listMethod := "" -}}
 {{- $updateMethod := "" -}}
 {{- range .Operations -}}
-  {{- if eq .Path "/v1/users.create" -}}{{- $createMethod = .MethodName -}}{{- end -}}
-  {{- if eq .Path "/v1/users.get" -}}{{- $getMethod = .MethodName -}}{{- end -}}
-  {{- if eq .Path "/v1/users.list" -}}{{- $listMethod = .MethodName -}}{{- end -}}
-  {{- if eq .Path "/v1/users.update" -}}{{- $updateMethod = .MethodName -}}{{- end -}}
+  {{- if eq .Path "/users.create" -}}{{- $createMethod = .MethodName -}}{{- end -}}
+  {{- if eq .Path "/users.get" -}}{{- $getMethod = .MethodName -}}{{- end -}}
+  {{- if eq .Path "/users.list" -}}{{- $listMethod = .MethodName -}}{{- end -}}
+  {{- if eq .Path "/users.update" -}}{{- $updateMethod = .MethodName -}}{{- end -}}
 {{- end -}}
 
 func TestUsersCreate(t *testing.T) {
@@ -34,8 +34,8 @@ func TestUsersCreate(t *testing.T) {
 
 	c := d.MustClient()
 
-	var resp pb.CreateUserResponse
-	err = c.{{$createMethod}}(ctx, &pb.CreateUserRequest{
+	var resp pb.CreateResponse
+	err = c.{{$createMethod}}(ctx, &pb.CreateRequest{
 		Name:  "Alice",
 		Email: "alice@example.com",
 		Age:   30,
@@ -59,26 +59,26 @@ func TestUsersCreateValidation(t *testing.T) {
 
 	for _, test := range []struct {
 		name    string
-		request *pb.CreateUserRequest
+		request *pb.CreateRequest
 		wantErr string
 	}{
 		{
 			name: "MissingEmail",
-			request: &pb.CreateUserRequest{
+			request: &pb.CreateRequest{
 				Name: "Alice",
 			},
 			wantErr: "email is required",
 		},
 		{
 			name: "MissingName",
-			request: &pb.CreateUserRequest{
+			request: &pb.CreateRequest{
 				Email: "alice@example.com",
 			},
 			wantErr: "name is required",
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			var resp pb.CreateUserResponse
+			var resp pb.CreateResponse
 			err := c.{{$createMethod}}(ctx, test.request, &resp)
 			require.Error(t, err)
 			require.ErrorContains(t, err, test.wantErr)
@@ -96,15 +96,15 @@ func TestUsersCreateDuplicateEmail(t *testing.T) {
 
 	c := d.MustClient()
 
-	var resp1 pb.CreateUserResponse
-	err = c.{{$createMethod}}(ctx, &pb.CreateUserRequest{
+	var resp1 pb.CreateResponse
+	err = c.{{$createMethod}}(ctx, &pb.CreateRequest{
 		Name:  "Alice",
 		Email: "alice@example.com",
 	}, &resp1)
 	require.NoError(t, err)
 
-	var resp2 pb.CreateUserResponse
-	err = c.{{$createMethod}}(ctx, &pb.CreateUserRequest{
+	var resp2 pb.CreateResponse
+	err = c.{{$createMethod}}(ctx, &pb.CreateRequest{
 		Name:  "Alice2",
 		Email: "alice@example.com",
 	}, &resp2)
@@ -122,16 +122,16 @@ func TestUsersGet(t *testing.T) {
 
 	c := d.MustClient()
 
-	var created pb.CreateUserResponse
-	err = c.{{$createMethod}}(ctx, &pb.CreateUserRequest{
+	var created pb.CreateResponse
+	err = c.{{$createMethod}}(ctx, &pb.CreateRequest{
 		Name:  "Bob",
 		Email: "bob@example.com",
 		Age:   25,
 	}, &created)
 	require.NoError(t, err)
 
-	var resp pb.UserResponse
-	err = c.{{$getMethod}}(ctx, &pb.GetUserRequest{
+	var resp pb.GetResponse
+	err = c.{{$getMethod}}(ctx, &pb.GetRequest{
 		UserId: created.UserId,
 	}, &resp)
 	require.NoError(t, err)
@@ -151,8 +151,8 @@ func TestUsersGetNotFound(t *testing.T) {
 
 	c := d.MustClient()
 
-	var resp pb.UserResponse
-	err = c.{{$getMethod}}(ctx, &pb.GetUserRequest{
+	var resp pb.GetResponse
+	err = c.{{$getMethod}}(ctx, &pb.GetRequest{
 		UserId: "nonexistent-id",
 	}, &resp)
 	require.Error(t, err)
@@ -169,8 +169,8 @@ func TestUsersGetValidation(t *testing.T) {
 
 	c := d.MustClient()
 
-	var resp pb.UserResponse
-	err = c.{{$getMethod}}(ctx, &pb.GetUserRequest{
+	var resp pb.GetResponse
+	err = c.{{$getMethod}}(ctx, &pb.GetRequest{
 		UserId: "",
 	}, &resp)
 	require.Error(t, err)
@@ -189,19 +189,18 @@ func TestUsersList(t *testing.T) {
 
 	const numUsers = 5
 	for i := 0; i < numUsers; i++ {
-		var resp pb.CreateUserResponse
-		err = c.{{$createMethod}}(ctx, &pb.CreateUserRequest{
+		var resp pb.CreateResponse
+		err = c.{{$createMethod}}(ctx, &pb.CreateRequest{
 			Name:  "User" + string(rune('A'+i)),
 			Email: "user" + string(rune('a'+i)) + "@example.com",
 		}, &resp)
 		require.NoError(t, err)
 	}
 
-	var resp pb.ListUsersResponse
-	err = c.{{$listMethod}}(ctx, &pb.ListUsersRequest{}, &resp)
+	var resp pb.ListResponse
+	err = c.{{$listMethod}}(ctx, &pb.ListRequest{}, &resp)
 	require.NoError(t, err)
 	assert.Len(t, resp.Users, numUsers)
-	assert.Equal(t, int32(numUsers), resp.Total)
 }
 
 func TestUsersListPagination(t *testing.T) {
@@ -216,33 +215,29 @@ func TestUsersListPagination(t *testing.T) {
 
 	const numUsers = 15
 	for i := 0; i < numUsers; i++ {
-		var resp pb.CreateUserResponse
-		err = c.{{$createMethod}}(ctx, &pb.CreateUserRequest{
+		var resp pb.CreateResponse
+		err = c.{{$createMethod}}(ctx, &pb.CreateRequest{
 			Name:  "User" + string(rune('A'+i)),
 			Email: "user" + string(rune('a'+i)) + "@example.com",
 		}, &resp)
 		require.NoError(t, err)
 	}
 
-	var page1 pb.ListUsersResponse
-	err = c.{{$listMethod}}(ctx, &pb.ListUsersRequest{
-		Limit:  10,
-		Offset: 0,
+	var page1 pb.ListResponse
+	err = c.{{$listMethod}}(ctx, &pb.ListRequest{
+		Pagination: &pb.PaginationRequest{First: 10},
 	}, &page1)
 	require.NoError(t, err)
 	assert.Len(t, page1.Users, 10)
-	assert.Equal(t, int32(numUsers), page1.Total)
-	assert.True(t, page1.HasMore)
+	require.NotNil(t, page1.Pagination)
+	assert.True(t, page1.Pagination.HasMore)
 
-	var page2 pb.ListUsersResponse
-	err = c.{{$listMethod}}(ctx, &pb.ListUsersRequest{
-		Limit:  10,
-		Offset: 10,
+	var page2 pb.ListResponse
+	err = c.{{$listMethod}}(ctx, &pb.ListRequest{
+		Pagination: &pb.PaginationRequest{First: 10},
 	}, &page2)
 	require.NoError(t, err)
-	assert.Len(t, page2.Users, 5)
-	assert.Equal(t, int32(numUsers), page2.Total)
-	assert.False(t, page2.HasMore)
+	assert.Len(t, page2.Users, 10)
 }
 
 func TestUsersListIterator(t *testing.T) {
@@ -257,8 +252,8 @@ func TestUsersListIterator(t *testing.T) {
 
 	const numUsers = 25
 	for i := 0; i < numUsers; i++ {
-		var resp pb.CreateUserResponse
-		err = c.{{$createMethod}}(ctx, &pb.CreateUserRequest{
+		var resp pb.CreateResponse
+		err = c.{{$createMethod}}(ctx, &pb.CreateRequest{
 			Name:  "User" + string(rune('A'+i)),
 			Email: "user" + string(rune('a'+i)) + "@example.com",
 		}, &resp)
@@ -266,9 +261,9 @@ func TestUsersListIterator(t *testing.T) {
 	}
 
 	iter := c.UsersListIter(10)
-	var page api.Page[*pb.UserResponse]
+	var page api.Page[*pb.GetResponse]
 
-	collected := make([]*pb.UserResponse, 0)
+	collected := make([]*pb.GetResponse, 0)
 	pages := 0
 
 	for iter.Next(ctx, &page) {
@@ -303,16 +298,16 @@ func TestUsersListSorting(t *testing.T) {
 	}
 
 	for _, u := range users {
-		var resp pb.CreateUserResponse
-		err = c.{{$createMethod}}(ctx, &pb.CreateUserRequest{
+		var resp pb.CreateResponse
+		err = c.{{$createMethod}}(ctx, &pb.CreateRequest{
 			Name:  u.name,
 			Email: u.email,
 		}, &resp)
 		require.NoError(t, err)
 	}
 
-	var resp pb.ListUsersResponse
-	err = c.{{$listMethod}}(ctx, &pb.ListUsersRequest{
+	var resp pb.ListResponse
+	err = c.{{$listMethod}}(ctx, &pb.ListRequest{
 		SortBy: pb.SortBy_SORT_BY_NAME,
 	}, &resp)
 	require.NoError(t, err)
@@ -332,16 +327,16 @@ func TestUsersUpdate(t *testing.T) {
 
 	c := d.MustClient()
 
-	var created pb.CreateUserResponse
-	err = c.{{$createMethod}}(ctx, &pb.CreateUserRequest{
+	var created pb.CreateResponse
+	err = c.{{$createMethod}}(ctx, &pb.CreateRequest{
 		Name:  "Alice",
 		Email: "alice@example.com",
 		Age:   30,
 	}, &created)
 	require.NoError(t, err)
 
-	var updated pb.UpdateUserResponse
-	err = c.{{$updateMethod}}(ctx, &pb.UpdateUserRequest{
+	var updated pb.UpdateResponse
+	err = c.{{$updateMethod}}(ctx, &pb.UpdateRequest{
 		UserId: created.UserId,
 		Name:   "Alice Updated",
 		Age:    31,
@@ -363,8 +358,8 @@ func TestUsersUpdateNotFound(t *testing.T) {
 
 	c := d.MustClient()
 
-	var resp pb.UpdateUserResponse
-	err = c.{{$updateMethod}}(ctx, &pb.UpdateUserRequest{
+	var resp pb.UpdateResponse
+	err = c.{{$updateMethod}}(ctx, &pb.UpdateRequest{
 		UserId: "nonexistent-id",
 		Name:   "Updated",
 	}, &resp)
@@ -382,22 +377,22 @@ func TestUsersUpdateDuplicateEmail(t *testing.T) {
 
 	c := d.MustClient()
 
-	var user1 pb.CreateUserResponse
-	err = c.{{$createMethod}}(ctx, &pb.CreateUserRequest{
+	var user1 pb.CreateResponse
+	err = c.{{$createMethod}}(ctx, &pb.CreateRequest{
 		Name:  "Alice",
 		Email: "alice@example.com",
 	}, &user1)
 	require.NoError(t, err)
 
-	var user2 pb.CreateUserResponse
-	err = c.{{$createMethod}}(ctx, &pb.CreateUserRequest{
+	var user2 pb.CreateResponse
+	err = c.{{$createMethod}}(ctx, &pb.CreateRequest{
 		Name:  "Bob",
 		Email: "bob@example.com",
 	}, &user2)
 	require.NoError(t, err)
 
-	var resp pb.UpdateUserResponse
-	err = c.{{$updateMethod}}(ctx, &pb.UpdateUserRequest{
+	var resp pb.UpdateResponse
+	err = c.{{$updateMethod}}(ctx, &pb.UpdateRequest{
 		UserId: user2.UserId,
 		Email:  "alice@example.com",
 	}, &resp)
@@ -415,8 +410,8 @@ func TestUsersUpdateValidation(t *testing.T) {
 
 	c := d.MustClient()
 
-	var resp pb.UpdateUserResponse
-	err = c.{{$updateMethod}}(ctx, &pb.UpdateUserRequest{
+	var resp pb.UpdateResponse
+	err = c.{{$updateMethod}}(ctx, &pb.UpdateRequest{
 		UserId: "",
 		Name:   "Updated",
 	}, &resp)

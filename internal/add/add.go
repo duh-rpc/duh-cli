@@ -9,11 +9,11 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-var pathFormatRegex = regexp.MustCompile(`^/v(0|[1-9][0-9]*)/[a-z][a-z0-9_-]{0,49}\.[a-z][a-z0-9_-]{0,49}$`)
+var pathFormatRegex = regexp.MustCompile(`^/[a-z][a-z0-9_-]{0,49}\.[a-z][a-z0-9_-]{0,49}$`)
 
 func Run(w io.Writer, filePath, path, name string) error {
 	if !pathFormatRegex.MatchString(path) {
-		return fmt.Errorf("invalid path format: %s (must follow /v{N}/{subject}.{method})", path)
+		return fmt.Errorf("invalid path format: %s (must follow /{resource}.{method})", path)
 	}
 
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {

@@ -24,7 +24,7 @@ type ServiceConfig struct {
 }
 
 type Service struct {
-{{if .IsFullTemplate}}	users map[string]*pb.UserResponse
+{{if .IsFullTemplate}}	users map[string]*pb.GetResponse
 	mutex sync.RWMutex
 {{end}}	conf  ServiceConfig
 }
@@ -33,7 +33,7 @@ func NewService(conf ServiceConfig) (ServiceInterface, error) {
 {{if .IsFullTemplate}}	set.Default(&conf.Log, slog.Default())
 
 	return &Service{
-		users: make(map[string]*pb.UserResponse),
+		users: make(map[string]*pb.GetResponse),
 		conf:  conf,
 	}, nil
 {{else}}	return &Service{conf: conf}, nil
@@ -41,7 +41,7 @@ func NewService(conf ServiceConfig) (ServiceInterface, error) {
 
 {{range .Operations}}
 {{if .IsInitTemplateMethod}}
-{{if eq .Path "/v1/users.create"}}
+{{if eq .Path "/users.create"}}
 func (s *Service) {{.MethodName}}(ctx context.Context, req *{{.RequestType}}, resp *{{.ResponseType}}) error {
 	if req.Email == "" {
 		return duh.NewServiceError(duh.CodeBadRequest, "email is required", nil, nil)
@@ -62,7 +62,7 @@ func (s *Service) {{.MethodName}}(ctx context.Context, req *{{.RequestType}}, re
 	now := timestamppb.Now()
 	userID := uuid.New().String()
 
-	user := &pb.UserResponse{
+	user := &pb.GetResponse{
 		CreatedAt: now,
 		UserId:    userID,
 		Email:     req.Email,
@@ -79,7 +79,7 @@ func (s *Service) {{.MethodName}}(ctx context.Context, req *{{.RequestType}}, re
 
 	return nil
 }
-{{else if eq .Path "/v1/users.get"}}
+{{else if eq .Path "/users.get"}}
 func (s *Service) {{.MethodName}}(ctx context.Context, req *{{.RequestType}}, resp *{{.ResponseType}}) error {
 	if req.UserId == "" {
 		return duh.NewServiceError(duh.CodeBadRequest, "user_id is required", nil, nil)
@@ -101,23 +101,18 @@ func (s *Service) {{.MethodName}}(ctx context.Context, req *{{.RequestType}}, re
 
 	return nil
 }
-{{else if eq .Path "/v1/users.list"}}
+{{else if eq .Path "/users.list"}}
 func (s *Service) {{.MethodName}}(ctx context.Context, req *{{.RequestType}}, resp *{{.ResponseType}}) error {
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
 
-	const defaultLimit = 10
-	limit := defaultLimit
-	if req.Limit > 0 {
-		limit = int(req.Limit)
+	const defaultFirst = 10
+	first := defaultFirst
+	if req.Pagination != nil && req.Pagination.First > 0 {
+		first = int(req.Pagination.First)
 	}
 
-	offset := 0
-	if req.Offset > 0 {
-		offset = int(req.Offset)
-	}
-
-	users := make([]*pb.UserResponse, 0, len(s.users))
+	users := make([]*pb.GetResponse, 0, len(s.users))
 	for _, user := range s.users {
 		users = append(users, user)
 	}
@@ -138,26 +133,19 @@ func (s *Service) {{.MethodName}}(ctx context.Context, req *{{.RequestType}}, re
 	}
 
 	total := len(users)
-
-	if offset >= total {
-		resp.Total = int32(total)
-		resp.Users = []*pb.UserResponse{}
-		resp.HasMore = false
-		return nil
-	}
-
-	end := offset + limit
+	end := first
 	if end > total {
 		end = total
 	}
 
-	resp.Users = users[offset:end]
-	resp.Total = int32(total)
-	resp.HasMore = end < total
+	resp.Users = users[:end]
+	resp.Pagination = &pb.PaginationResponse{
+		HasMore: end < total,
+	}
 
 	return nil
 }
-{{else if eq .Path "/v1/users.update"}}
+{{else if eq .Path "/users.update"}}
 func (s *Service) {{.MethodName}}(ctx context.Context, req *{{.RequestType}}, resp *{{.ResponseType}}) error {
 	if req.UserId == "" {
 		return duh.NewServiceError(duh.CodeBadRequest, "user_id is required", nil, nil)

@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	lint "github.com/duh-rpc/duh-cli"
+	duh "github.com/duh-rpc/duh-cli"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -21,8 +21,10 @@ func TestSuccessResponseRule(t *testing.T) {
 info:
   title: Test
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/users.create:
+  /users.create:
     post:
       requestBody:
         required: true
@@ -46,8 +48,10 @@ paths:
 info:
   title: Test
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/users.list:
+  /users.list:
     post:
       requestBody:
         required: true
@@ -71,8 +75,10 @@ paths:
 info:
   title: Test
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/users.get:
+  /users.get:
     post:
       requestBody:
         required: true
@@ -97,7 +103,7 @@ info:
   title: Test
   version: 1.0.0
 paths:
-  /v1/users.create:
+  /users.create:
     post:
       requestBody:
         required: true
@@ -119,7 +125,7 @@ paths:
                   message:
                     type: string`,
 			expectedExit: 1,
-			expectedOutput: `[success-response] POST /v1/users.create
+			expectedOutput: `[ERROR] [SUCCESS_RESPONSE] POST /users.create
   Operation is missing a 200 (success) response`,
 		},
 		{
@@ -129,7 +135,7 @@ info:
   title: Test
   version: 1.0.0
 paths:
-  /v1/users.delete:
+  /users.delete:
     post:
       requestBody:
         required: true
@@ -141,7 +147,7 @@ paths:
         200:
           description: Success`,
 			expectedExit: 1,
-			expectedOutput: `[success-response] POST /v1/users.delete
+			expectedOutput: `[ERROR] [SUCCESS_RESPONSE] POST /users.delete
   200 response is missing content`,
 		},
 		{
@@ -151,7 +157,7 @@ info:
   title: Test
   version: 1.0.0
 paths:
-  /v1/users.create:
+  /users.create:
     post:
       requestBody:
         required: true
@@ -167,7 +173,7 @@ paths:
               example:
                 foo: bar`,
 			expectedExit: 1,
-			expectedOutput: `[success-response] POST /v1/users.create
+			expectedOutput: `[ERROR] [SUCCESS_RESPONSE] POST /users.create
   200 response content is missing a schema`,
 		},
 		{
@@ -176,8 +182,10 @@ paths:
 info:
   title: Test
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/users.create:
+  /users.create:
     post:
       requestBody:
         required: true
@@ -204,7 +212,7 @@ paths:
 			filePath := writeYAML(t, test.spec)
 
 			var stdout bytes.Buffer
-			exitCode := lint.RunCmd(&stdout, []string{"lint", filePath})
+			exitCode := duh.RunCmd(&stdout, []string{"lint", filePath})
 
 			assert.Equal(t, test.expectedExit, exitCode)
 			assert.Contains(t, stdout.String(), test.expectedOutput)

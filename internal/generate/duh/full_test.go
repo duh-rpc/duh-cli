@@ -62,7 +62,7 @@ func TestGenerateDuhWithFullFlagAndInitSpec(t *testing.T) {
 
 	serviceContent, err := os.ReadFile("service.go")
 	require.NoError(t, err)
-	assert.Contains(t, string(serviceContent), "map[string]*pb.UserResponse")
+	assert.Contains(t, string(serviceContent), "map[string]*pb.GetResponse")
 	assert.Contains(t, string(serviceContent), "func (s *Service) UsersCreate")
 	assert.Contains(t, string(serviceContent), "func (s *Service) UsersGet")
 	assert.Contains(t, string(serviceContent), "func (s *Service) UsersList")
@@ -319,8 +319,10 @@ const initTemplateWithExtraMethod = `openapi: 3.0.0
 info:
   title: Users API
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /v1/users.create:
+  /users.create:
     post:
       summary: Create a new user
       requestBody:
@@ -328,21 +330,21 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateUserRequest'
+              $ref: '#/components/schemas/CreateRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CreateUserResponse'
+                $ref: '#/components/schemas/CreateResponse'
         '400':
           description: Bad Request
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  /v1/users.get:
+  /users.get:
     post:
       summary: Get user by ID
       requestBody:
@@ -350,21 +352,21 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/GetUserRequest'
+              $ref: '#/components/schemas/GetRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserResponse'
+                $ref: '#/components/schemas/GetResponse'
         '400':
           description: Bad Request
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  /v1/users.list:
+  /users.list:
     post:
       summary: List users
       requestBody:
@@ -372,21 +374,21 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ListUsersRequest'
+              $ref: '#/components/schemas/ListRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ListUsersResponse'
+                $ref: '#/components/schemas/ListResponse'
         '400':
           description: Bad Request
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  /v1/users.update:
+  /users.update:
     post:
       summary: Update a user
       requestBody:
@@ -394,21 +396,21 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateUserRequest'
+              $ref: '#/components/schemas/UpdateRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UpdateUserResponse'
+                $ref: '#/components/schemas/UpdateResponse'
         '400':
           description: Bad Request
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  /v1/users.delete:
+  /users.delete:
     post:
       summary: Delete a user
       requestBody:
@@ -416,14 +418,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DeleteUserRequest'
+              $ref: '#/components/schemas/DeleteRequest'
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DeleteUserResponse'
+                $ref: '#/components/schemas/DeleteResponse'
         '400':
           description: Bad Request
           content:
@@ -432,7 +434,7 @@ paths:
                 $ref: '#/components/schemas/Error'
 components:
   schemas:
-    CreateUserRequest:
+    CreateRequest:
       type: object
       properties:
         name:
@@ -441,27 +443,28 @@ components:
           type: string
         age:
           type: integer
-    CreateUserResponse:
+          format: int32
+    CreateResponse:
       type: object
       properties:
-        user_id:
+        userId:
           type: string
         name:
           type: string
         email:
           type: string
-        created_at:
+        createdAt:
           type: string
           format: date-time
-    GetUserRequest:
+    GetRequest:
       type: object
       properties:
-        user_id:
+        userId:
           type: string
-    UserResponse:
+    GetResponse:
       type: object
       properties:
-        user_id:
+        userId:
           type: string
         name:
           type: string
@@ -469,33 +472,47 @@ components:
           type: string
         age:
           type: integer
-        created_at:
+          format: int32
+        createdAt:
           type: string
           format: date-time
-    ListUsersRequest:
+    ListRequest:
       type: object
       properties:
-        offset:
-          type: integer
-        limit:
-          type: integer
-        sort_by:
+        pagination:
+          $ref: '#/components/schemas/PaginationRequest'
+        sortBy:
           type: string
-    ListUsersResponse:
+    PaginationRequest:
       type: object
       properties:
-        users:
+        first:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 100
+        after:
+          type: string
+    ListResponse:
+      type: object
+      properties:
+        items:
           type: array
           items:
-            $ref: '#/components/schemas/UserResponse'
-        total:
-          type: integer
-        has_more:
+            $ref: '#/components/schemas/GetResponse'
+        pagination:
+          $ref: '#/components/schemas/PaginationResponse'
+    PaginationResponse:
+      type: object
+      properties:
+        endCursor:
+          type: string
+        hasMore:
           type: boolean
-    UpdateUserRequest:
+    UpdateRequest:
       type: object
       properties:
-        user_id:
+        userId:
           type: string
         name:
           type: string
@@ -503,12 +520,13 @@ components:
           type: string
         age:
           type: integer
+          format: int32
         status:
           type: string
-    UpdateUserResponse:
+    UpdateResponse:
       type: object
       properties:
-        user_id:
+        userId:
           type: string
         name:
           type: string
@@ -516,35 +534,33 @@ components:
           type: string
         age:
           type: integer
+          format: int32
         status:
           type: string
-        updated_at:
+        updatedAt:
           type: string
           format: date-time
-        created_at:
+        createdAt:
           type: string
           format: date-time
-    DeleteUserRequest:
+    DeleteRequest:
       type: object
       properties:
-        user_id:
+        userId:
           type: string
-    DeleteUserResponse:
+    DeleteResponse:
       type: object
       properties:
-        user_id:
+        userId:
           type: string
-        deleted_at:
+        deletedAt:
           type: string
           format: date-time
     Error:
       type: object
       required:
-        - code
         - message
       properties:
-        code:
-          type: integer
         message:
           type: string
 `

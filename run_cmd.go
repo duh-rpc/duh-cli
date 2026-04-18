@@ -3,6 +3,7 @@ package duh
 import (
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/duh-rpc/duh-cli/internal/add"
 	"github.com/duh-rpc/duh-cli/internal/generate/duh"
@@ -58,7 +59,17 @@ Exit Codes:
 				return
 			}
 
-			result := lint.Validate(doc, filePath)
+			cfg := lint.LoadConfig()
+			disabled := cfg.Lint.Disable
+
+			disableFlag, _ := cmd.Flags().GetString("disable")
+			if disableFlag != "" {
+				for _, r := range strings.Split(disableFlag, ",") {
+					disabled = append(disabled, strings.TrimSpace(r))
+				}
+			}
+
+			result := lint.Validate(doc, filePath, disabled)
 			lint.Print(cmd.OutOrStdout(), result)
 
 			if result.Valid() {
@@ -68,6 +79,7 @@ Exit Codes:
 			}
 		},
 	}
+	lintCmd.Flags().String("disable", "", "Comma-separated list of rules to disable")
 
 	initCmd := &cobra.Command{
 		Use:   "init [openapi-file]",
@@ -106,8 +118,8 @@ Exit Codes:
 The add command creates a new endpoint with the specified path and name,
 generating request and response schemas with placeholder properties.
 
-The path must follow DUH-RPC format: /v{N}/{subject}.{method}
-For example: /v1/users.create
+The path must follow DUH-RPC format: /{resource}.{method}
+For example: /users.create
 
 The name is used to generate schema names: {Name}Request and {Name}Response
 For example: CreateUser generates CreateUserRequest and CreateUserResponse
