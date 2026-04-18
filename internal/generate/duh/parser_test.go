@@ -237,9 +237,9 @@ components:
     ListRequest:
       type: object
       properties:
-        page:
-          $ref: '#/components/schemas/PageRequest'
-    PageRequest:
+        pagination:
+          $ref: '#/components/schemas/PaginationRequest'
+    PaginationRequest:
       type: object
       properties:
         first:
@@ -256,9 +256,9 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/User'
-        page:
-          $ref: '#/components/schemas/PageResponse'
-    PageResponse:
+        pagination:
+          $ref: '#/components/schemas/PaginationResponse'
+    PaginationResponse:
       type: object
       properties:
         endCursor:
@@ -268,8 +268,8 @@ components:
     ListActiveRequest:
       type: object
       properties:
-        page:
-          $ref: '#/components/schemas/PageRequest'
+        pagination:
+          $ref: '#/components/schemas/PaginationRequest'
     ListActiveResponse:
       type: object
       properties:
@@ -277,8 +277,8 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/User'
-        page:
-          $ref: '#/components/schemas/PageResponse'
+        pagination:
+          $ref: '#/components/schemas/PaginationResponse'
     User:
       type: object
       properties:
@@ -328,9 +328,9 @@ components:
     DataListRequest:
       type: object
       properties:
-        page:
-          $ref: '#/components/schemas/DataPageRequest'
-    DataPageRequest:
+        pagination:
+          $ref: '#/components/schemas/DataPaginationRequest'
+    DataPaginationRequest:
       type: object
       properties:
         first:
@@ -351,9 +351,9 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/MetadataItem'
-        page:
-          $ref: '#/components/schemas/DataPageResponse'
-    DataPageResponse:
+        pagination:
+          $ref: '#/components/schemas/DataPaginationResponse'
+    DataPaginationResponse:
       type: object
       properties:
         endCursor:
@@ -412,9 +412,9 @@ components:
       properties:
         filter:
           type: string
-        page:
-          $ref: '#/components/schemas/PageRequest'
-    PageRequest:
+        pagination:
+          $ref: '#/components/schemas/PaginationRequest'
+    PaginationRequest:
       type: object
       properties:
         first:
@@ -431,9 +431,9 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/User'
-        page:
-          $ref: '#/components/schemas/PageResponse'
-    PageResponse:
+        pagination:
+          $ref: '#/components/schemas/PaginationResponse'
+    PaginationResponse:
       type: object
       properties:
         endCursor:

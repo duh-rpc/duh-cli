@@ -146,9 +146,9 @@ components:
     ListRequest:
       type: object
       properties:
-        page:
-          $ref: '#/components/schemas/PageRequest'
-    PageRequest:
+        pagination:
+          $ref: '#/components/schemas/PaginationRequest'
+    PaginationRequest:
       type: object
       properties:
         first:
@@ -165,9 +165,9 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/User'
-        page:
-          $ref: '#/components/schemas/PageResponse'
-    PageResponse:
+        pagination:
+          $ref: '#/components/schemas/PaginationResponse'
+    PaginationResponse:
       type: object
       properties:
         endCursor:
@@ -386,31 +386,31 @@ func (x *GetResponse) ProtoReflect() protoreflect.Message {
 	return (&protoimpl.MessageInfo{}).MessageOf(x)
 }
 
-type PageRequest struct {
+type PaginationRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 	First         int32
 	After         string
 }
-func (x *PageRequest) Reset() {}
-func (x *PageRequest) String() string { return "PageRequest{}" }
-func (x *PageRequest) ProtoMessage() {}
-func (x *PageRequest) ProtoReflect() protoreflect.Message {
+func (x *PaginationRequest) Reset() {}
+func (x *PaginationRequest) String() string { return "PaginationRequest{}" }
+func (x *PaginationRequest) ProtoMessage() {}
+func (x *PaginationRequest) ProtoReflect() protoreflect.Message {
 	return (&protoimpl.MessageInfo{}).MessageOf(x)
 }
 
-type PageResponse struct {
+type PaginationResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 	EndCursor     string
 	HasMore       bool
 }
-func (x *PageResponse) Reset() {}
-func (x *PageResponse) String() string { return "PageResponse{}" }
-func (x *PageResponse) ProtoMessage() {}
-func (x *PageResponse) ProtoReflect() protoreflect.Message {
+func (x *PaginationResponse) Reset() {}
+func (x *PaginationResponse) String() string { return "PaginationResponse{}" }
+func (x *PaginationResponse) ProtoMessage() {}
+func (x *PaginationResponse) ProtoReflect() protoreflect.Message {
 	return (&protoimpl.MessageInfo{}).MessageOf(x)
 }
 
@@ -418,7 +418,7 @@ type ListRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
-	Page          *PageRequest
+	Pagination    *PaginationRequest
 }
 func (x *ListRequest) Reset() {}
 func (x *ListRequest) String() string { return "ListRequest{}" }
@@ -432,7 +432,7 @@ type ListResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 	Items         []*User
-	Page          *PageResponse
+	Pagination    *PaginationResponse
 }
 func (x *ListResponse) Reset() {}
 func (x *ListResponse) String() string { return "ListResponse{}" }
@@ -718,31 +718,31 @@ func (x *GetResponse) ProtoReflect() protoreflect.Message {
 	return (&protoimpl.MessageInfo{}).MessageOf(x)
 }
 
-type PageRequest struct {
+type PaginationRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 	First         int32
 	After         string
 }
-func (x *PageRequest) Reset() {}
-func (x *PageRequest) String() string { return "PageRequest{}" }
-func (x *PageRequest) ProtoMessage() {}
-func (x *PageRequest) ProtoReflect() protoreflect.Message {
+func (x *PaginationRequest) Reset() {}
+func (x *PaginationRequest) String() string { return "PaginationRequest{}" }
+func (x *PaginationRequest) ProtoMessage() {}
+func (x *PaginationRequest) ProtoReflect() protoreflect.Message {
 	return (&protoimpl.MessageInfo{}).MessageOf(x)
 }
 
-type PageResponse struct {
+type PaginationResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 	EndCursor     string
 	HasMore       bool
 }
-func (x *PageResponse) Reset() {}
-func (x *PageResponse) String() string { return "PageResponse{}" }
-func (x *PageResponse) ProtoMessage() {}
-func (x *PageResponse) ProtoReflect() protoreflect.Message {
+func (x *PaginationResponse) Reset() {}
+func (x *PaginationResponse) String() string { return "PaginationResponse{}" }
+func (x *PaginationResponse) ProtoMessage() {}
+func (x *PaginationResponse) ProtoReflect() protoreflect.Message {
 	return (&protoimpl.MessageInfo{}).MessageOf(x)
 }
 
@@ -750,7 +750,7 @@ type ListRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
-	Page          *PageRequest
+	Pagination    *PaginationRequest
 }
 func (x *ListRequest) Reset() {}
 func (x *ListRequest) String() string { return "ListRequest{}" }
@@ -764,7 +764,7 @@ type ListResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 	Items         []*User
-	Page          *PageResponse
+	Pagination    *PaginationResponse
 }
 func (x *ListResponse) Reset() {}
 func (x *ListResponse) String() string { return "ListResponse{}" }

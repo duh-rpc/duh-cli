@@ -138,7 +138,7 @@ import (
 	"google.golang.org/protobuf/runtime/protoimpl"
 )
 
-type PageRequest struct {
+type PaginationRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -146,14 +146,14 @@ type PageRequest struct {
 	After         string
 }
 
-func (x *PageRequest) Reset() {}
-func (x *PageRequest) String() string { return "PageRequest{}" }
-func (x *PageRequest) ProtoMessage() {}
-func (x *PageRequest) ProtoReflect() protoreflect.Message {
+func (x *PaginationRequest) Reset() {}
+func (x *PaginationRequest) String() string { return "PaginationRequest{}" }
+func (x *PaginationRequest) ProtoMessage() {}
+func (x *PaginationRequest) ProtoReflect() protoreflect.Message {
 	return (&protoimpl.MessageInfo{}).MessageOf(x)
 }
 
-type PageResponse struct {
+type PaginationResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -161,10 +161,10 @@ type PageResponse struct {
 	HasMore       bool
 }
 
-func (x *PageResponse) Reset() {}
-func (x *PageResponse) String() string { return "PageResponse{}" }
-func (x *PageResponse) ProtoMessage() {}
-func (x *PageResponse) ProtoReflect() protoreflect.Message {
+func (x *PaginationResponse) Reset() {}
+func (x *PaginationResponse) String() string { return "PaginationResponse{}" }
+func (x *PaginationResponse) ProtoMessage() {}
+func (x *PaginationResponse) ProtoReflect() protoreflect.Message {
 	return (&protoimpl.MessageInfo{}).MessageOf(x)
 }
 
@@ -172,7 +172,7 @@ type ListRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
-	Page          *PageRequest
+	Pagination    *PaginationRequest
 }
 
 func (x *ListRequest) Reset() {}
@@ -187,7 +187,7 @@ type ListResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 	Items         []*User
-	Page          *PageResponse
+	Pagination    *PaginationResponse
 }
 
 func (x *ListResponse) Reset() {}

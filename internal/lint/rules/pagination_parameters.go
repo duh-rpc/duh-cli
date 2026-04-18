@@ -45,13 +45,13 @@ func (r *PaginationParametersRule) Validate(doc *v3.Document) []Violation {
 		}
 
 		location := "POST " + path
-		suggestion := "Paginated endpoints must use cursor-based pagination with 'first' (integer, min:1, max:100) and 'after' (string) under 'page'"
+		suggestion := "Paginated endpoints must use cursor-based pagination with 'first' (integer, min:1, max:100) and 'after' (string) under 'pagination'"
 
-		pageProxy, hasPage := schema.Properties.Get("page")
+		pageProxy, hasPage := schema.Properties.Get("pagination")
 		if !hasPage {
 			violations = append(violations, Violation{
 				Suggestion: suggestion,
-				Message:    "Paginated endpoint must have a 'page' sub-object with 'first' and 'after' parameters",
+				Message:    "Paginated endpoint must have a 'pagination' sub-object with 'first' and 'after' parameters",
 				Location:   location,
 				RuleName:   r.Name(),
 				Severity:   SeverityError,
@@ -63,7 +63,7 @@ func (r *PaginationParametersRule) Validate(doc *v3.Document) []Violation {
 		if pageSchema == nil || pageSchema.Properties == nil {
 			violations = append(violations, Violation{
 				Suggestion: suggestion,
-				Message:    "Paginated endpoint must have a 'page' sub-object with 'first' and 'after' parameters",
+				Message:    "Paginated endpoint must have a 'pagination' sub-object with 'first' and 'after' parameters",
 				Location:   location,
 				RuleName:   r.Name(),
 				Severity:   SeverityError,
@@ -75,7 +75,7 @@ func (r *PaginationParametersRule) Validate(doc *v3.Document) []Violation {
 		if !hasFirst {
 			violations = append(violations, Violation{
 				Suggestion: suggestion,
-				Message:    "Paginated endpoint 'page' must have a 'first' parameter",
+				Message:    "Paginated endpoint 'pagination' must have a 'first' parameter",
 				Location:   location,
 				RuleName:   r.Name(),
 				Severity:   SeverityError,
@@ -119,7 +119,7 @@ func (r *PaginationParametersRule) Validate(doc *v3.Document) []Violation {
 		if !hasAfter {
 			violations = append(violations, Violation{
 				Suggestion: suggestion,
-				Message:    "Paginated endpoint 'page' must have an 'after' parameter",
+				Message:    "Paginated endpoint 'pagination' must have an 'after' parameter",
 				Location:   location,
 				RuleName:   r.Name(),
 				Severity:   SeverityError,

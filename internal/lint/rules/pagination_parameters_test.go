@@ -50,7 +50,7 @@ components:
     ListRequest:
       type: object
       properties:
-        page:
+        pagination:
           type: object
           properties:
             first:
@@ -70,7 +70,7 @@ components:
             properties:
               name:
                 type: string
-        page:
+        pagination:
           type: object
           properties:
             endCursor:
@@ -136,7 +136,7 @@ components:
 			expectedOutput: "compliant",
 		},
 		{
-			name: "MissingPageSubObject",
+			name: "MissingPaginationSubObject",
 			spec: `openapi: 3.0.0
 info:
   title: Test
@@ -182,7 +182,7 @@ components:
             properties:
               name:
                 type: string
-        page:
+        pagination:
           type: object
           properties:
             endCursor:
@@ -231,7 +231,7 @@ components:
     ListRequest:
       type: object
       properties:
-        page:
+        pagination:
           type: object
           properties:
             after:
@@ -246,7 +246,7 @@ components:
             properties:
               name:
                 type: string
-        page:
+        pagination:
           type: object
           properties:
             endCursor:
@@ -295,7 +295,7 @@ components:
     ListRequest:
       type: object
       properties:
-        page:
+        pagination:
           type: object
           properties:
             first:
@@ -312,7 +312,7 @@ components:
             properties:
               name:
                 type: string
-        page:
+        pagination:
           type: object
           properties:
             endCursor:
@@ -361,7 +361,7 @@ components:
     ListRequest:
       type: object
       properties:
-        page:
+        pagination:
           type: object
           properties:
             first:
@@ -380,7 +380,7 @@ components:
             properties:
               name:
                 type: string
-        page:
+        pagination:
           type: object
           properties:
             endCursor:
@@ -429,7 +429,7 @@ components:
     ListRequest:
       type: object
       properties:
-        page:
+        pagination:
           type: object
           properties:
             first:
@@ -448,7 +448,7 @@ components:
             properties:
               name:
                 type: string
-        page:
+        pagination:
           type: object
           properties:
             endCursor:
@@ -497,7 +497,7 @@ components:
     ListRequest:
       type: object
       properties:
-        page:
+        pagination:
           type: object
           properties:
             first:
@@ -515,7 +515,7 @@ components:
             properties:
               name:
                 type: string
-        page:
+        pagination:
           type: object
           properties:
             endCursor:
@@ -564,7 +564,7 @@ components:
     ListRequest:
       type: object
       properties:
-        page:
+        pagination:
           type: object
           properties:
             first:
@@ -585,7 +585,7 @@ components:
             properties:
               name:
                 type: string
-        page:
+        pagination:
           type: object
           properties:
             endCursor:

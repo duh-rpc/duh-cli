@@ -61,13 +61,13 @@ components:
     ListRequest:
       type: object
       properties:
-        page:
-          $ref: '#/components/schemas/PageRequest'
+        pagination:
+          $ref: '#/components/schemas/PaginationRequest'
         status:
           description: Filter pets by status
           type: string
 
-    PageRequest:
+    PaginationRequest:
       description: Pagination parameters for cursor-based pagination
       type: object
       properties:
@@ -83,17 +83,17 @@ components:
 
     ListResponse:
       type: object
-      required: [items, page]
+      required: [items, pagination]
       properties:
         items:
           description: List of pets matching the query
           type: array
           items:
             $ref: '#/components/schemas/Pet'
-        page:
-          $ref: '#/components/schemas/PageResponse'
+        pagination:
+          $ref: '#/components/schemas/PaginationResponse'
 
-    PageResponse:
+    PaginationResponse:
       description: Pagination response with cursor information
       type: object
       required: [endCursor]
@@ -101,6 +101,9 @@ components:
         endCursor:
           description: Cursor pointing to the last item in the current page
           type: string
+        hasNextPage:
+          description: Whether there are more items available
+          type: boolean
 
     CreateRequest:
       type: object

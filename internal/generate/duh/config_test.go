@@ -93,9 +93,9 @@ components:
     ListRequest:
       type: object
       properties:
-        page:
-          $ref: '#/components/schemas/PageRequest'
-    PageRequest:
+        pagination:
+          $ref: '#/components/schemas/PaginationRequest'
+    PaginationRequest:
       type: object
       properties:
         first:
@@ -112,9 +112,9 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/User'
-        page:
-          $ref: '#/components/schemas/PageResponse'
-    PageResponse:
+        pagination:
+          $ref: '#/components/schemas/PaginationResponse'
+    PaginationResponse:
       type: object
       properties:
         endCursor:

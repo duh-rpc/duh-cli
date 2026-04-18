@@ -107,9 +107,9 @@ components:
     ListRequest:
       type: object
       properties:
-        page:
-          $ref: '#/components/schemas/PageRequest'
-    PageRequest:
+        pagination:
+          $ref: '#/components/schemas/PaginationRequest'
+    PaginationRequest:
       type: object
       properties:
         first: {type: integer, format: int32, minimum: 1, maximum: 100}
@@ -121,9 +121,9 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/GetResponse'
-        page:
-          $ref: '#/components/schemas/PageResponse'
-    PageResponse:
+        pagination:
+          $ref: '#/components/schemas/PaginationResponse'
+    PaginationResponse:
       type: object
       properties:
         endCursor: {type: string}
@@ -355,9 +355,9 @@ components:
     ListRequest:
       type: object
       properties:
-        page:
-          $ref: '#/components/schemas/PageRequest'
-    PageRequest:
+        pagination:
+          $ref: '#/components/schemas/PaginationRequest'
+    PaginationRequest:
       type: object
       properties:
         first: {type: integer, format: int32, minimum: 1, maximum: 100}
@@ -369,9 +369,9 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/GetResponse'
-        page:
-          $ref: '#/components/schemas/PageResponse'
-    PageResponse:
+        pagination:
+          $ref: '#/components/schemas/PaginationResponse'
+    PaginationResponse:
       type: object
       properties:
         endCursor: {type: string}

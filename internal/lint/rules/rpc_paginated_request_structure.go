@@ -47,8 +47,8 @@ func (r *RPCPaginatedRequestStructureRule) Validate(doc *v3.Document) []Violatio
 
 		if _, exists := schema.Properties.Get("first"); exists {
 			violations = append(violations, Violation{
-				Suggestion: "Move pagination parameters under a 'page' sub-object in the request body",
-				Message:    "Pagination parameter 'first' must be nested under 'page' sub-object",
+				Suggestion: "Move pagination parameters under a 'pagination' sub-object in the request body",
+				Message:    "Pagination parameter 'first' must be nested under 'pagination' sub-object",
 				Location:   "POST " + path,
 				RuleName:   r.Name(),
 				Severity:   SeverityError,
@@ -57,8 +57,8 @@ func (r *RPCPaginatedRequestStructureRule) Validate(doc *v3.Document) []Violatio
 
 		if _, exists := schema.Properties.Get("after"); exists {
 			violations = append(violations, Violation{
-				Suggestion: "Move pagination parameters under a 'page' sub-object in the request body",
-				Message:    "Pagination parameter 'after' must be nested under 'page' sub-object",
+				Suggestion: "Move pagination parameters under a 'pagination' sub-object in the request body",
+				Message:    "Pagination parameter 'after' must be nested under 'pagination' sub-object",
 				Location:   "POST " + path,
 				RuleName:   r.Name(),
 				Severity:   SeverityError,

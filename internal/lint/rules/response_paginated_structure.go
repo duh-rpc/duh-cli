@@ -58,7 +58,7 @@ func (r *ResponsePaginatedStructureRule) Validate(doc *v3.Document) []Violation 
 			itemsProxy, hasItems := schema.Properties.Get("items")
 			if !hasItems {
 				violations = append(violations, Violation{
-					Suggestion: "Paginated responses must include an 'items' array and a 'page' object with 'endCursor'",
+					Suggestion: "Paginated responses must include an 'items' array and a 'pagination' object with 'endCursor'",
 					Message:    "Paginated response must have an 'items' property",
 					Location:   location,
 					RuleName:   r.Name(),
@@ -68,7 +68,7 @@ func (r *ResponsePaginatedStructureRule) Validate(doc *v3.Document) []Violation 
 				itemsSchema := itemsProxy.Schema()
 				if itemsSchema != nil && (len(itemsSchema.Type) == 0 || itemsSchema.Type[0] != "array") {
 					violations = append(violations, Violation{
-						Suggestion: "Paginated responses must include an 'items' array and a 'page' object with 'endCursor'",
+						Suggestion: "Paginated responses must include an 'items' array and a 'pagination' object with 'endCursor'",
 						Message:    "The 'items' property must be type array",
 						Location:   location,
 						RuleName:   r.Name(),
@@ -77,11 +77,11 @@ func (r *ResponsePaginatedStructureRule) Validate(doc *v3.Document) []Violation 
 				}
 			}
 
-			pageProxy, hasPage := schema.Properties.Get("page")
+			pageProxy, hasPage := schema.Properties.Get("pagination")
 			if !hasPage {
 				violations = append(violations, Violation{
-					Suggestion: "Paginated responses must include an 'items' array and a 'page' object with 'endCursor'",
-					Message:    "Paginated response must have a 'page' property",
+					Suggestion: "Paginated responses must include an 'items' array and a 'pagination' object with 'endCursor'",
+					Message:    "Paginated response must have a 'pagination' property",
 					Location:   location,
 					RuleName:   r.Name(),
 					Severity:   SeverityError,
@@ -91,8 +91,8 @@ func (r *ResponsePaginatedStructureRule) Validate(doc *v3.Document) []Violation 
 				if pageSchema != nil && pageSchema.Properties != nil {
 					if _, hasEndCursor := pageSchema.Properties.Get("endCursor"); !hasEndCursor {
 						violations = append(violations, Violation{
-							Suggestion: "Paginated responses must include an 'items' array and a 'page' object with 'endCursor'",
-							Message:    "Paginated response 'page' must contain 'endCursor' property",
+							Suggestion: "Paginated responses must include an 'items' array and a 'pagination' object with 'endCursor'",
+							Message:    "Paginated response 'pagination' must contain 'endCursor' property",
 							Location:   location,
 							RuleName:   r.Name(),
 							Severity:   SeverityError,
@@ -100,8 +100,8 @@ func (r *ResponsePaginatedStructureRule) Validate(doc *v3.Document) []Violation 
 					}
 				} else if pageSchema != nil && pageSchema.Properties == nil {
 					violations = append(violations, Violation{
-						Suggestion: "Paginated responses must include an 'items' array and a 'page' object with 'endCursor'",
-						Message:    "Paginated response 'page' must contain 'endCursor' property",
+						Suggestion: "Paginated responses must include an 'items' array and a 'pagination' object with 'endCursor'",
+						Message:    "Paginated response 'pagination' must contain 'endCursor' property",
 						Location:   location,
 						RuleName:   r.Name(),
 						Severity:   SeverityError,

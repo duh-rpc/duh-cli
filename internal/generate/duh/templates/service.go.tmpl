@@ -108,8 +108,8 @@ func (s *Service) {{.MethodName}}(ctx context.Context, req *{{.RequestType}}, re
 
 	const defaultFirst = 10
 	first := defaultFirst
-	if req.Page != nil && req.Page.First > 0 {
-		first = int(req.Page.First)
+	if req.Pagination != nil && req.Pagination.First > 0 {
+		first = int(req.Pagination.First)
 	}
 
 	users := make([]*pb.GetResponse, 0, len(s.users))
@@ -139,7 +139,7 @@ func (s *Service) {{.MethodName}}(ctx context.Context, req *{{.RequestType}}, re
 	}
 
 	resp.Users = users[:end]
-	resp.Page = &pb.PageResponse{
+	resp.Pagination = &pb.PaginationResponse{
 		HasMore: end < total,
 	}
 

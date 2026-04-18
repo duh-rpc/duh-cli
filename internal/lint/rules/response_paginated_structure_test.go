@@ -50,7 +50,7 @@ components:
     ListRequest:
       type: object
       properties:
-        page:
+        pagination:
           type: object
           properties:
             first:
@@ -70,7 +70,7 @@ components:
             properties:
               name:
                 type: string
-        page:
+        pagination:
           type: object
           properties:
             endCursor:
@@ -170,7 +170,7 @@ components:
     ListRequest:
       type: object
       properties:
-        page:
+        pagination:
           type: object
           properties:
             first:
@@ -183,7 +183,7 @@ components:
     ListResponse:
       type: object
       properties:
-        page:
+        pagination:
           type: object
           properties:
             endCursor:
@@ -232,7 +232,7 @@ components:
     ListRequest:
       type: object
       properties:
-        page:
+        pagination:
           type: object
           properties:
             first:
@@ -247,7 +247,7 @@ components:
       properties:
         items:
           type: string
-        page:
+        pagination:
           type: object
           properties:
             endCursor:
@@ -262,7 +262,7 @@ components:
 			expectedOutput: "[RESPONSE_PAGINATED_STRUCTURE]",
 		},
 		{
-			name: "MissingPage",
+			name: "MissingPagination",
 			spec: `openapi: 3.0.0
 info:
   title: Test
@@ -296,7 +296,7 @@ components:
     ListRequest:
       type: object
       properties:
-        page:
+        pagination:
           type: object
           properties:
             first:
@@ -326,7 +326,7 @@ components:
 			expectedOutput: "[RESPONSE_PAGINATED_STRUCTURE]",
 		},
 		{
-			name: "PageMissingEndCursor",
+			name: "PaginationMissingEndCursor",
 			spec: `openapi: 3.0.0
 info:
   title: Test
@@ -360,7 +360,7 @@ components:
     ListRequest:
       type: object
       properties:
-        page:
+        pagination:
           type: object
           properties:
             first:
@@ -380,7 +380,7 @@ components:
             properties:
               name:
                 type: string
-        page:
+        pagination:
           type: object
           properties:
             hasMore:
@@ -429,7 +429,7 @@ components:
     SearchRequest:
       type: object
       properties:
-        page:
+        pagination:
           type: object
           properties:
             first:

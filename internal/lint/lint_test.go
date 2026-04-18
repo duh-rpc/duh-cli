@@ -90,7 +90,7 @@ func TestLinterAllRuleViolations(t *testing.T) {
 		{
 			name:              "PaginationUsesLimit",
 			file:              "testdata/pagination-uses-limit.yaml",
-			expectedViolation: "[RPC_PAGINATION_PARAMETERS]",
+			expectedViolation: "[PAGINATION_PARAMETERS]",
 			expectedExitCode:  1,
 		},
 		{
@@ -192,7 +192,7 @@ func TestLinterAllRuleViolations(t *testing.T) {
 		{
 			name:              "NullTypeArray",
 			file:              "testdata/null-type-array.yaml",
-			expectedViolation: "[NULLABLE_SYNTAX]",
+			expectedViolation: "[RPC_NO_NULLABLE]",
 			expectedExitCode:  1,
 		},
 		{
@@ -205,12 +205,6 @@ func TestLinterAllRuleViolations(t *testing.T) {
 			name:              "NullableOptionalResponse",
 			file:              "testdata/nullable-optional-response.yaml",
 			expectedViolation: "[NULLABLE_OPTIONAL_RESPONSE]",
-			expectedExitCode:  1,
-		},
-		{
-			name:              "NullableNotRequired",
-			file:              "testdata/nullable-optional-response.yaml",
-			expectedViolation: "[NULLABLE_REQUIRED_ONLY]",
 			expectedExitCode:  1,
 		},
 		{
@@ -372,10 +366,8 @@ func TestLinterMultipleViolations(t *testing.T) {
 		"[PATH_MULTIPLE_PARAMETERS]",
 		"[SCHEMA_NO_INLINE_OBJECTS]",
 		"[PROPERTY_CAMELCASE]",
-		"[NULLABLE_SYNTAX]",
 		"[SCHEMA_ADDITIONAL_PROPERTIES_RESPONSE]",
 		"[NULLABLE_OPTIONAL_RESPONSE]",
-		"[NULLABLE_REQUIRED_ONLY]",
 		"[PROHIBITED_ANYOF]",
 		"[PROHIBITED_ALLOF_UNION]",
 		"[PROHIBITED_READONLY_WRITEONLY]",

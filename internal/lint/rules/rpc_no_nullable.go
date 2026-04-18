@@ -2,6 +2,7 @@ package rules
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/pb33f/libopenapi/datamodel/high/v3"
 )
@@ -43,6 +44,16 @@ func (r *RPCNoNullableRule) Validate(doc *v3.Document) []Violation {
 				violations = append(violations, Violation{
 					Suggestion: "Remove nullable: true from the property definition",
 					Message:    "Property must not use nullable: true; proto3 uses zero values and field absence instead",
+					Location:   fmt.Sprintf("components/schemas/%s/%s", schemaName, propName),
+					RuleName:   r.Name(),
+					Severity:   SeverityError,
+				})
+			}
+
+			if slices.Contains(propSchema.Type, "null") {
+				violations = append(violations, Violation{
+					Suggestion: "Replace type: [string, null] with type: string and nullable: true",
+					Message:    "Property must not use type array with null",
 					Location:   fmt.Sprintf("components/schemas/%s/%s", schemaName, propName),
 					RuleName:   r.Name(),
 					Severity:   SeverityError,

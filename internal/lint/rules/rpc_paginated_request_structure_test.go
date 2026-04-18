@@ -16,7 +16,7 @@ func TestRPCPaginatedRequestStructureRule(t *testing.T) {
 		expectedOutput string
 	}{
 		{
-			name: "ValidPageSubObject",
+			name: "ValidPaginationSubObject",
 			spec: `openapi: 3.0.0
 info:
   title: Test
@@ -50,7 +50,7 @@ components:
     ListRequest:
       type: object
       properties:
-        page:
+        pagination:
           type: object
           properties:
             first:
@@ -205,8 +205,8 @@ paths:
             application/json:
               schema:
                 type: object`,
-			expectedExit: 1,
-			expectedOutput: `Pagination parameter 'first' must be nested under 'page' sub-object`,
+			expectedExit:   1,
+			expectedOutput: "Pagination parameter 'first' must be nested under 'pagination' sub-object",
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
@@ -256,7 +256,7 @@ paths:
 		exitCode := duh.RunCmd(&stdout, []string{"lint", filePath})
 
 		assert.Equal(t, 1, exitCode)
-		assert.Contains(t, stdout.String(), "Pagination parameter 'first' must be nested under 'page' sub-object")
-		assert.Contains(t, stdout.String(), "Pagination parameter 'after' must be nested under 'page' sub-object")
+		assert.Contains(t, stdout.String(), "Pagination parameter 'first' must be nested under 'pagination' sub-object")
+		assert.Contains(t, stdout.String(), "Pagination parameter 'after' must be nested under 'pagination' sub-object")
 	})
 }

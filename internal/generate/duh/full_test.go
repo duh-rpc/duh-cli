@@ -479,11 +479,11 @@ components:
     ListRequest:
       type: object
       properties:
-        page:
-          $ref: '#/components/schemas/PageRequest'
+        pagination:
+          $ref: '#/components/schemas/PaginationRequest'
         sortBy:
           type: string
-    PageRequest:
+    PaginationRequest:
       type: object
       properties:
         first:
@@ -500,9 +500,9 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/GetResponse'
-        page:
-          $ref: '#/components/schemas/PageResponse'
-    PageResponse:
+        pagination:
+          $ref: '#/components/schemas/PaginationResponse'
+    PaginationResponse:
       type: object
       properties:
         endCursor:

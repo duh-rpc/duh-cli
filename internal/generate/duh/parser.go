@@ -192,7 +192,7 @@ func (p *Parser) isListOperation(path string, requestSchema, responseSchema *bas
 	hasPage := false
 	if requestSchema.Schema().Properties != nil {
 		for propPair := orderedmap.First(requestSchema.Schema().Properties); propPair != nil; propPair = propPair.Next() {
-			if strings.ToLower(propPair.Key()) == "page" {
+			if strings.ToLower(propPair.Key()) == "pagination" {
 				hasPage = true
 				break
 			}
