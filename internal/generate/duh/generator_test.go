@@ -60,7 +60,7 @@ func TestBufFilesGeneratedWithoutFullFlag(t *testing.T) {
 	exitCode := duh.RunCmd(&stdout, []string{"generate", "openapi.yaml"})
 
 	require.Equal(t, 0, exitCode)
-	assert.Contains(t, stdout.String(), "Generated 6 file(s)")
+	assert.Contains(t, stdout.String(), "Generated 5 file(s)")
 
 	_, err = os.Stat("buf.yaml")
 	require.NoError(t, err)
@@ -92,7 +92,7 @@ func TestBufFilesGeneratedWithFullFlag(t *testing.T) {
 	exitCode := duh.RunCmd(&stdout, []string{"generate", "openapi.yaml", "--full"})
 
 	require.Equal(t, 0, exitCode)
-	assert.Contains(t, stdout.String(), "Generated 10 file(s)")
+	assert.Contains(t, stdout.String(), "Generated 9 file(s)")
 
 	_, err = os.Stat("buf.yaml")
 	require.NoError(t, err)

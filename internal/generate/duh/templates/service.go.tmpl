@@ -6,6 +6,7 @@ import (
 	"context"
 	"log/slog"
 {{if .IsFullTemplate}}	"sort"
+	"strconv"
 	"sync"
 
 	"github.com/duh-rpc/duh.go/v2"
@@ -112,6 +113,13 @@ func (s *Service) {{.MethodName}}(ctx context.Context, req *{{.RequestType}}, re
 		first = int(req.Pagination.First)
 	}
 
+	offset := 0
+	if req.Pagination != nil && req.Pagination.After != "" {
+		if n, err := strconv.Atoi(req.Pagination.After); err == nil {
+			offset = n
+		}
+	}
+
 	users := make([]*pb.GetResponse, 0, len(s.users))
 	for _, user := range s.users {
 		users = append(users, user)
@@ -132,15 +140,18 @@ func (s *Service) {{.MethodName}}(ctx context.Context, req *{{.RequestType}}, re
 		})
 	}
 
-	total := len(users)
+	available := users[offset:]
 	end := first
-	if end > total {
-		end = total
+	if end > len(available) {
+		end = len(available)
 	}
 
-	resp.Users = users[:end]
+	resp.Items = available[:end]
 	resp.Pagination = &pb.PaginationResponse{
-		HasMore: end < total,
+		HasMore: end < len(available),
+	}
+	if resp.Pagination.HasMore {
+		resp.Pagination.EndCursor = strconv.Itoa(offset + end)
 	}
 
 	return nil

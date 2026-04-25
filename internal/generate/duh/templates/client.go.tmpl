@@ -84,46 +84,24 @@ func (c *Client) Close(ctx context.Context) error {
 
 {{if .HasListOps}}
 {{range .ListOps}}
-// {{.FetcherName}} implements PageFetcher for {{.MethodName}} cursor-based pagination
-type {{.FetcherName}} struct {
-	client *Client
-	first  int32
-}
-
-// FetchPage fetches a page of {{.ResponseField}} using cursor-based pagination
-func (f *{{.FetcherName}}) FetchPage(ctx context.Context, pageNum int) (*Page[{{.ItemType}}], error) {
-	var resp {{.ResponseType}}
-	err := f.client.{{.MethodName}}(ctx, &{{.RequestType}}{
-		Pagination: &pb.PaginationRequest{
-			First: f.first,
-		},
-	}, &resp)
-	if err != nil {
-		return nil, err
-	}
-
-	hasMore := resp.Pagination != nil && resp.Pagination.HasMore
-
-	return &Page[{{.ItemType}}]{
-		Items:   resp.{{.ResponseField}},
-		Page:    pageNum,
-		PerPage: int(f.first),
-		HasMore: hasMore,
-	}, nil
-}
-
-// {{.IteratorName}} creates an iterator for paginating through {{.ResponseField}}
-func (c *Client) {{.IteratorName}}(first int32) Iterator[{{.ItemType}}] {
-	if first <= 0 {
-		first = 10
-	}
-
-	fetcher := &{{.FetcherName}}{
-		client: c,
-		first:  first,
-	}
-
-	return NewGenericIterator[{{.ItemType}}](fetcher)
+// {{.IteratorName}} creates a cursor-based iterator for paginating through {{.ResponseField}}
+func (c *Client) {{.IteratorName}}(first int32) *duh.Iterator[{{.ItemType}}] {
+	return duh.NewIterator[{{.ItemType}}](func(ctx context.Context, cursor string) ([]{{.ItemType}}, duh.Page, error) {
+		var resp {{.ResponseType}}
+		if err := c.{{.MethodName}}(ctx, &{{.RequestType}}{
+			Pagination: &pb.PaginationRequest{First: first, After: cursor},
+		}, &resp); err != nil {
+			return nil, duh.Page{}, err
+		}
+		var endCursor string
+		if resp.Pagination != nil {
+			endCursor = resp.Pagination.EndCursor
+		}
+		return resp.{{.ResponseField}}, duh.Page{
+			HasNextPage: resp.Pagination != nil && resp.Pagination.HasMore,
+			EndCursor:   endCursor,
+		}, nil
+	})
 }
 {{end}}
 {{end}}

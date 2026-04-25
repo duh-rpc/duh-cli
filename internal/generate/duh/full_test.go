@@ -43,7 +43,7 @@ func TestGenerateDuhWithFullFlagAndInitSpec(t *testing.T) {
 	exitCode := duh.RunCmd(&stdout, args)
 
 	require.Equal(t, 0, exitCode)
-	assert.Contains(t, stdout.String(), "Generated 10 file(s)")
+	assert.Contains(t, stdout.String(), "Generated 9 file(s)")
 
 	_, err = os.Stat("buf.yaml")
 	require.NoError(t, err)
@@ -153,7 +153,7 @@ func TestGenerateDuhWithoutFullFlag(t *testing.T) {
 	exitCode := duh.RunCmd(&stdout, args)
 
 	require.Equal(t, 0, exitCode)
-	assert.Contains(t, stdout.String(), "Generated 6 file(s)")
+	assert.Contains(t, stdout.String(), "Generated 5 file(s)")
 
 	_, err = os.Stat("buf.yaml")
 	require.NoError(t, err)
@@ -304,7 +304,7 @@ func TestBufFilesNotOverwrittenWhenExist(t *testing.T) {
 	exitCode := duh.RunCmd(&stdout, args)
 
 	require.Equal(t, 0, exitCode)
-	assert.Contains(t, stdout.String(), "Generated 4 file(s)")
+	assert.Contains(t, stdout.String(), "Generated 3 file(s)")
 
 	bufYamlContent, err := os.ReadFile("buf.yaml")
 	require.NoError(t, err)

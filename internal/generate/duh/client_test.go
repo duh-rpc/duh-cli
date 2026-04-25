@@ -69,13 +69,13 @@ func (x *CreateResponse) ProtoReflect() protoreflect.Message {
 
 go 1.24
 
-require github.com/duh-rpc/duh.go v0.0.0
+require github.com/duh-rpc/duh.go/v2 v2.0.0
 require github.com/kapetan-io/tackle v0.0.0
 require google.golang.org/protobuf v0.0.0
 `
 	require.NoError(t, os.WriteFile(filepath.Join(tempDir, "go.mod"), []byte(goMod), 0644))
 
-	cmd := exec.Command("go", "mod", "edit", "-replace", "github.com/duh-rpc/duh.go=github.com/duh-rpc/duh.go@v0.10.1")
+	cmd := exec.Command("go", "mod", "edit", "-replace", "github.com/duh-rpc/duh.go/v2=github.com/duh-rpc/duh.go/v2@v2.0.0")
 	cmd.Dir = tempDir
 	output, err := cmd.CombinedOutput()
 	require.NoError(t, err, string(output))
@@ -110,13 +110,15 @@ func TestClientIteratorIntegration(t *testing.T) {
 	require.NoError(t, err)
 
 	content := string(clientContent)
-	assert.Contains(t, content, "UserPageFetcher")
+	assert.Contains(t, content, "duh.NewIterator")
+	assert.Contains(t, content, "*duh.Iterator")
 	assert.Contains(t, content, "UsersListIter")
-	assert.Contains(t, content, "func (f *UserPageFetcher) FetchPage")
+	assert.NotContains(t, content, "UserPageFetcher")
+	assert.NotContains(t, content, "FetchPage")
 
-	iteratorContent, err := os.ReadFile(filepath.Join(tempDir, "iterator.go"))
-	require.NoError(t, err)
-	assert.Contains(t, string(iteratorContent), "type Iterator[T any] interface")
+	_, err = os.Stat(filepath.Join(tempDir, "iterator.go"))
+	require.Error(t, err)
+	assert.True(t, os.IsNotExist(err))
 
 	protoDir := filepath.Join(tempDir, "proto/v1")
 	require.NoError(t, os.MkdirAll(protoDir, 0755))
@@ -216,13 +218,13 @@ func (x *User) ProtoReflect() protoreflect.Message {
 
 go 1.24
 
-require github.com/duh-rpc/duh.go v0.0.0
+require github.com/duh-rpc/duh.go/v2 v2.0.0
 require github.com/kapetan-io/tackle v0.0.0
 require google.golang.org/protobuf v0.0.0
 `
 	require.NoError(t, os.WriteFile(filepath.Join(tempDir, "go.mod"), []byte(goMod), 0644))
 
-	cmd := exec.Command("go", "mod", "edit", "-replace", "github.com/duh-rpc/duh.go=github.com/duh-rpc/duh.go@v0.10.1")
+	cmd := exec.Command("go", "mod", "edit", "-replace", "github.com/duh-rpc/duh.go/v2=github.com/duh-rpc/duh.go/v2@v2.0.0")
 	cmd.Dir = tempDir
 	output, err := cmd.CombinedOutput()
 	require.NoError(t, err, string(output))
@@ -315,13 +317,13 @@ func (x *CreateResponse) ProtoReflect() protoreflect.Message {
 
 go 1.24
 
-require github.com/duh-rpc/duh.go v0.0.0
+require github.com/duh-rpc/duh.go/v2 v2.0.0
 require github.com/kapetan-io/tackle v0.0.0
 require google.golang.org/protobuf v0.0.0
 `
 	require.NoError(t, os.WriteFile(filepath.Join(tempDir, "go.mod"), []byte(goMod), 0644))
 
-	cmd := exec.Command("go", "mod", "edit", "-replace", "github.com/duh-rpc/duh.go=github.com/duh-rpc/duh.go@v0.10.1")
+	cmd := exec.Command("go", "mod", "edit", "-replace", "github.com/duh-rpc/duh.go/v2=github.com/duh-rpc/duh.go/v2@v2.0.0")
 	cmd.Dir = tempDir
 	output, err := cmd.CombinedOutput()
 	require.NoError(t, err, string(output))

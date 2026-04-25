@@ -165,7 +165,6 @@ func (p *Parser) detectListOperations(ops []Operation) ([]ListOperation, error) 
 			listOps = append(listOps, ListOperation{
 				Operation:     op,
 				IteratorName:  op.MethodName + "Iter",
-				FetcherName:   strings.TrimSuffix(itemType, "Response") + "PageFetcher",
 				ItemType:      "*pb." + itemType,
 				ResponseField: fieldName,
 			})

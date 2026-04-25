@@ -49,20 +49,6 @@ func Run(config RunConfig) error {
 
 	filesGenerated := []string{"server.go"}
 
-	if data.HasListOps {
-		iteratorCode, err := generator.RenderIterator(data)
-		if err != nil {
-			return fmt.Errorf("failed to render iterator.go: %w", err)
-		}
-
-		iteratorPath := filepath.Join(config.OutputDir, "iterator.go")
-		if err := writeFile(iteratorPath, iteratorCode); err != nil {
-			return fmt.Errorf("failed to write iterator.go: %w", err)
-		}
-
-		filesGenerated = append(filesGenerated, "iterator.go")
-	}
-
 	clientCode, err := generator.RenderClient(data)
 	if err != nil {
 		return fmt.Errorf("failed to render client.go: %w", err)

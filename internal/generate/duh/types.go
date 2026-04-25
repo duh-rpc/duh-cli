@@ -41,7 +41,6 @@ type Operation struct {
 type ListOperation struct {
 	Operation
 	IteratorName  string
-	FetcherName   string
 	ItemType      string
 	ResponseField string
 }
