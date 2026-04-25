@@ -321,7 +321,7 @@ func TestEndToEndGeneration(t *testing.T) {
 func TestGeneratedCodeCompiles(t *testing.T) {
 	tempDir := t.TempDir()
 	require.NoError(t, os.Chdir(tempDir))
-	require.NoError(t, os.WriteFile("go.mod", []byte("module github.com/example/test\n\ngo 1.24\n\nrequire github.com/duh-rpc/duh.go v0.0.0\n"), 0644))
+	require.NoError(t, os.WriteFile("go.mod", []byte("module github.com/example/test\n\ngo 1.24\n\nrequire github.com/duh-rpc/duh.go/v2 v2.0.0\n"), 0644))
 
 	specPath := filepath.Join(tempDir, "openapi.yaml")
 	require.NoError(t, os.WriteFile(specPath, []byte(fullSpec), 0644))
@@ -479,7 +479,7 @@ func (x *UpdateResponse) ProtoReflect() protoreflect.Message {
 `
 	require.NoError(t, os.WriteFile(filepath.Join(protoDir, "api.pb.go"), []byte(goProtoStub), 0644))
 
-	replaceCmd := exec.Command("go", "mod", "edit", "-replace", "github.com/duh-rpc/duh.go=github.com/duh-rpc/duh.go@v0.10.1")
+	replaceCmd := exec.Command("go", "mod", "edit", "-replace", "github.com/duh-rpc/duh.go/v2=github.com/duh-rpc/duh.go/v2@v2.0.0")
 	replaceCmd.Dir = tempDir
 	output, err := replaceCmd.CombinedOutput()
 	require.NoError(t, err, string(output))
@@ -628,7 +628,7 @@ func TestNonAtomicGeneration(t *testing.T) {
 func TestFullPipelineWithDependencies(t *testing.T) {
 	tempDir := t.TempDir()
 	require.NoError(t, os.Chdir(tempDir))
-	require.NoError(t, os.WriteFile("go.mod", []byte("module github.com/example/integration\n\ngo 1.24\n\nrequire github.com/duh-rpc/duh.go v0.0.0\n"), 0644))
+	require.NoError(t, os.WriteFile("go.mod", []byte("module github.com/example/integration\n\ngo 1.24\n\nrequire github.com/duh-rpc/duh.go/v2 v2.0.0\n"), 0644))
 
 	specPath := filepath.Join(tempDir, "openapi.yaml")
 	require.NoError(t, os.WriteFile(specPath, []byte(fullSpec), 0644))
@@ -811,7 +811,7 @@ func (x *UpdateResponse) ProtoReflect() protoreflect.Message {
 `
 	require.NoError(t, os.WriteFile(filepath.Join(protoDir, "service.pb.go"), []byte(goProtoStub), 0644))
 
-	replaceCmd := exec.Command("go", "mod", "edit", "-replace", "github.com/duh-rpc/duh.go=github.com/duh-rpc/duh.go@v0.10.1")
+	replaceCmd := exec.Command("go", "mod", "edit", "-replace", "github.com/duh-rpc/duh.go/v2=github.com/duh-rpc/duh.go/v2@v2.0.0")
 	replaceCmd.Dir = tempDir
 	output, err := replaceCmd.CombinedOutput()
 	require.NoError(t, err, string(output))
