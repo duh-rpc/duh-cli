@@ -452,6 +452,9 @@ Nullable fields are not permitted in any form. Protobuf has no native concept of
 this blanket rule avoids the need for complex per-field nullable analysis. Use optional fields
 (absence of value) to represent the lack of a value rather than an explicit null.
 
+This aligns with proto3's `optional` keyword, which represents "field not present on the wire"
+rather than an explicit null — the same semantics as omitting the property from the JSON object.
+
 Both of the following forms are violations:
 
 ```yaml
@@ -510,17 +513,32 @@ represented as protobuf messages without loss of fidelity.
 All `integer` and `number` fields MUST specify an explicit `format`. Protobuf requires knowing the
 exact numeric type at compile time.
 
-Allowed formats:
-- `int32`
-- `int64`
-- `float`
-- `double`
+Allowed formats map 1:1 to protobuf scalar types:
+
+| Format | Protobuf type | Notes |
+|---|---|---|
+| `int32` | `int32` | Signed 32-bit |
+| `int64` | `int64` | Signed 64-bit |
+| `uint32` | `uint32` | Unsigned 32-bit |
+| `uint64` | `uint64` | Unsigned 64-bit |
+| `sint32` | `sint32` | Variable-length, efficient for negative values |
+| `sint64` | `sint64` | Variable-length, efficient for negative values |
+| `fixed32` | `fixed32` | Fixed-length, efficient for values > 2^28 |
+| `fixed64` | `fixed64` | Fixed-length, efficient for values > 2^56 |
+| `sfixed32` | `sfixed32` | Signed fixed-length 32-bit |
+| `sfixed64` | `sfixed64` | Signed fixed-length 64-bit |
+| `float` | `float` | 32-bit IEEE 754 |
+| `double` | `double` | 64-bit IEEE 754 |
 
 ```yaml
 # ✅ valid
 count:
   type: integer
   format: int32
+
+userId:
+  type: integer
+  format: uint64
 
 # ❌ invalid
 count:
@@ -564,6 +582,72 @@ metadata:
   type: object
   additionalProperties: true
 ```
+
+---
+
+### `BYTES_FORMAT` — ERROR
+
+Binary data in request and response schemas MUST be represented as `type: string` with
+`format: byte` (base64-encoded). This maps directly to protobuf's native `bytes` scalar type.
+
+`format: binary` is not permitted in schema properties — it is reserved for streaming content,
+which is not yet defined by the DUH spec. Once the streaming section is finalized, `format: binary`
+may be permitted only alongside `application/octet-stream` content types.
+
+```yaml
+# ✅ valid
+payload:
+  type: string
+  format: byte
+
+# ❌ invalid — format: binary is reserved for streaming
+payload:
+  type: string
+  format: binary
+
+# ❌ invalid — untyped string for binary data is ambiguous
+payload:
+  type: string
+  description: "raw bytes"
+```
+
+---
+
+### `ENUM_UNSPECIFIED_VARIANT` — ERROR
+
+Schemas defining an `enum` MUST include an `UNSPECIFIED` variant as the first entry. This follows
+the protobuf enum convention where the zero value represents an unset or unknown state, which is
+critical because:
+
+- Protobuf has no concept of "unset" for scalar fields — the zero value is always the default.
+- An `UNSPECIFIED` entry at position 0 gives the generated enum a safe default when the field is
+  absent from the wire.
+- Consumers can distinguish "value not provided" from any legitimate business value.
+
+The variant name SHOULD be prefixed with the enum's name to avoid collisions in languages that
+share a flat enum namespace (e.g. C++, protobuf codegen).
+
+```yaml
+# ✅ valid
+EventStatus:
+  type: string
+  enum:
+    - EVENT_STATUS_UNSPECIFIED
+    - EVENT_STATUS_ACTIVE
+    - EVENT_STATUS_CLOSED
+
+# ❌ invalid — no unspecified variant
+EventStatus:
+  type: string
+  enum:
+    - ACTIVE
+    - CLOSED
+```
+
+**Note on `type: string` vs. enums:** A schema with `type: string` and no `enum` field is a free-form
+string, not an enum. Protobuf generators MUST emit such fields as protobuf `string` scalars, never
+as protobuf enums. Only schemas with an explicit `enum` list are candidates for protobuf enum
+generation.
 
 ---
 
@@ -624,53 +708,12 @@ Event:
       $ref: '#/components/schemas/DogEventData'
 ```
 
-**Note:** If this rule is disabled via configuration, the `DISCRIMINATOR_REQUIRED`,
-`DISCRIMINATOR_MAPPING`, and `DISCRIMINATOR_VARIANT_FIELD` rules serve as fallback guardrails
-ensuring that any `oneOf` usage is at least properly discriminated.
+The flat-object form is protobuf-compatible whether the generator emits plain optional fields or a
+protobuf `oneof` — proto3 `oneof` JSON serializes as `{"cat": {...}}`, which matches the optional
+fields case when only one variant is set.
 
----
-
-### `DISCRIMINATOR_REQUIRED` — ERROR
-
-`oneOf` is only permitted as a discriminated union. Every `oneOf` MUST include a `discriminator`
-object. Bare `oneOf` without a discriminator is prohibited.
-
-This rule is a fallback for when `PROHIBITED_ONEOF` is disabled.
-
-```yaml
-# ✅ valid (when PROHIBITED_ONEOF is disabled)
-oneOf:
-  - $ref: '#/components/schemas/CatEvent'
-  - $ref: '#/components/schemas/DogEvent'
-discriminator:
-  propertyName: eventType
-  mapping:
-    cat: '#/components/schemas/CatEvent'
-    dog: '#/components/schemas/DogEvent'
-
-# ❌ invalid
-oneOf:
-  - $ref: '#/components/schemas/CatEvent'
-  - $ref: '#/components/schemas/DogEvent'
-```
-
----
-
-### `DISCRIMINATOR_MAPPING` — ERROR
-
-The `discriminator` object on a `oneOf` MUST include an explicit `mapping`. A discriminator without
-a mapping is not permitted.
-
-This rule is a fallback for when `PROHIBITED_ONEOF` is disabled.
-
----
-
-### `DISCRIMINATOR_VARIANT_FIELD` — ERROR
-
-Each variant schema referenced in a `oneOf` MUST include the discriminator property as a field in
-its own schema definition.
-
-This rule is a fallback for when `PROHIBITED_ONEOF` is disabled.
+Because DUH-RPC's core goal is protobuf compatibility, there are no fallback guardrails for disabled
+`PROHIBITED_ONEOF`. Disabling this rule knowingly opts out of protobuf compatibility for that schema.
 
 ---
 
@@ -695,22 +738,6 @@ properties:
     type: string
   created-at:
     type: string
-```
-
----
-
-### `DISCRIMINATOR_PROPERTY_NAME` — ERROR
-
-When a `oneOf` schema includes a `discriminator`, the discriminator `propertyName` MUST be `type`.
-
-```yaml
-# ✅ valid
-discriminator:
-  propertyName: type
-
-# ❌ invalid
-discriminator:
-  propertyName: eventType
 ```
 
 ---
@@ -1053,14 +1080,12 @@ idempotencyKey:
 | `INTEGER_FORMAT_REQUIRED` | ERROR | Protobuf |
 | `NO_NESTED_ARRAYS` | ERROR | Protobuf |
 | `TYPED_ADDITIONAL_PROPERTIES` | ERROR | Protobuf |
+| `BYTES_FORMAT` | ERROR | Protobuf |
+| `ENUM_UNSPECIFIED_VARIANT` | ERROR | Protobuf |
 | `PROHIBITED_ALLOF` | ERROR | Protobuf |
 | `PROHIBITED_ANYOF` | ERROR | Protobuf |
 | `PROHIBITED_ONEOF` | ERROR | Protobuf |
-| `DISCRIMINATOR_REQUIRED` | ERROR | Protobuf |
-| `DISCRIMINATOR_MAPPING` | ERROR | Protobuf |
-| `DISCRIMINATOR_VARIANT_FIELD` | ERROR | Protobuf |
 | `PROPERTY_CAMELCASE` | ERROR | Naming |
-| `DISCRIMINATOR_PROPERTY_NAME` | ERROR | Naming |
 | `REQUEST_STANDARD_NAME` | ERROR | Naming |
 | `RESPONSE_STANDARD_NAME` | ERROR | Naming |
 | `REQUEST_RESPONSE_UNIQUE` | ERROR | Naming |
@@ -1088,6 +1113,17 @@ idempotencyKey:
 | `NULLABLE_SYNTAX` | `NO_NULLABLE` | `NO_NULLABLE` now checks both `nullable: true` and `type: ["string", "null"]` forms |
 | `NULLABLE_REQUIRED_ONLY` | `NULLABLE_OPTIONAL_RESPONSE` | Identical check with weaker severity; consolidated into single rule |
 | `RPC_PAGINATION_PARAMETERS` | `PAGINATION_NO_LIMIT_OFFSET` | Both prohibit offset-style parameters; consolidated |
+
+---
+
+## Rules Removed
+
+| Rule | Reason |
+|---|---|
+| `DISCRIMINATOR_REQUIRED` | Served as a fallback for disabled `PROHIBITED_ONEOF`. Removed because DUH-RPC's core goal is protobuf compatibility, and discriminated `oneOf` is still wire-incompatible with protobuf `oneof` JSON — a discriminated union is not meaningfully safer than a bare one for our purposes. |
+| `DISCRIMINATOR_MAPPING` | Same reason as above — fallback for a disabled rule that cannot restore protobuf compatibility. |
+| `DISCRIMINATOR_VARIANT_FIELD` | Same reason as above. |
+| `DISCRIMINATOR_PROPERTY_NAME` | Same reason as above. This rule governed discriminator property naming, which is only reachable when `PROHIBITED_ONEOF` is disabled. |
 
 ---
 

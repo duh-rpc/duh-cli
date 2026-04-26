@@ -14,8 +14,8 @@ A paragraph describing what this change intends to acheive
 
 ## Testing Patterns
 
-### Functional Testing Style
-- **ALL TESTS MUST BE FUNCTIONAL** - Tests must call `duh.RunCmd()` and test through the CLI interface
+### Surface Testing Style
+- **ALL TESTS MUST BE SURFACE TESTS** - Tests must call `duh.RunCmd()` and test through the CLI interface (the outermost layer consumers interact with)
 - Tests MUST NOT call internal package functions directly
 - Tests verify exit codes and stdout/stderr output
 - Each test function stands on its own (no table-driven tests for the main test logic)
@@ -25,7 +25,7 @@ A paragraph describing what this change intends to acheive
   - For example, tests for `internal/generate/client.go` should be in `internal/generate/client_test.go`
   - NOT in the root directory (e.g., avoid `generate_test.go` at root)
 
-### Functional Testing Example
+### Surface Testing Example
 ```go
 func TestGenerateClientWithDefaults(t *testing.T) {
     tempDir := t.TempDir()
