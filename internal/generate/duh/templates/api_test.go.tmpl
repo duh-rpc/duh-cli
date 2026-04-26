@@ -4,11 +4,14 @@ package {{.Package}}_test
 
 import (
 	"context"
+	"io"
+	"log/slog"
 	"testing"
 	"time"
 
 	"{{.PackageImport}}"
 	pb "{{.ProtoImport}}"
+	"github.com/kapetan-io/scaffold"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -25,14 +28,17 @@ import (
 {{- end -}}
 
 func TestUsersCreate(t *testing.T) {
-	d, err := {{$.Package}}.SpawnDaemon(context.Background(), {{$.Package}}.DaemonConfig{})
-	require.NoError(t, err)
-	defer func() { _ = d.Shutdown(context.Background()) }()
-
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	c := d.MustClient()
+	inst, err := scaffold.Start(context.Background(), {{$.Package}}.NewDaemon({{$.Package}}.DaemonConfig{}), &scaffold.Options{
+		Log: slog.New(slog.NewTextHandler(io.Discard, nil)),
+	})
+	require.NoError(t, err)
+	defer func() { _ = inst.Stop(context.Background()) }()
+
+	c, err := {{$.Package}}.NewClient({{$.Package}}.WithNoTLS(inst.Addr("api").String()))
+	require.NoError(t, err)
 
 	var resp pb.CreateResponse
 	err = c.{{$createMethod}}(ctx, &pb.CreateRequest{
@@ -48,14 +54,17 @@ func TestUsersCreate(t *testing.T) {
 }
 
 func TestUsersCreateValidation(t *testing.T) {
-	d, err := {{$.Package}}.SpawnDaemon(context.Background(), {{$.Package}}.DaemonConfig{})
-	require.NoError(t, err)
-	defer func() { _ = d.Shutdown(context.Background()) }()
-
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	c := d.MustClient()
+	inst, err := scaffold.Start(context.Background(), {{$.Package}}.NewDaemon({{$.Package}}.DaemonConfig{}), &scaffold.Options{
+		Log: slog.New(slog.NewTextHandler(io.Discard, nil)),
+	})
+	require.NoError(t, err)
+	defer func() { _ = inst.Stop(context.Background()) }()
+
+	c, err := {{$.Package}}.NewClient({{$.Package}}.WithNoTLS(inst.Addr("api").String()))
+	require.NoError(t, err)
 
 	for _, test := range []struct {
 		name    string
@@ -87,14 +96,17 @@ func TestUsersCreateValidation(t *testing.T) {
 }
 
 func TestUsersCreateDuplicateEmail(t *testing.T) {
-	d, err := {{$.Package}}.SpawnDaemon(context.Background(), {{$.Package}}.DaemonConfig{})
-	require.NoError(t, err)
-	defer func() { _ = d.Shutdown(context.Background()) }()
-
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	c := d.MustClient()
+	inst, err := scaffold.Start(context.Background(), {{$.Package}}.NewDaemon({{$.Package}}.DaemonConfig{}), &scaffold.Options{
+		Log: slog.New(slog.NewTextHandler(io.Discard, nil)),
+	})
+	require.NoError(t, err)
+	defer func() { _ = inst.Stop(context.Background()) }()
+
+	c, err := {{$.Package}}.NewClient({{$.Package}}.WithNoTLS(inst.Addr("api").String()))
+	require.NoError(t, err)
 
 	var resp1 pb.CreateResponse
 	err = c.{{$createMethod}}(ctx, &pb.CreateRequest{
@@ -113,14 +125,17 @@ func TestUsersCreateDuplicateEmail(t *testing.T) {
 }
 
 func TestUsersGet(t *testing.T) {
-	d, err := {{$.Package}}.SpawnDaemon(context.Background(), {{$.Package}}.DaemonConfig{})
-	require.NoError(t, err)
-	defer func() { _ = d.Shutdown(context.Background()) }()
-
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	c := d.MustClient()
+	inst, err := scaffold.Start(context.Background(), {{$.Package}}.NewDaemon({{$.Package}}.DaemonConfig{}), &scaffold.Options{
+		Log: slog.New(slog.NewTextHandler(io.Discard, nil)),
+	})
+	require.NoError(t, err)
+	defer func() { _ = inst.Stop(context.Background()) }()
+
+	c, err := {{$.Package}}.NewClient({{$.Package}}.WithNoTLS(inst.Addr("api").String()))
+	require.NoError(t, err)
 
 	var created pb.CreateResponse
 	err = c.{{$createMethod}}(ctx, &pb.CreateRequest{
@@ -142,14 +157,17 @@ func TestUsersGet(t *testing.T) {
 }
 
 func TestUsersGetNotFound(t *testing.T) {
-	d, err := {{$.Package}}.SpawnDaemon(context.Background(), {{$.Package}}.DaemonConfig{})
-	require.NoError(t, err)
-	defer func() { _ = d.Shutdown(context.Background()) }()
-
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	c := d.MustClient()
+	inst, err := scaffold.Start(context.Background(), {{$.Package}}.NewDaemon({{$.Package}}.DaemonConfig{}), &scaffold.Options{
+		Log: slog.New(slog.NewTextHandler(io.Discard, nil)),
+	})
+	require.NoError(t, err)
+	defer func() { _ = inst.Stop(context.Background()) }()
+
+	c, err := {{$.Package}}.NewClient({{$.Package}}.WithNoTLS(inst.Addr("api").String()))
+	require.NoError(t, err)
 
 	var resp pb.GetResponse
 	err = c.{{$getMethod}}(ctx, &pb.GetRequest{
@@ -160,14 +178,17 @@ func TestUsersGetNotFound(t *testing.T) {
 }
 
 func TestUsersGetValidation(t *testing.T) {
-	d, err := {{$.Package}}.SpawnDaemon(context.Background(), {{$.Package}}.DaemonConfig{})
-	require.NoError(t, err)
-	defer func() { _ = d.Shutdown(context.Background()) }()
-
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	c := d.MustClient()
+	inst, err := scaffold.Start(context.Background(), {{$.Package}}.NewDaemon({{$.Package}}.DaemonConfig{}), &scaffold.Options{
+		Log: slog.New(slog.NewTextHandler(io.Discard, nil)),
+	})
+	require.NoError(t, err)
+	defer func() { _ = inst.Stop(context.Background()) }()
+
+	c, err := {{$.Package}}.NewClient({{$.Package}}.WithNoTLS(inst.Addr("api").String()))
+	require.NoError(t, err)
 
 	var resp pb.GetResponse
 	err = c.{{$getMethod}}(ctx, &pb.GetRequest{
@@ -178,14 +199,17 @@ func TestUsersGetValidation(t *testing.T) {
 }
 
 func TestUsersList(t *testing.T) {
-	d, err := {{$.Package}}.SpawnDaemon(context.Background(), {{$.Package}}.DaemonConfig{})
-	require.NoError(t, err)
-	defer func() { _ = d.Shutdown(context.Background()) }()
-
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	c := d.MustClient()
+	inst, err := scaffold.Start(context.Background(), {{$.Package}}.NewDaemon({{$.Package}}.DaemonConfig{}), &scaffold.Options{
+		Log: slog.New(slog.NewTextHandler(io.Discard, nil)),
+	})
+	require.NoError(t, err)
+	defer func() { _ = inst.Stop(context.Background()) }()
+
+	c, err := {{$.Package}}.NewClient({{$.Package}}.WithNoTLS(inst.Addr("api").String()))
+	require.NoError(t, err)
 
 	const numUsers = 5
 	for i := 0; i < numUsers; i++ {
@@ -204,14 +228,17 @@ func TestUsersList(t *testing.T) {
 }
 
 func TestUsersListPagination(t *testing.T) {
-	d, err := {{$.Package}}.SpawnDaemon(context.Background(), {{$.Package}}.DaemonConfig{})
-	require.NoError(t, err)
-	defer func() { _ = d.Shutdown(context.Background()) }()
-
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	c := d.MustClient()
+	inst, err := scaffold.Start(context.Background(), {{$.Package}}.NewDaemon({{$.Package}}.DaemonConfig{}), &scaffold.Options{
+		Log: slog.New(slog.NewTextHandler(io.Discard, nil)),
+	})
+	require.NoError(t, err)
+	defer func() { _ = inst.Stop(context.Background()) }()
+
+	c, err := {{$.Package}}.NewClient({{$.Package}}.WithNoTLS(inst.Addr("api").String()))
+	require.NoError(t, err)
 
 	const numUsers = 15
 	for i := 0; i < numUsers; i++ {
@@ -241,14 +268,17 @@ func TestUsersListPagination(t *testing.T) {
 }
 
 func TestUsersListIterator(t *testing.T) {
-	d, err := {{$.Package}}.SpawnDaemon(context.Background(), {{$.Package}}.DaemonConfig{})
-	require.NoError(t, err)
-	defer func() { _ = d.Shutdown(context.Background()) }()
-
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	c := d.MustClient().(*api.Client)
+	inst, err := scaffold.Start(context.Background(), {{$.Package}}.NewDaemon({{$.Package}}.DaemonConfig{}), &scaffold.Options{
+		Log: slog.New(slog.NewTextHandler(io.Discard, nil)),
+	})
+	require.NoError(t, err)
+	defer func() { _ = inst.Stop(context.Background()) }()
+
+	c, err := {{$.Package}}.NewClient({{$.Package}}.WithNoTLS(inst.Addr("api").String()))
+	require.NoError(t, err)
 
 	const numUsers = 25
 	for i := 0; i < numUsers; i++ {
@@ -277,14 +307,17 @@ func TestUsersListIterator(t *testing.T) {
 }
 
 func TestUsersListSorting(t *testing.T) {
-	d, err := {{$.Package}}.SpawnDaemon(context.Background(), {{$.Package}}.DaemonConfig{})
-	require.NoError(t, err)
-	defer func() { _ = d.Shutdown(context.Background()) }()
-
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	c := d.MustClient()
+	inst, err := scaffold.Start(context.Background(), {{$.Package}}.NewDaemon({{$.Package}}.DaemonConfig{}), &scaffold.Options{
+		Log: slog.New(slog.NewTextHandler(io.Discard, nil)),
+	})
+	require.NoError(t, err)
+	defer func() { _ = inst.Stop(context.Background()) }()
+
+	c, err := {{$.Package}}.NewClient({{$.Package}}.WithNoTLS(inst.Addr("api").String()))
+	require.NoError(t, err)
 
 	users := []struct {
 		name  string
@@ -316,14 +349,17 @@ func TestUsersListSorting(t *testing.T) {
 }
 
 func TestUsersUpdate(t *testing.T) {
-	d, err := {{$.Package}}.SpawnDaemon(context.Background(), {{$.Package}}.DaemonConfig{})
-	require.NoError(t, err)
-	defer func() { _ = d.Shutdown(context.Background()) }()
-
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	c := d.MustClient()
+	inst, err := scaffold.Start(context.Background(), {{$.Package}}.NewDaemon({{$.Package}}.DaemonConfig{}), &scaffold.Options{
+		Log: slog.New(slog.NewTextHandler(io.Discard, nil)),
+	})
+	require.NoError(t, err)
+	defer func() { _ = inst.Stop(context.Background()) }()
+
+	c, err := {{$.Package}}.NewClient({{$.Package}}.WithNoTLS(inst.Addr("api").String()))
+	require.NoError(t, err)
 
 	var created pb.CreateResponse
 	err = c.{{$createMethod}}(ctx, &pb.CreateRequest{
@@ -347,14 +383,17 @@ func TestUsersUpdate(t *testing.T) {
 }
 
 func TestUsersUpdateNotFound(t *testing.T) {
-	d, err := {{$.Package}}.SpawnDaemon(context.Background(), {{$.Package}}.DaemonConfig{})
-	require.NoError(t, err)
-	defer func() { _ = d.Shutdown(context.Background()) }()
-
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	c := d.MustClient()
+	inst, err := scaffold.Start(context.Background(), {{$.Package}}.NewDaemon({{$.Package}}.DaemonConfig{}), &scaffold.Options{
+		Log: slog.New(slog.NewTextHandler(io.Discard, nil)),
+	})
+	require.NoError(t, err)
+	defer func() { _ = inst.Stop(context.Background()) }()
+
+	c, err := {{$.Package}}.NewClient({{$.Package}}.WithNoTLS(inst.Addr("api").String()))
+	require.NoError(t, err)
 
 	var resp pb.UpdateResponse
 	err = c.{{$updateMethod}}(ctx, &pb.UpdateRequest{
@@ -366,14 +405,17 @@ func TestUsersUpdateNotFound(t *testing.T) {
 }
 
 func TestUsersUpdateDuplicateEmail(t *testing.T) {
-	d, err := {{$.Package}}.SpawnDaemon(context.Background(), {{$.Package}}.DaemonConfig{})
-	require.NoError(t, err)
-	defer func() { _ = d.Shutdown(context.Background()) }()
-
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	c := d.MustClient()
+	inst, err := scaffold.Start(context.Background(), {{$.Package}}.NewDaemon({{$.Package}}.DaemonConfig{}), &scaffold.Options{
+		Log: slog.New(slog.NewTextHandler(io.Discard, nil)),
+	})
+	require.NoError(t, err)
+	defer func() { _ = inst.Stop(context.Background()) }()
+
+	c, err := {{$.Package}}.NewClient({{$.Package}}.WithNoTLS(inst.Addr("api").String()))
+	require.NoError(t, err)
 
 	var user1 pb.CreateResponse
 	err = c.{{$createMethod}}(ctx, &pb.CreateRequest{
@@ -399,14 +441,17 @@ func TestUsersUpdateDuplicateEmail(t *testing.T) {
 }
 
 func TestUsersUpdateValidation(t *testing.T) {
-	d, err := {{$.Package}}.SpawnDaemon(context.Background(), {{$.Package}}.DaemonConfig{})
-	require.NoError(t, err)
-	defer func() { _ = d.Shutdown(context.Background()) }()
-
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	c := d.MustClient()
+	inst, err := scaffold.Start(context.Background(), {{$.Package}}.NewDaemon({{$.Package}}.DaemonConfig{}), &scaffold.Options{
+		Log: slog.New(slog.NewTextHandler(io.Discard, nil)),
+	})
+	require.NoError(t, err)
+	defer func() { _ = inst.Stop(context.Background()) }()
+
+	c, err := {{$.Package}}.NewClient({{$.Package}}.WithNoTLS(inst.Addr("api").String()))
+	require.NoError(t, err)
 
 	var resp pb.UpdateResponse
 	err = c.{{$updateMethod}}(ctx, &pb.UpdateRequest{
@@ -417,14 +462,17 @@ func TestUsersUpdateValidation(t *testing.T) {
 	require.ErrorContains(t, err, "user_id is required")
 }
 {{else}}{{$firstOp := index .Operations 0}}func Test{{$firstOp.MethodName}}(t *testing.T) {
-	d, err := {{$.Package}}.SpawnDaemon(context.Background(), {{$.Package}}.DaemonConfig{})
-	require.NoError(t, err)
-	defer func() { _ = d.Shutdown(context.Background()) }()
-
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	c := d.MustClient()
+	inst, err := scaffold.Start(context.Background(), {{$.Package}}.NewDaemon({{$.Package}}.DaemonConfig{}), &scaffold.Options{
+		Log: slog.New(slog.NewTextHandler(io.Discard, nil)),
+	})
+	require.NoError(t, err)
+	defer func() { _ = inst.Stop(context.Background()) }()
+
+	c, err := {{$.Package}}.NewClient({{$.Package}}.WithNoTLS(inst.Addr("api").String()))
+	require.NoError(t, err)
 
 	// TODO: Create appropriate request for {{$firstOp.MethodName}}
 	var req {{$firstOp.RequestType}}

@@ -6,8 +6,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-    "crypto/rand"
-    "encoding/hex"
 
 	"github.com/duh-rpc/duh.go/v2"
 	pb "{{.ProtoImport}}"
@@ -29,62 +27,30 @@ type ServiceInterface interface {
 	Shutdown(ctx context.Context) error
 }
 
-type MiddlewareFunc func(http.Handler) http.Handler
-
-type HandlerConfig struct {
-	Middlewares []MiddlewareFunc
-}
-
-// Example middleware that adds a request ID to context
-func RequestIDMiddleware(next http.Handler) http.Handler {
-  return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-      requestID := func() string {
-        b := make([]byte, 16)
-        rand.Read(b)
-        return hex.EncodeToString(b)
-      }()
-      ctx := context.WithValue(r.Context(), "request-id", requestID)
-
-      // Create a new request with the modified context
-      r = r.WithContext(ctx)
-
-      // Pass the modified request to the next handler
-      next.ServeHTTP(w, r)
-  })
-}
-
-func NewHandler(s ServiceInterface, conf HandlerConfig) http.Handler {
-	h := Handler{Service: s}
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		h.ServeHTTP(w, r)
-	}))
-
-	for _, middleware := range conf.Middlewares {
-	handler = middleware(handler)
-	}
-	return handler
+// NewHandler returns a Handler that implements scaffold.RPCHandler.
+func NewHandler(s ServiceInterface) *Handler {
+	return &Handler{Service: s}
 }
 
 type Handler struct {
 	Service ServiceInterface
 }
 
-func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		duh.ReplyWithCode(w, r, duh.CodeBadRequest, nil,
-			fmt.Sprintf("http method '%s' not allowed; only POST", r.Method))
-		return
-	}
-
-	// No need for fancy routers, a switch case is performant and simple.
+// ServeHTTP implements scaffold.RPCHandler.
+func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) bool {
 	switch r.URL.Path {
 {{- range .Operations}}
 	case {{.ConstName}}:
+		if r.Method != http.MethodPost {
+			duh.ReplyWithCode(w, r, duh.CodeBadRequest, nil,
+				fmt.Sprintf("http method '%s' not allowed; only POST", r.Method))
+			return true
+		}
 		h.handle{{.MethodName}}(w, r)
-		return
+		return true
 {{- end}}
 	}
-	duh.ReplyWithCode(w, r, duh.CodeNotImplemented, nil, "no such method; "+r.URL.Path)
+	return false
 }
 {{range .Operations}}
 func (h *Handler) handle{{.MethodName}}(w http.ResponseWriter, r *http.Request) {

@@ -90,13 +90,10 @@ func (c *Config) ConstructProtoImport(modulePath string) string {
 	if c.ProtoImport != "" {
 		return c.ProtoImport
 	}
-	return filepath.Join(modulePath, filepath.Dir(c.ProtoPath))
+	return filepath.Join(c.ConstructPackageImport(modulePath), filepath.Dir(c.ProtoPath))
 }
 
 func (c *Config) ConstructPackageImport(modulePath string) string {
-	if c.OutputDir == "" || c.OutputDir == "." {
-		return modulePath
-	}
 	return filepath.Join(modulePath, c.OutputDir)
 }
 

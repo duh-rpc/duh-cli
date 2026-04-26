@@ -224,7 +224,7 @@ paths:
 components:
   schemas:
     # DUH-RPC Rule: Error schema must have required 'message' (string)
-    # Optional fields: code (string), type (string), details (object with additionalProperties: { type: string })
+    # Optional fields: code (string), type (string)
     Error:
       type: object
       required:
@@ -242,11 +242,6 @@ components:
           type: string
           description: Error type classification
           example: "VALIDATION_ERROR"
-        details:
-          type: object
-          description: Optional additional error details
-          additionalProperties:
-            type: string
 
     # User-related schemas
     CreateRequest:
