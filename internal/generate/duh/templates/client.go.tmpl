@@ -38,7 +38,6 @@ type Client struct {
 	conf   ClientConfig
 }
 
-// NewClient creates a new instance of the Gubernator user client
 func NewClient(conf ClientConfig) (*Client, error) {
 	set.Default(&conf.Client, &http.Client{
 		Transport: &http.Transport{
