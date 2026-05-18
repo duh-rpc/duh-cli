@@ -197,6 +197,7 @@ Where:
 /v1/users.create        # version prefix not allowed in path
 /users/create           # missing dot separator
 /Users.Create           # not lowercase
+/a/b/invoices.create    # too many segments; only one domain prefix is allowed
 ```
 
 ---
@@ -293,26 +294,29 @@ A path MUST NOT define more than one path parameter (e.g. `{id}`).
 
 This rule enforces three related constraints on operation content types:
 
-**1. JSON must be supported**
+**1. JSON must be supported in requests**
 
-Every operation MUST support `application/json` as both a request and response content type. JSON
-is the baseline content type and MUST always be available regardless of what other types are
-supported.
+Every operation MUST support `application/json` as a request content type. JSON is the baseline
+request type and MUST always be available regardless of what other types are supported.
 
 **2. Protobuf is permitted**
 
 `application/protobuf` is an allowed content type for both requests and responses.
 
-**3. Multipart and form-encoded types are prohibited**
+**3. Streaming content types are permitted in responses only**
+
+The following content types are allowed in responses but MUST NOT appear in request bodies:
+
+- `application/octet-stream` — raw binary streaming response
+- `application/duh-stream+json` — newline-delimited JSON streaming response
+- `application/duh-stream+protobuf` — length-prefixed protobuf streaming response
+
+**4. Multipart and form-encoded types are prohibited**
 
 `multipart/form-data` and `application/x-www-form-urlencoded` MUST NOT be used.
 
-**Note on `application/octet-stream`:** This content type is neither required nor prohibited by the
-linter. The streaming section of the DUH spec is not yet complete. Tooling will not flag or validate
-`octet-stream` until that section is finalized.
-
 ```yaml
-# ✅ valid
+# ✅ valid — JSON request with protobuf support
 requestBody:
   content:
     application/json:
@@ -320,11 +324,33 @@ requestBody:
     application/protobuf:
       schema: ...
 
-# ❌ invalid — missing application/json
+# ✅ valid — streaming response alongside JSON
+responses:
+  '200':
+    content:
+      application/json:
+        schema: ...
+      application/octet-stream: {}
+
+# ✅ valid — DUH stream types in response
+responses:
+  '200':
+    content:
+      application/duh-stream+json: {}
+      application/duh-stream+protobuf: {}
+
+# ❌ invalid — missing application/json in request body
 requestBody:
   content:
     application/protobuf:
       schema: ...
+
+# ❌ invalid — streaming type in request body
+requestBody:
+  content:
+    application/json:
+      schema: ...
+    application/octet-stream: {}
 
 # ❌ invalid — multipart not allowed
 requestBody:
@@ -581,34 +607,6 @@ metadata:
 metadata:
   type: object
   additionalProperties: true
-```
-
----
-
-### `BYTES_FORMAT` — ERROR
-
-Binary data in request and response schemas MUST be represented as `type: string` with
-`format: byte` (base64-encoded). This maps directly to protobuf's native `bytes` scalar type.
-
-`format: binary` is not permitted in schema properties — it is reserved for streaming content,
-which is not yet defined by the DUH spec. Once the streaming section is finalized, `format: binary`
-may be permitted only alongside `application/octet-stream` content types.
-
-```yaml
-# ✅ valid
-payload:
-  type: string
-  format: byte
-
-# ❌ invalid — format: binary is reserved for streaming
-payload:
-  type: string
-  format: binary
-
-# ❌ invalid — untyped string for binary data is ambiguous
-payload:
-  type: string
-  description: "raw bytes"
 ```
 
 ---
@@ -1080,7 +1078,6 @@ idempotencyKey:
 | `INTEGER_FORMAT_REQUIRED` | ERROR | Protobuf |
 | `NO_NESTED_ARRAYS` | ERROR | Protobuf |
 | `TYPED_ADDITIONAL_PROPERTIES` | ERROR | Protobuf |
-| `BYTES_FORMAT` | ERROR | Protobuf |
 | `ENUM_UNSPECIFIED_VARIANT` | ERROR | Protobuf |
 | `PROHIBITED_ALLOF` | ERROR | Protobuf |
 | `PROHIBITED_ANYOF` | ERROR | Protobuf |
@@ -1136,4 +1133,5 @@ idempotencyKey:
 | `CONTENT_TYPE_JSON_REQUIRED` | Implemented as a check within `CONTENT_TYPE`. |
 | `CONTENT_TYPE_NO_MULTIPART` | Implemented as a check within `CONTENT_TYPE`. |
 | `ERROR_DETAILS_SCHEMA` | Implemented as part of `ERROR_SCHEMA`. |
-| `PROHIBITED_FILE_UPLOAD` | Deferred. Streaming spec is incomplete. `CONTENT_TYPE` already excludes `octet-stream` enforcement. |
+| `BYTES_FORMAT` | `format: binary` has no valid use case in DUH-RPC schemas. Binary data in JSON/protobuf uses `format: byte`. `application/octet-stream` responses use the entire body as raw bytes (no schema properties), and `application/duh-stream+json` / `application/duh-stream+protobuf` payloads use `format: byte` (base64) for binary fields. |
+| `PROHIBITED_FILE_UPLOAD` | Deferred. Upload semantics are not yet defined. Streaming content types are response-only. |
