@@ -107,8 +107,224 @@ paths:
               schema:
                 type: string
 `,
-			expectedExit: 1,
-			expectedOutput: `[ERROR] [CONTENT_TYPE]`,
+			expectedExit:   1,
+			expectedOutput: `Invalid request body content type: application/octet-stream`,
+		},
+		{
+			name: "ValidOctetStreamResponse",
+			spec: `
+openapi: 3.0.0
+info:
+  title: Test
+  version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
+paths:
+  /tests.action:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        200:
+          description: Success
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+`,
+			expectedExit:   0,
+			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
+		},
+		{
+			name: "ValidDuhStreamJsonResponse",
+			spec: `
+openapi: 3.0.0
+info:
+  title: Test
+  version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
+paths:
+  /tests.action:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        200:
+          description: Success
+          content:
+            application/duh-stream+json:
+              schema:
+                type: object
+`,
+			expectedExit:   0,
+			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
+		},
+		{
+			name: "ValidDuhStreamProtobufResponse",
+			spec: `
+openapi: 3.0.0
+info:
+  title: Test
+  version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
+paths:
+  /tests.action:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        200:
+          description: Success
+          content:
+            application/duh-stream+protobuf:
+              schema:
+                type: object
+`,
+			expectedExit:   0,
+			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
+		},
+		{
+			name: "InvalidOctetStreamRequest",
+			spec: `
+openapi: 3.0.0
+info:
+  title: Test
+  version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
+paths:
+  /tests.action:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+`,
+			expectedExit:   1,
+			expectedOutput: `Invalid request body content type: application/octet-stream`,
+		},
+		{
+			name: "InvalidDuhStreamJsonRequest",
+			spec: `
+openapi: 3.0.0
+info:
+  title: Test
+  version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
+paths:
+  /tests.action:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+          application/duh-stream+json:
+            schema:
+              type: object
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+`,
+			expectedExit:   1,
+			expectedOutput: `Invalid request body content type: application/duh-stream+json`,
+		},
+		{
+			name: "InvalidDuhStreamProtobufRequest",
+			spec: `
+openapi: 3.0.0
+info:
+  title: Test
+  version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
+paths:
+  /tests.action:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+          application/duh-stream+protobuf:
+            schema:
+              type: object
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+`,
+			expectedExit:   1,
+			expectedOutput: `Invalid request body content type: application/duh-stream+protobuf`,
+		},
+		{
+			name: "ValidMixedStreamingAndJsonResponse",
+			spec: `
+openapi: 3.0.0
+info:
+  title: Test
+  version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
+paths:
+  /tests.action:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+            application/octet-stream:
+              schema:
+                type: string
+`,
+			expectedExit:   0,
+			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
 		},
 		{
 			name: "InvalidXMLContentType",
