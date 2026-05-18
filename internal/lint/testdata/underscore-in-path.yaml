@@ -37,7 +37,7 @@ components:
     UserAccountsCreateResponse:
       type: object
       properties:
-        accountId:
+        account_id:
           type: string
     ErrorDetails:
       type: object

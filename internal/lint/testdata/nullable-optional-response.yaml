@@ -36,9 +36,9 @@ components:
           type: string
     CreateResponse:
       type: object
-      required: [petId]
+      required: [pet_id]
       properties:
-        petId:
+        pet_id:
           type: string
         nickname:
           type: string

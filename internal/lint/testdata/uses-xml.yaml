@@ -45,7 +45,7 @@ components:
       xml:
         name: PetResponse
       properties:
-        petId:
+        pet_id:
           description: ID of the pet
           type: string
 

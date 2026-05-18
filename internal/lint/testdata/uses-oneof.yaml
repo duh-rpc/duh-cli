@@ -42,7 +42,7 @@ components:
       oneOf:
         - type: object
           properties:
-            petId:
+            pet_id:
               type: string
         - type: object
           properties:

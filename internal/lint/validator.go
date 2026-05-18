@@ -40,7 +40,7 @@ func Validate(doc *v3.Document, filePath string, disabled []string) ValidationRe
 		rules2.NewPathPluralResourcesRule(),
 		rules2.NewPathMultipleParametersRule(),
 		rules2.NewSchemaNoInlineObjectsRule(),
-		rules2.NewPropertyCamelCaseRule(),
+		rules2.NewPropertySnakeCaseRule(),
 		rules2.NewSchemaAdditionalPropertiesResponseRule(),
 		rules2.NewNullableOptionalResponseRule(),
 		rules2.NewProhibitedAnyOfRule(),

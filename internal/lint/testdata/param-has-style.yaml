@@ -50,7 +50,7 @@ components:
     CreateResponse:
       type: object
       properties:
-        petId:
+        pet_id:
           description: ID of the pet
           type: string
 

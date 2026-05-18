@@ -29,7 +29,7 @@ Rules can be disabled project-wide via a `.duh.yaml` file in the project root:
 lint:
   disable:
     - DESCRIPTION_REQUIRED
-    - PROPERTY_CAMELCASE
+    - PROPERTY_SNAKECASE
 ```
 
 Rules can also be disabled for a single run using the `--disable` flag with a comma-separated list:
@@ -69,7 +69,7 @@ reporting a violation.
 
 Rules that match field names (pagination parameters, schema structure fields, etc.) MUST normalize
 names before comparison. Normalization: strip all `-` and `_` separators, then lowercase. This means
-`endCursor`, `end_cursor`, and `end-cursor` are all treated as equivalent.
+`end_cursor`, `end_cursor`, and `end-cursor` are all treated as equivalent.
 
 A single `normalize(name string) string` utility function MUST be used consistently across all rules
 that perform field name matching.
@@ -283,7 +283,7 @@ A path MUST NOT define more than one path parameter (e.g. `{id}`).
 /users/{id}.get
 
 # ❌ invalid
-/users/{userId}/orders/{orderId}.get
+/users/{user_id}/orders/{order_id}.get
 ```
 
 ---
@@ -465,7 +465,7 @@ appears in a request, it belongs only in the request schema.
 ```yaml
 # ❌ invalid
 properties:
-  createdAt:
+  created_at:
     type: string
     readOnly: true
 ```
@@ -486,13 +486,13 @@ Both of the following forms are violations:
 ```yaml
 # ❌ invalid — nullable: true
 properties:
-  middleName:
+  middle_name:
     type: string
     nullable: true
 
 # ❌ invalid — array type syntax
 properties:
-  middleName:
+  middle_name:
     type: ["string", "null"]
 ```
 
@@ -511,16 +511,16 @@ This rule only inspects success (2xx) response schemas.
 CreateUserResponse:
   type: object
   properties:
-    middleName:
+    middle_name:
       type: string
       nullable: true
 
 # ✅ valid — nullable and required
 CreateUserResponse:
   type: object
-  required: [middleName]
+  required: [middle_name]
   properties:
-    middleName:
+    middle_name:
       type: string
       nullable: true
 ```
@@ -562,7 +562,7 @@ count:
   type: integer
   format: int32
 
-userId:
+user_id:
   type: integer
   format: uint64
 
@@ -717,22 +717,22 @@ Because DUH-RPC's core goal is protobuf compatibility, there are no fallback gua
 
 ## Naming Rules
 
-### `PROPERTY_CAMELCASE` — ERROR
+### `PROPERTY_SNAKECASE` — ERROR
 
-Schema property names MUST use camelCase. Property names using snake_case, kebab-case, or other
-formats are violations.
+Schema property names MUST use snake_case. Property names using camelCase, PascalCase, kebab-case,
+or other formats are violations.
 
 ```yaml
 # ✅ valid
 properties:
-  firstName:
+  first_name:
     type: string
-  createdAt:
+  created_at:
     type: string
 
 # ❌ invalid
 properties:
-  first_name:
+  firstName:
     type: string
   created-at:
     type: string
@@ -885,8 +885,8 @@ Paginated responses MUST include the following structure:
 | Field | Type | Required | Description |
 |---|---|---|---|
 | `items` | array | Yes | The page of results |
-| `pagination.endCursor` | string | Yes | Cursor to pass as `pagination.after` on the next request |
-| `pagination.hasNextPage` | boolean | Yes | Whether additional results exist beyond this page |
+| `pagination.end_cursor` | string | Yes | Cursor to pass as `pagination.after` on the next request |
+| `pagination.has_next_page` | boolean | Yes | Whether additional results exist beyond this page |
 
 Field names are matched using normalization (strip separators, lowercase).
 
@@ -895,14 +895,14 @@ Field names are matched using normalization (strip separators, lowercase).
 {
   "items": [...],
   "pagination": {
-    "endCursor": "cursor_xyz789",
-    "hasNextPage": true
+    "end_cursor": "cursor_xyz789",
+    "has_next_page": true
   }
 }
 ```
 
-When `hasNextPage` is `false`, the client SHOULD NOT make a further request. When `hasNextPage` is
-`true` and `endCursor` is present, the client MAY request the next page by passing `endCursor` as
+When `has_next_page` is `false`, the client SHOULD NOT make a further request. When `has_next_page` is
+`true` and `end_cursor` is present, the client MAY request the next page by passing `end_cursor` as
 `pagination.after`.
 
 ---
@@ -969,17 +969,17 @@ These rules enforce consistent representation of common data types.
 
 ### `TIMESTAMP_FORMAT` — ERROR
 
-Properties whose names end in `At` or `Timestamp` (e.g. `createdAt`, `lastModifiedTimestamp`) MUST
+Properties whose names end in `_at` or `_timestamp` (e.g. `created_at`, `last_modified_timestamp`) MUST
 be defined as `type: string` with `format: date-time`.
 
 ```yaml
 # ✅ valid
-createdAt:
+created_at:
   type: string
   format: date-time
 
 # ❌ invalid
-createdAt:
+created_at:
   type: integer
   format: int64
 ```
@@ -988,17 +988,17 @@ createdAt:
 
 ### `DATE_FORMAT` — ERROR
 
-Properties whose names end in `Date` (e.g. `birthDate`, `expirationDate`) MUST be defined as
+Properties whose names end in `_date` (e.g. `birth_date`, `expiration_date`) MUST be defined as
 `type: string` with `format: date`.
 
 ```yaml
 # ✅ valid
-birthDate:
+birth_date:
   type: string
   format: date
 
 # ❌ invalid
-birthDate:
+birth_date:
   type: string
 ```
 
@@ -1024,7 +1024,7 @@ amount:
 
 ### `AMOUNT_SCHEMA_PATTERN` — WARNING
 
-Schemas that contain an `amount` property SHOULD also include an `assetType` property to clarify
+Schemas that contain an `amount` property SHOULD also include an `asset_type` property to clarify
 what currency or asset the amount represents.
 
 ---
@@ -1033,17 +1033,17 @@ what currency or asset the amount represents.
 
 ### `IDEMPOTENCY_KEY_DEFINITION` — ERROR
 
-When a schema includes an `idempotencyKey` property, it MUST be defined as `type: string` with
+When a schema includes an `idempotency_key` property, it MUST be defined as `type: string` with
 `maxLength: 128`.
 
 ```yaml
 # ✅ valid
-idempotencyKey:
+idempotency_key:
   type: string
   maxLength: 128
 
 # ❌ invalid
-idempotencyKey:
+idempotency_key:
   type: string
 ```
 
@@ -1082,7 +1082,7 @@ idempotencyKey:
 | `PROHIBITED_ALLOF` | ERROR | Protobuf |
 | `PROHIBITED_ANYOF` | ERROR | Protobuf |
 | `PROHIBITED_ONEOF` | ERROR | Protobuf |
-| `PROPERTY_CAMELCASE` | ERROR | Naming |
+| `PROPERTY_SNAKECASE` | ERROR | Naming |
 | `REQUEST_STANDARD_NAME` | ERROR | Naming |
 | `RESPONSE_STANDARD_NAME` | ERROR | Naming |
 | `REQUEST_RESPONSE_UNIQUE` | ERROR | Naming |

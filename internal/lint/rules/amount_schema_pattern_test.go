@@ -54,7 +54,7 @@ components:
         amount:
           description: Payment amount
           type: string
-        assetType:
+        asset_type:
           description: Currency or asset type
           type: string
     Error:

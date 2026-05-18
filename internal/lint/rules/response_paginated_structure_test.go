@@ -73,7 +73,7 @@ components:
         pagination:
           type: object
           properties:
-            endCursor:
+            end_cursor:
               type: string
     Error:
       type: object
@@ -186,7 +186,7 @@ components:
         pagination:
           type: object
           properties:
-            endCursor:
+            end_cursor:
               type: string
     Error:
       type: object
@@ -250,7 +250,7 @@ components:
         pagination:
           type: object
           properties:
-            endCursor:
+            end_cursor:
               type: string
     Error:
       type: object

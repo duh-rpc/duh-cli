@@ -55,7 +55,7 @@ components:
     CreateResponse:
       type: object
       properties:
-        petId:
+        pet_id:
           type: string
     ErrorDetails:
       type: object
@@ -106,7 +106,7 @@ components:
     PetsCreateResponse:
       type: object
       properties:
-        petId:
+        pet_id:
           type: string
     ErrorDetails:
       type: object
@@ -152,7 +152,7 @@ components:
     GetByIdRequest:
       type: object
       properties:
-        userId:
+        user_id:
           type: string
     GetByIdResponse:
       type: object
@@ -203,7 +203,7 @@ components:
     UserAccountsGetByIdRequest:
       type: object
       properties:
-        userId:
+        user_id:
           type: string
     UserAccountsGetByIdResponse:
       type: object
@@ -259,7 +259,7 @@ components:
     CreateResponse:
       type: object
       properties:
-        petId:
+        pet_id:
           type: string
     ErrorDetails:
       type: object

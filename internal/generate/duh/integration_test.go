@@ -127,19 +127,19 @@ components:
     CreateResponse:
       type: object
       properties:
-        userId:
+        user_id:
           type: string
         name:
           type: string
     GetRequest:
       type: object
       properties:
-        userId:
+        user_id:
           type: string
     GetResponse:
       type: object
       properties:
-        userId:
+        user_id:
           type: string
         name:
           type: string
@@ -170,28 +170,28 @@ components:
     PaginationResponse:
       type: object
       properties:
-        endCursor:
+        end_cursor:
           type: string
-        hasMore:
+        has_more:
           type: boolean
     User:
       type: object
       properties:
-        userId:
+        user_id:
           type: string
         name:
           type: string
     UpdateRequest:
       type: object
       properties:
-        userId:
+        user_id:
           type: string
         name:
           type: string
     UpdateResponse:
       type: object
       properties:
-        userId:
+        user_id:
           type: string
         name:
           type: string
@@ -256,7 +256,7 @@ components:
     GetRequest:
       type: object
       properties:
-        userId:
+        user_id:
           type: string
     CreateResponse:
       type: object

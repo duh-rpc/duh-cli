@@ -117,9 +117,9 @@ components:
     PaginationResponse:
       type: object
       properties:
-        endCursor:
+        end_cursor:
           type: string
-        hasMore:
+        has_more:
           type: boolean
     User:
       type: object

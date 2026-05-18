@@ -40,14 +40,14 @@ components:
           description: Payment amount
           type: number
           format: double
-        assetType:
+        asset_type:
           description: Currency type
           type: string
 
     CreateResponse:
       type: object
       properties:
-        paymentId:
+        payment_id:
           description: ID of the payment
           type: string
 

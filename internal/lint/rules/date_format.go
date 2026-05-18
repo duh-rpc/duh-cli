@@ -35,12 +35,12 @@ func (r *DateFormatRule) Validate(doc *v3.Document) []Violation {
 		}
 
 		for propName, propProxy := range schema.Properties.FromOldest() {
-			if !strings.HasSuffix(propName, "Date") {
+			if !strings.HasSuffix(propName, "_date") {
 				continue
 			}
 
 			// Safety guard: skip if also matches timestamp suffixes
-			if strings.HasSuffix(propName, "At") || strings.HasSuffix(propName, "Timestamp") {
+			if strings.HasSuffix(propName, "_at") || strings.HasSuffix(propName, "_timestamp") {
 				continue
 			}
 
@@ -52,7 +52,7 @@ func (r *DateFormatRule) Validate(doc *v3.Document) []Violation {
 			if len(propSchema.Type) == 0 || propSchema.Type[0] != "string" || propSchema.Format != "date" {
 				violations = append(violations, Violation{
 					Suggestion: "Set type to 'string' and format to 'date' for date fields",
-					Message:    fmt.Sprintf("Field '%s' ending in 'Date' must be type string with format: date", propName),
+					Message:    fmt.Sprintf("Field '%s' ending in '_date' must be type string with format: date", propName),
 					Location:   fmt.Sprintf("components/schemas/%s/%s", schemaName, propName),
 					RuleName:   r.Name(),
 					Severity:   SeverityError,

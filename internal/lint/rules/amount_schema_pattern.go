@@ -34,10 +34,10 @@ func (r *AmountSchemaPatternRule) Validate(doc *v3.Document) []Violation {
 		}
 
 		if _, hasAmount := schema.Properties.Get("amount"); hasAmount {
-			if _, hasAssetType := schema.Properties.Get("assetType"); !hasAssetType {
+			if _, hasAssetType := schema.Properties.Get("asset_type"); !hasAssetType {
 				violations = append(violations, Violation{
-					Suggestion: "Add an 'assetType' property to schemas that contain 'amount' for currency/asset clarity",
-					Message:    "Schema has 'amount' property but missing 'assetType' property",
+					Suggestion: "Add an 'asset_type' property to schemas that contain 'amount' for currency/asset clarity",
+					Message:    "Schema has 'amount' property but missing 'asset_type' property",
 					Location:   fmt.Sprintf("components/schemas/%s", schemaName),
 					RuleName:   r.Name(),
 					Severity:   SeverityWarning,

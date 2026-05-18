@@ -261,9 +261,9 @@ components:
     PaginationResponse:
       type: object
       properties:
-        endCursor:
+        end_cursor:
           type: string
-        hasMore:
+        has_more:
           type: boolean
     ListActiveRequest:
       type: object
@@ -356,7 +356,7 @@ components:
     DataPaginationResponse:
       type: object
       properties:
-        endCursor:
+        end_cursor:
           type: string
     DataItem:
       type: object
@@ -436,7 +436,7 @@ components:
     PaginationResponse:
       type: object
       properties:
-        endCursor:
+        end_cursor:
           type: string
     User:
       type: object
