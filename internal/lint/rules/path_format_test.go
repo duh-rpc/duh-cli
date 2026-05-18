@@ -160,7 +160,7 @@ paths:
 			expectedExit: 1,
 			expectedOutput: `[ERROR] [PATH_FORMAT] /users
   Path must have format /{resource}.{method} with a dot separator
-  Use format /{resource}.{method} (e.g., /users.create)`,
+  Use format /{resource}.{method} or /{domain}/{resource}.{method} (e.g., /users.create, /billing/invoices.create)`,
 		},
 		{
 			name: "PathParametersInURL",
@@ -249,6 +249,194 @@ paths:
   Move path parameters to request body fields`,
 		},
 		{
+			name: "ValidDomainPrefixedPath",
+			spec: `openapi: 3.0.0
+info:
+  title: Test
+  version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
+paths:
+  /billing/invoices.create:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object`,
+			expectedExit:   0,
+			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
+		},
+		{
+			name: "ValidDomainWithHyphens",
+			spec: `openapi: 3.0.0
+info:
+  title: Test
+  version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
+paths:
+  /admin-tools/jobs.list:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object`,
+			expectedExit:   0,
+			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
+		},
+		{
+			name: "ValidDomainWithUnderscores",
+			spec: `openapi: 3.0.0
+info:
+  title: Test
+  version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
+paths:
+  /admin_tools/jobs.list:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object`,
+			// PATH_FORMAT allows underscores in domain segments structurally, but
+			// PATH_HYPHEN_SEPARATOR flags underscores as a style violation.
+			expectedExit:   1,
+			expectedOutput: `[ERROR] [PATH_HYPHEN_SEPARATOR] /admin_tools/jobs.list`,
+		},
+		{
+			name: "ValidDomainSingleChar",
+			spec: `openapi: 3.0.0
+info:
+  title: Test
+  version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
+paths:
+  /x/items.get:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object`,
+			expectedExit:   0,
+			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
+		},
+		{
+			name: "InvalidDomainUppercase",
+			spec: `openapi: 3.0.0
+info:
+  title: Test
+  version: 1.0.0
+paths:
+  /Billing/invoices.create:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object`,
+			expectedExit: 1,
+			expectedOutput: `[ERROR] [PATH_FORMAT] /Billing/invoices.create
+  Domain segment must start with a lowercase letter`,
+		},
+		{
+			name: "InvalidDomainSpecialChars",
+			spec: `openapi: 3.0.0
+info:
+  title: Test
+  version: 1.0.0
+paths:
+  /bill$ing/invoices.create:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object`,
+			expectedExit: 1,
+			expectedOutput: `[ERROR] [PATH_FORMAT] /bill$ing/invoices.create
+  Domain segment must contain only lowercase letters, numbers, hyphens, and underscores`,
+		},
+		{
+			name: "InvalidTooManySegments",
+			spec: `openapi: 3.0.0
+info:
+  title: Test
+  version: 1.0.0
+paths:
+  /a/b/invoices.create:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object`,
+			expectedExit: 1,
+			expectedOutput: `[ERROR] [PATH_FORMAT] /a/b/invoices.create
+  Path has too many segments; only /{domain}/{resource}.{method} is allowed`,
+		},
+		{
 			name: "MultiplePaths",
 			spec: `openapi: 3.0.0
 info:
@@ -290,7 +478,7 @@ paths:
 			expectedExit: 1,
 			expectedOutput: `[ERROR] [PATH_FORMAT] /invalid-path
   Path must have format /{resource}.{method} with a dot separator
-  Use format /{resource}.{method} (e.g., /users.create)`,
+  Use format /{resource}.{method} or /{domain}/{resource}.{method} (e.g., /users.create, /billing/invoices.create)`,
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
