@@ -8,7 +8,7 @@ import (
 	"github.com/pb33f/libopenapi/datamodel/high/v3"
 )
 
-var pathFormatRegex = regexp.MustCompile(`^/([a-z][a-z0-9_-]{0,49}/)?[a-z][a-z0-9_-]{0,49}\.[a-z][a-z0-9_-]{0,49}$`)
+var pathFormatRegex = regexp.MustCompile(`^/([a-z][a-z0-9_-]{0,49}/)*[a-z][a-z0-9_-]{0,49}\.[a-z][a-z0-9_-]{0,49}$`)
 var pathParamRegex = regexp.MustCompile(`\{[^}]+\}`)
 
 // PathFormatRule validates DUH-RPC path format
@@ -85,29 +85,19 @@ func (r *PathFormatRule) generateErrorMessage(path string) string {
 		return "Path contains parameters, which are not allowed in DUH-RPC"
 	}
 
-	// Strip leading slash and split on "/" to detect domain prefix
+	// Strip leading slash and split on "/" to separate intermediate segments from resource.method
 	trimmed := strings.TrimPrefix(path, "/")
 	slashParts := strings.Split(trimmed, "/")
 
-	if len(slashParts) > 2 {
-		return "Path has too many segments; only /{domain}/{resource}.{method} is allowed"
-	}
+	resourceMethod := slashParts[len(slashParts)-1]
+	segments := slashParts[:len(slashParts)-1]
 
-	var domain, resourceMethod string
-	if len(slashParts) == 2 {
-		domain = slashParts[0]
-		resourceMethod = slashParts[1]
-	} else {
-		resourceMethod = slashParts[0]
-	}
-
-	// Validate domain segment if present
-	if domain != "" {
-		if !startsLowerRegex.MatchString(domain) {
-			return "Domain segment must start with a lowercase letter"
+	for _, seg := range segments {
+		if !startsLowerRegex.MatchString(seg) {
+			return "Path segment must start with a lowercase letter"
 		}
-		if !segmentRegex.MatchString(domain) {
-			return "Domain segment must contain only lowercase letters, numbers, hyphens, and underscores"
+		if !segmentRegex.MatchString(seg) {
+			return "Path segment must contain only lowercase letters, numbers, hyphens, and underscores"
 		}
 	}
 

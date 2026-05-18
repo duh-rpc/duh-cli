@@ -359,7 +359,7 @@ paths:
 			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
 		},
 		{
-			name: "InvalidDomainUppercase",
+			name: "InvalidSegmentUppercase",
 			spec: `openapi: 3.0.0
 info:
   title: Test
@@ -382,10 +382,10 @@ paths:
                 type: object`,
 			expectedExit: 1,
 			expectedOutput: `[ERROR] [PATH_FORMAT] /Billing/invoices.create
-  Domain segment must start with a lowercase letter`,
+  Path segment must start with a lowercase letter`,
 		},
 		{
-			name: "InvalidDomainSpecialChars",
+			name: "InvalidSegmentSpecialChars",
 			spec: `openapi: 3.0.0
 info:
   title: Test
@@ -408,16 +408,18 @@ paths:
                 type: object`,
 			expectedExit: 1,
 			expectedOutput: `[ERROR] [PATH_FORMAT] /bill$ing/invoices.create
-  Domain segment must contain only lowercase letters, numbers, hyphens, and underscores`,
+  Path segment must contain only lowercase letters, numbers, hyphens, and underscores`,
 		},
 		{
-			name: "InvalidTooManySegments",
+			name: "ValidMultipleSegments",
 			spec: `openapi: 3.0.0
 info:
   title: Test
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /a/b/invoices.create:
+  /platform/admin/jobs.list:
     post:
       requestBody:
         required: true
@@ -432,9 +434,8 @@ paths:
             application/json:
               schema:
                 type: object`,
-			expectedExit: 1,
-			expectedOutput: `[ERROR] [PATH_FORMAT] /a/b/invoices.create
-  Path has too many segments; only /{domain}/{resource}.{method} is allowed`,
+			expectedExit:   0,
+			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
 		},
 		{
 			name: "MultiplePaths",
