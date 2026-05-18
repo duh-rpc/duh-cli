@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestPropertyCamelCaseRule(t *testing.T) {
+func TestPropertySnakeCaseRule(t *testing.T) {
 	for _, test := range []struct {
 		name           string
 		spec           string
@@ -16,7 +16,7 @@ func TestPropertyCamelCaseRule(t *testing.T) {
 		expectedOutput string
 	}{
 		{
-			name: "ValidCamelCase",
+			name: "ValidSnakeCase",
 			spec: `openapi: 3.0.0
 info:
   title: Test
@@ -50,9 +50,9 @@ components:
     CreateRequest:
       type: object
       properties:
-        petId:
+        pet_id:
           type: string
-        firstName:
+        first_name:
           type: string
         name:
           type: string
@@ -74,7 +74,7 @@ components:
 			expectedOutput: "compliant",
 		},
 		{
-			name: "InvalidSnakeCase",
+			name: "InvalidCamelCase",
 			spec: `openapi: 3.0.0
 info:
   title: Test
@@ -108,7 +108,7 @@ components:
     CreateRequest:
       type: object
       properties:
-        first_name:
+        firstName:
           type: string
     ErrorDetails:
       type: object
@@ -125,7 +125,7 @@ components:
           additionalProperties:
             type: string`,
 			expectedExit:   1,
-			expectedOutput: "[PROPERTY_CAMELCASE]",
+			expectedOutput: "[PROPERTY_SNAKECASE]",
 		},
 		{
 			name: "InvalidPascalCase",
@@ -179,10 +179,10 @@ components:
           additionalProperties:
             type: string`,
 			expectedExit:   1,
-			expectedOutput: "[PROPERTY_CAMELCASE]",
+			expectedOutput: "[PROPERTY_SNAKECASE]",
 		},
 		{
-			name: "InvalidScreamingSnakeCase",
+			name: "InvalidKebabCase",
 			spec: `openapi: 3.0.0
 info:
   title: Test
@@ -216,7 +216,7 @@ components:
     CreateRequest:
       type: object
       properties:
-        FIRST_NAME:
+        first-name:
           type: string
     ErrorDetails:
       type: object
@@ -233,7 +233,7 @@ components:
           additionalProperties:
             type: string`,
 			expectedExit:   1,
-			expectedOutput: "[PROPERTY_CAMELCASE]",
+			expectedOutput: "[PROPERTY_SNAKECASE]",
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {

@@ -29,7 +29,7 @@ Rules can be disabled project-wide via a `.duh.yaml` file in the project root:
 lint:
   disable:
     - DESCRIPTION_REQUIRED
-    - PROPERTY_CAMELCASE
+    - PROPERTY_SNAKECASE
 ```
 
 Rules can also be disabled for a single run using the `--disable` flag with a comma-separated list:
@@ -69,7 +69,7 @@ reporting a violation.
 
 Rules that match field names (pagination parameters, schema structure fields, etc.) MUST normalize
 names before comparison. Normalization: strip all `-` and `_` separators, then lowercase. This means
-`endCursor`, `end_cursor`, and `end-cursor` are all treated as equivalent.
+`end_cursor`, `end_cursor`, and `end-cursor` are all treated as equivalent.
 
 A single `normalize(name string) string` utility function MUST be used consistently across all rules
 that perform field name matching.
@@ -197,6 +197,7 @@ Where:
 /v1/users.create        # version prefix not allowed in path
 /users/create           # missing dot separator
 /Users.Create           # not lowercase
+/a/b/invoices.create    # too many segments; only one domain prefix is allowed
 ```
 
 ---
@@ -282,7 +283,7 @@ A path MUST NOT define more than one path parameter (e.g. `{id}`).
 /users/{id}.get
 
 # ❌ invalid
-/users/{userId}/orders/{orderId}.get
+/users/{user_id}/orders/{order_id}.get
 ```
 
 ---
@@ -293,26 +294,29 @@ A path MUST NOT define more than one path parameter (e.g. `{id}`).
 
 This rule enforces three related constraints on operation content types:
 
-**1. JSON must be supported**
+**1. JSON must be supported in requests**
 
-Every operation MUST support `application/json` as both a request and response content type. JSON
-is the baseline content type and MUST always be available regardless of what other types are
-supported.
+Every operation MUST support `application/json` as a request content type. JSON is the baseline
+request type and MUST always be available regardless of what other types are supported.
 
 **2. Protobuf is permitted**
 
 `application/protobuf` is an allowed content type for both requests and responses.
 
-**3. Multipart and form-encoded types are prohibited**
+**3. Streaming content types are permitted in responses only**
+
+The following content types are allowed in responses but MUST NOT appear in request bodies:
+
+- `application/octet-stream` — raw binary streaming response
+- `application/duh-stream+json` — newline-delimited JSON streaming response
+- `application/duh-stream+protobuf` — length-prefixed protobuf streaming response
+
+**4. Multipart and form-encoded types are prohibited**
 
 `multipart/form-data` and `application/x-www-form-urlencoded` MUST NOT be used.
 
-**Note on `application/octet-stream`:** This content type is neither required nor prohibited by the
-linter. The streaming section of the DUH spec is not yet complete. Tooling will not flag or validate
-`octet-stream` until that section is finalized.
-
 ```yaml
-# ✅ valid
+# ✅ valid — JSON request with protobuf support
 requestBody:
   content:
     application/json:
@@ -320,11 +324,33 @@ requestBody:
     application/protobuf:
       schema: ...
 
-# ❌ invalid — missing application/json
+# ✅ valid — streaming response alongside JSON
+responses:
+  '200':
+    content:
+      application/json:
+        schema: ...
+      application/octet-stream: {}
+
+# ✅ valid — DUH stream types in response
+responses:
+  '200':
+    content:
+      application/duh-stream+json: {}
+      application/duh-stream+protobuf: {}
+
+# ❌ invalid — missing application/json in request body
 requestBody:
   content:
     application/protobuf:
       schema: ...
+
+# ❌ invalid — streaming type in request body
+requestBody:
+  content:
+    application/json:
+      schema: ...
+    application/octet-stream: {}
 
 # ❌ invalid — multipart not allowed
 requestBody:
@@ -439,7 +465,7 @@ appears in a request, it belongs only in the request schema.
 ```yaml
 # ❌ invalid
 properties:
-  createdAt:
+  created_at:
     type: string
     readOnly: true
 ```
@@ -460,13 +486,13 @@ Both of the following forms are violations:
 ```yaml
 # ❌ invalid — nullable: true
 properties:
-  middleName:
+  middle_name:
     type: string
     nullable: true
 
 # ❌ invalid — array type syntax
 properties:
-  middleName:
+  middle_name:
     type: ["string", "null"]
 ```
 
@@ -485,16 +511,16 @@ This rule only inspects success (2xx) response schemas.
 CreateUserResponse:
   type: object
   properties:
-    middleName:
+    middle_name:
       type: string
       nullable: true
 
 # ✅ valid — nullable and required
 CreateUserResponse:
   type: object
-  required: [middleName]
+  required: [middle_name]
   properties:
-    middleName:
+    middle_name:
       type: string
       nullable: true
 ```
@@ -536,7 +562,7 @@ count:
   type: integer
   format: int32
 
-userId:
+user_id:
   type: integer
   format: uint64
 
@@ -581,34 +607,6 @@ metadata:
 metadata:
   type: object
   additionalProperties: true
-```
-
----
-
-### `BYTES_FORMAT` — ERROR
-
-Binary data in request and response schemas MUST be represented as `type: string` with
-`format: byte` (base64-encoded). This maps directly to protobuf's native `bytes` scalar type.
-
-`format: binary` is not permitted in schema properties — it is reserved for streaming content,
-which is not yet defined by the DUH spec. Once the streaming section is finalized, `format: binary`
-may be permitted only alongside `application/octet-stream` content types.
-
-```yaml
-# ✅ valid
-payload:
-  type: string
-  format: byte
-
-# ❌ invalid — format: binary is reserved for streaming
-payload:
-  type: string
-  format: binary
-
-# ❌ invalid — untyped string for binary data is ambiguous
-payload:
-  type: string
-  description: "raw bytes"
 ```
 
 ---
@@ -719,22 +717,22 @@ Because DUH-RPC's core goal is protobuf compatibility, there are no fallback gua
 
 ## Naming Rules
 
-### `PROPERTY_CAMELCASE` — ERROR
+### `PROPERTY_SNAKECASE` — ERROR
 
-Schema property names MUST use camelCase. Property names using snake_case, kebab-case, or other
-formats are violations.
+Schema property names MUST use snake_case. Property names using camelCase, PascalCase, kebab-case,
+or other formats are violations.
 
 ```yaml
 # ✅ valid
 properties:
-  firstName:
+  first_name:
     type: string
-  createdAt:
+  created_at:
     type: string
 
 # ❌ invalid
 properties:
-  first_name:
+  firstName:
     type: string
   created-at:
     type: string
@@ -887,8 +885,8 @@ Paginated responses MUST include the following structure:
 | Field | Type | Required | Description |
 |---|---|---|---|
 | `items` | array | Yes | The page of results |
-| `pagination.endCursor` | string | Yes | Cursor to pass as `pagination.after` on the next request |
-| `pagination.hasNextPage` | boolean | Yes | Whether additional results exist beyond this page |
+| `pagination.end_cursor` | string | Yes | Cursor to pass as `pagination.after` on the next request |
+| `pagination.has_next_page` | boolean | Yes | Whether additional results exist beyond this page |
 
 Field names are matched using normalization (strip separators, lowercase).
 
@@ -897,14 +895,14 @@ Field names are matched using normalization (strip separators, lowercase).
 {
   "items": [...],
   "pagination": {
-    "endCursor": "cursor_xyz789",
-    "hasNextPage": true
+    "end_cursor": "cursor_xyz789",
+    "has_next_page": true
   }
 }
 ```
 
-When `hasNextPage` is `false`, the client SHOULD NOT make a further request. When `hasNextPage` is
-`true` and `endCursor` is present, the client MAY request the next page by passing `endCursor` as
+When `has_next_page` is `false`, the client SHOULD NOT make a further request. When `has_next_page` is
+`true` and `end_cursor` is present, the client MAY request the next page by passing `end_cursor` as
 `pagination.after`.
 
 ---
@@ -971,17 +969,17 @@ These rules enforce consistent representation of common data types.
 
 ### `TIMESTAMP_FORMAT` — ERROR
 
-Properties whose names end in `At` or `Timestamp` (e.g. `createdAt`, `lastModifiedTimestamp`) MUST
+Properties whose names end in `_at` or `_timestamp` (e.g. `created_at`, `last_modified_timestamp`) MUST
 be defined as `type: string` with `format: date-time`.
 
 ```yaml
 # ✅ valid
-createdAt:
+created_at:
   type: string
   format: date-time
 
 # ❌ invalid
-createdAt:
+created_at:
   type: integer
   format: int64
 ```
@@ -990,17 +988,17 @@ createdAt:
 
 ### `DATE_FORMAT` — ERROR
 
-Properties whose names end in `Date` (e.g. `birthDate`, `expirationDate`) MUST be defined as
+Properties whose names end in `_date` (e.g. `birth_date`, `expiration_date`) MUST be defined as
 `type: string` with `format: date`.
 
 ```yaml
 # ✅ valid
-birthDate:
+birth_date:
   type: string
   format: date
 
 # ❌ invalid
-birthDate:
+birth_date:
   type: string
 ```
 
@@ -1026,7 +1024,7 @@ amount:
 
 ### `AMOUNT_SCHEMA_PATTERN` — WARNING
 
-Schemas that contain an `amount` property SHOULD also include an `assetType` property to clarify
+Schemas that contain an `amount` property SHOULD also include an `asset_type` property to clarify
 what currency or asset the amount represents.
 
 ---
@@ -1035,17 +1033,17 @@ what currency or asset the amount represents.
 
 ### `IDEMPOTENCY_KEY_DEFINITION` — ERROR
 
-When a schema includes an `idempotencyKey` property, it MUST be defined as `type: string` with
+When a schema includes an `idempotency_key` property, it MUST be defined as `type: string` with
 `maxLength: 128`.
 
 ```yaml
 # ✅ valid
-idempotencyKey:
+idempotency_key:
   type: string
   maxLength: 128
 
 # ❌ invalid
-idempotencyKey:
+idempotency_key:
   type: string
 ```
 
@@ -1080,12 +1078,11 @@ idempotencyKey:
 | `INTEGER_FORMAT_REQUIRED` | ERROR | Protobuf |
 | `NO_NESTED_ARRAYS` | ERROR | Protobuf |
 | `TYPED_ADDITIONAL_PROPERTIES` | ERROR | Protobuf |
-| `BYTES_FORMAT` | ERROR | Protobuf |
 | `ENUM_UNSPECIFIED_VARIANT` | ERROR | Protobuf |
 | `PROHIBITED_ALLOF` | ERROR | Protobuf |
 | `PROHIBITED_ANYOF` | ERROR | Protobuf |
 | `PROHIBITED_ONEOF` | ERROR | Protobuf |
-| `PROPERTY_CAMELCASE` | ERROR | Naming |
+| `PROPERTY_SNAKECASE` | ERROR | Naming |
 | `REQUEST_STANDARD_NAME` | ERROR | Naming |
 | `RESPONSE_STANDARD_NAME` | ERROR | Naming |
 | `REQUEST_RESPONSE_UNIQUE` | ERROR | Naming |
@@ -1136,4 +1133,5 @@ idempotencyKey:
 | `CONTENT_TYPE_JSON_REQUIRED` | Implemented as a check within `CONTENT_TYPE`. |
 | `CONTENT_TYPE_NO_MULTIPART` | Implemented as a check within `CONTENT_TYPE`. |
 | `ERROR_DETAILS_SCHEMA` | Implemented as part of `ERROR_SCHEMA`. |
-| `PROHIBITED_FILE_UPLOAD` | Deferred. Streaming spec is incomplete. `CONTENT_TYPE` already excludes `octet-stream` enforcement. |
+| `BYTES_FORMAT` | `format: binary` has no valid use case in DUH-RPC schemas. Binary data in JSON/protobuf uses `format: byte`. `application/octet-stream` responses use the entire body as raw bytes (no schema properties), and `application/duh-stream+json` / `application/duh-stream+protobuf` payloads use `format: byte` (base64) for binary fields. |
+| `PROHIBITED_FILE_UPLOAD` | Deferred. Upload semantics are not yet defined. Streaming content types are response-only. |

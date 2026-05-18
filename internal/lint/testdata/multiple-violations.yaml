@@ -9,7 +9,7 @@ paths:
     get:  # VIOLATION: wrong HTTP method
       operationId: createUser
       parameters:
-        - name: userId  # VIOLATION: query parameter
+        - name: user_id  # VIOLATION: query parameter
           in: query
           schema:
             type: string
@@ -222,7 +222,7 @@ paths:
                   message:
                     type: string
 
-  /users/{id}/posts/{postId}:
+  /users/{id}/posts/{post_id}:
     post:
       operationId: getUserPost
       requestBody:
@@ -260,9 +260,9 @@ components:
     BadResult:
       type: object
       additionalProperties: false
-      required: [orderId]
+      required: [order_id]
       properties:
-        orderId:
+        order_id:
           type: string
         note:
           type: string
@@ -318,37 +318,37 @@ components:
     UserAccountsCreateResponse:
       type: object
       properties:
-        accountId:
+        account_id:
           type: string
 
     PetGetRequest:
       type: object
       properties:
-        petId:
+        pet_id:
           type: string
 
     PetGetResponse:
       type: object
       properties:
-        petId:
+        pet_id:
           type: string
 
     GetPostRequest:
       type: object
       properties:
-        includeComments:
+        include_comments:
           type: boolean
 
     GetPostResponse:
       type: object
       properties:
-        postId:
+        post_id:
           type: string
 
-    SchemaViolationCamelCase:
+    SchemaViolationSnakeCase:
       type: object
       properties:
-        first_name:
+        firstName:
           type: string
 
     SchemaViolationNullSyntax:
@@ -399,14 +399,14 @@ components:
     ViolationTimestamp:
       type: object
       properties:
-        createdAt:
+        created_at:
           type: integer
           format: int32
 
     ViolationDate:
       type: object
       properties:
-        startDate:
+        start_date:
           type: integer
           format: int32
 
@@ -420,7 +420,7 @@ components:
     ViolationIdempotencyKey:
       type: object
       properties:
-        idempotencyKey:
+        idempotency_key:
           type: integer
 
     ViolationDiscriminatorNoMapping:

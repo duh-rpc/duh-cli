@@ -51,7 +51,7 @@ components:
     CreateRequest:
       type: object
       properties:
-        birthDate:
+        birth_date:
           description: Date of birth
           type: string
           format: date
@@ -150,7 +150,7 @@ components:
     CreateRequest:
       type: object
       properties:
-        startDate:
+        start_date:
           description: Start date
           type: string
     Error:
@@ -199,7 +199,7 @@ components:
     CreateRequest:
       type: object
       properties:
-        expirationDate:
+        expiration_date:
           description: Expiration date
           type: integer
           format: int64

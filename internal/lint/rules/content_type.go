@@ -26,6 +26,14 @@ func (r *ContentTypeRule) Validate(doc *v3.Document) []Violation {
 		"application/protobuf": true,
 	}
 
+	allowedResponseTypes := map[string]bool{
+		"application/json":                  true,
+		"application/protobuf":              true,
+		"application/octet-stream":          true,
+		"application/duh-stream+json":       true,
+		"application/duh-stream+protobuf":   true,
+	}
+
 	if doc.Paths == nil || doc.Paths.PathItems == nil {
 		return violations
 	}
@@ -92,7 +100,7 @@ func (r *ContentTypeRule) Validate(doc *v3.Document) []Violation {
 
 					for contentType := range response.Content.FromOldest() {
 						location := method + " " + pathName + " response " + statusCode
-						v := r.validateContentType(contentType, allowedTypes, method, pathName+" response "+statusCode, "")
+						v := r.validateContentType(contentType, allowedResponseTypes, method, pathName+" response "+statusCode, "")
 						if v != nil {
 							v.Location = location
 							violations = append(violations, *v)
@@ -104,6 +112,14 @@ func (r *ContentTypeRule) Validate(doc *v3.Document) []Violation {
 	}
 
 	return violations
+}
+
+func isStreamingType(normalized string) bool {
+	switch normalized {
+	case "application/octet-stream", "application/duh-stream+json", "application/duh-stream+protobuf":
+		return true
+	}
+	return false
 }
 
 func (r *ContentTypeRule) validateContentType(contentType string, allowedTypes map[string]bool, method, path, context string) *Violation {
@@ -141,9 +157,13 @@ func (r *ContentTypeRule) validateContentType(contentType string, allowedTypes m
 		if context != "" {
 			msg = "Invalid " + context + " content type: " + contentType
 		}
+		suggestion := "Use one of: application/json, application/protobuf"
+		if context == "request body" && isStreamingType(normalized) {
+			suggestion = "Streaming content types are only allowed in responses"
+		}
 		return &Violation{
 			Message:    msg,
-			Suggestion: "Use one of: application/json, application/protobuf",
+			Suggestion: suggestion,
 			Location:   method + " " + path,
 			RuleName:   r.Name(),
 			Severity:   SeverityError,

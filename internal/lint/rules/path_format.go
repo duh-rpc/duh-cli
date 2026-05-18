@@ -8,7 +8,7 @@ import (
 	"github.com/pb33f/libopenapi/datamodel/high/v3"
 )
 
-var pathFormatRegex = regexp.MustCompile(`^/[a-z][a-z0-9_-]{0,49}\.[a-z][a-z0-9_-]{0,49}$`)
+var pathFormatRegex = regexp.MustCompile(`^/([a-z][a-z0-9_-]{0,49}/)*[a-z][a-z0-9_-]{0,49}\.[a-z][a-z0-9_-]{0,49}$`)
 var pathParamRegex = regexp.MustCompile(`\{[^}]+\}`)
 
 // PathFormatRule validates DUH-RPC path format
@@ -77,36 +77,52 @@ func (r *PathFormatRule) Validate(doc *v3.Document) []Violation {
 	return violations
 }
 
+var segmentRegex = regexp.MustCompile(`^[a-z][a-z0-9_-]{0,49}$`)
+var startsLowerRegex = regexp.MustCompile(`^[a-z]`)
+
 func (r *PathFormatRule) generateErrorMessage(path string) string {
 	if strings.Contains(path, "{") || strings.Contains(path, "}") {
 		return "Path contains parameters, which are not allowed in DUH-RPC"
 	}
 
-	// Strip leading slash for analysis
+	// Strip leading slash and split on "/" to separate intermediate segments from resource.method
 	trimmed := strings.TrimPrefix(path, "/")
+	slashParts := strings.Split(trimmed, "/")
 
-	if !strings.Contains(trimmed, ".") {
+	resourceMethod := slashParts[len(slashParts)-1]
+	segments := slashParts[:len(slashParts)-1]
+
+	for _, seg := range segments {
+		if !startsLowerRegex.MatchString(seg) {
+			return "Path segment must start with a lowercase letter"
+		}
+		if !segmentRegex.MatchString(seg) {
+			return "Path segment must contain only lowercase letters, numbers, hyphens, and underscores"
+		}
+	}
+
+	if !strings.Contains(resourceMethod, ".") {
 		return "Path must have format /{resource}.{method} with a dot separator"
 	}
 
-	segments := strings.Split(trimmed, ".")
-	if len(segments) > 2 {
+	dotParts := strings.Split(resourceMethod, ".")
+	if len(dotParts) > 2 {
 		return "Path must have exactly one dot separating resource and method"
 	}
 
-	resource, method := segments[0], segments[1]
+	resource, method := dotParts[0], dotParts[1]
 
-	if len(resource) > 0 && !regexp.MustCompile(`^[a-z]`).MatchString(resource) {
+	if len(resource) > 0 && !startsLowerRegex.MatchString(resource) {
 		return "Resource/Method must start with a lowercase letter"
 	}
-	if !regexp.MustCompile(`^[a-z][a-z0-9_-]{0,49}$`).MatchString(resource) {
+	if !segmentRegex.MatchString(resource) {
 		return "Resource/Method must contain only lowercase letters, numbers, hyphens, and underscores"
 	}
 
-	if len(method) > 0 && !regexp.MustCompile(`^[a-z]`).MatchString(method) {
+	if len(method) > 0 && !startsLowerRegex.MatchString(method) {
 		return "Resource/Method must start with a lowercase letter"
 	}
-	if !regexp.MustCompile(`^[a-z][a-z0-9_-]{0,49}$`).MatchString(method) {
+	if !segmentRegex.MatchString(method) {
 		return "Resource/Method must contain only lowercase letters, numbers, hyphens, and underscores"
 	}
 
@@ -115,8 +131,8 @@ func (r *PathFormatRule) generateErrorMessage(path string) string {
 
 func (r *PathFormatRule) generateSuggestion(path string) string {
 	if !strings.Contains(path, ".") {
-		return "Use format /{resource}.{method} (e.g., /users.create)"
+		return "Use format /{resource}.{method} or /{domain}/{resource}.{method} (e.g., /users.create, /billing/invoices.create)"
 	}
 
-	return "Ensure path follows format /{resource}.{method} with lowercase letters, numbers, hyphens, and underscores only (e.g., /users.create, /pets.list)"
+	return "Ensure path follows format /{resource}.{method} or /{domain}/{resource}.{method} with lowercase letters, numbers, hyphens, and underscores only"
 }

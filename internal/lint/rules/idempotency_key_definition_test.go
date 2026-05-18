@@ -51,7 +51,7 @@ components:
     CreateRequest:
       type: object
       properties:
-        idempotencyKey:
+        idempotency_key:
           description: Idempotency key for request deduplication
           type: string
           maxLength: 128
@@ -150,7 +150,7 @@ components:
     CreateRequest:
       type: object
       properties:
-        idempotencyKey:
+        idempotency_key:
           description: Idempotency key
           type: integer
           format: int64
@@ -200,7 +200,7 @@ components:
     CreateRequest:
       type: object
       properties:
-        idempotencyKey:
+        idempotency_key:
           description: Idempotency key
           type: string
     Error:
@@ -249,7 +249,7 @@ components:
     CreateRequest:
       type: object
       properties:
-        idempotencyKey:
+        idempotency_key:
           description: Idempotency key
           type: string
           maxLength: 256

@@ -447,24 +447,24 @@ components:
     CreateResponse:
       type: object
       properties:
-        userId:
+        user_id:
           type: string
         name:
           type: string
         email:
           type: string
-        createdAt:
+        created_at:
           type: string
           format: date-time
     GetRequest:
       type: object
       properties:
-        userId:
+        user_id:
           type: string
     GetResponse:
       type: object
       properties:
-        userId:
+        user_id:
           type: string
         name:
           type: string
@@ -473,7 +473,7 @@ components:
         age:
           type: integer
           format: int32
-        createdAt:
+        created_at:
           type: string
           format: date-time
     ListRequest:
@@ -481,7 +481,7 @@ components:
       properties:
         pagination:
           $ref: '#/components/schemas/PaginationRequest'
-        sortBy:
+        sort_by:
           type: string
     PaginationRequest:
       type: object
@@ -505,14 +505,14 @@ components:
     PaginationResponse:
       type: object
       properties:
-        endCursor:
+        end_cursor:
           type: string
-        hasMore:
+        has_more:
           type: boolean
     UpdateRequest:
       type: object
       properties:
-        userId:
+        user_id:
           type: string
         name:
           type: string
@@ -526,7 +526,7 @@ components:
     UpdateResponse:
       type: object
       properties:
-        userId:
+        user_id:
           type: string
         name:
           type: string
@@ -537,23 +537,23 @@ components:
           format: int32
         status:
           type: string
-        updatedAt:
+        updated_at:
           type: string
           format: date-time
-        createdAt:
+        created_at:
           type: string
           format: date-time
     DeleteRequest:
       type: object
       properties:
-        userId:
+        user_id:
           type: string
     DeleteResponse:
       type: object
       properties:
-        userId:
+        user_id:
           type: string
-        deletedAt:
+        deleted_at:
           type: string
           format: date-time
     Error:

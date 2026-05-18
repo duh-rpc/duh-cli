@@ -56,7 +56,7 @@ components:
     CreateResponse:
       type: object
       properties:
-        petId:
+        pet_id:
           type: string
     ErrorDetails:
       type: object
@@ -114,9 +114,9 @@ components:
           type: string
     CreateResponse:
       type: object
-      required: [petId, nickname]
+      required: [pet_id, nickname]
       properties:
-        petId:
+        pet_id:
           type: string
         nickname:
           type: string
@@ -178,9 +178,9 @@ components:
           type: string
     CreateResponse:
       type: object
-      required: [petId]
+      required: [pet_id]
       properties:
-        petId:
+        pet_id:
           type: string
         nickname:
           type: string
@@ -245,7 +245,7 @@ components:
     CreateResponse:
       type: object
       properties:
-        petId:
+        pet_id:
           type: string
     ErrorDetails:
       type: object

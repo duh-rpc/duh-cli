@@ -41,7 +41,7 @@ components:
     CreateResponse:
       type: object
       properties:
-        petId:
+        pet_id:
           type: string
 
     ErrorDetails:

@@ -126,8 +126,8 @@ components:
     PaginationResponse:
       type: object
       properties:
-        endCursor: {type: string}
-        hasMore: {type: boolean}
+        end_cursor: {type: string}
+        has_more: {type: boolean}
     UpdateRequest:
       type: object
       properties:
@@ -374,8 +374,8 @@ components:
     PaginationResponse:
       type: object
       properties:
-        endCursor: {type: string}
-        hasMore: {type: boolean}
+        end_cursor: {type: string}
+        has_more: {type: boolean}
     UpdateRequest:
       type: object
       properties:

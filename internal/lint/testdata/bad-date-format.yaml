@@ -43,10 +43,10 @@ components:
     CreateResponse:
       type: object
       properties:
-        petId:
+        pet_id:
           description: ID of the pet
           type: string
-        birthDate:
+        birth_date:
           description: Birth date of the pet
           type: integer
           format: int32

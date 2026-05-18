@@ -96,12 +96,12 @@ components:
     PaginationResponse:
       description: Pagination response with cursor information
       type: object
-      required: [endCursor]
+      required: [end_cursor]
       properties:
-        endCursor:
+        end_cursor:
           description: Cursor pointing to the last item in the current page
           type: string
-        hasNextPage:
+        has_next_page:
           description: Whether there are more items available
           type: boolean
 
@@ -118,9 +118,9 @@ components:
 
     CreateResponse:
       type: object
-      required: [petId, name]
+      required: [pet_id, name]
       properties:
-        petId:
+        pet_id:
           description: Unique identifier for the created pet
           type: string
         name:
@@ -133,9 +133,9 @@ components:
     Pet:
       description: Represents a pet in the system
       type: object
-      required: [petId, name]
+      required: [pet_id, name]
       properties:
-        petId:
+        pet_id:
           description: Unique identifier for the pet
           type: string
         name:

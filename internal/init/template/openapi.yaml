@@ -266,11 +266,11 @@ components:
     CreateResponse:
       type: object
       required:
-        - userId
+        - user_id
         - email
         - name
       properties:
-        userId:
+        user_id:
           type: string
           example: "usr_abc123"
         email:
@@ -279,7 +279,7 @@ components:
         name:
           type: string
           example: "John Doe"
-        createdAt:
+        created_at:
           type: string
           format: date-time
           example: "2024-01-15T10:30:00Z"
@@ -287,20 +287,20 @@ components:
     GetRequest:
       type: object
       required:
-        - userId
+        - user_id
       properties:
-        userId:
+        user_id:
           type: string
           example: "usr_abc123"
 
     GetResponse:
       type: object
       required:
-        - userId
+        - user_id
         - email
         - name
       properties:
-        userId:
+        user_id:
           type: string
           example: "usr_abc123"
         email:
@@ -313,7 +313,7 @@ components:
           type: integer
           format: int32
           example: 30
-        createdAt:
+        created_at:
           type: string
           format: date-time
           example: "2024-01-15T10:30:00Z"
@@ -324,10 +324,10 @@ components:
       properties:
         pagination:
           $ref: '#/components/schemas/PaginationRequest'
-        sortBy:
+        sort_by:
           type: string
-          enum: [name, email, createdAt]
-          default: createdAt
+          enum: [name, email, created_at]
+          default: created_at
           example: "name"
 
     PaginationRequest:
@@ -361,11 +361,11 @@ components:
     PaginationResponse:
       type: object
       properties:
-        endCursor:
+        end_cursor:
           type: string
           description: Cursor for the next page
           example: "cursor_xyz789"
-        hasMore:
+        has_more:
           type: boolean
           description: Whether more results are available
           example: true
@@ -374,9 +374,9 @@ components:
     UpdateRequest:
       type: object
       required:
-        - userId
+        - user_id
       properties:
-        userId:
+        user_id:
           type: string
           example: "usr_abc123"
         name:
@@ -399,11 +399,11 @@ components:
     UpdateResponse:
       type: object
       required:
-        - userId
+        - user_id
         - email
         - name
       properties:
-        userId:
+        user_id:
           type: string
           example: "usr_abc123"
         email:
@@ -419,11 +419,11 @@ components:
         status:
           type: string
           example: "active"
-        createdAt:
+        created_at:
           type: string
           format: date-time
           example: "2024-01-15T10:30:00Z"
-        updatedAt:
+        updated_at:
           type: string
           format: date-time
           example: "2024-01-15T14:45:00Z"

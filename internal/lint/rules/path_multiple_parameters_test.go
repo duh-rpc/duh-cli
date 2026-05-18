@@ -73,7 +73,7 @@ info:
 servers:
   - url: https://api.example.com/v1
 paths:
-  /users/{id}/posts/{postId}:
+  /users/{id}/posts/{post_id}:
     post:
       requestBody:
         required: true

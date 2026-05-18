@@ -36,7 +36,7 @@ components:
     CreateRequest:
       type: object
       properties:
-        idempotencyKey:
+        idempotency_key:
           description: Idempotency key for the request
           type: string
         name:
@@ -46,7 +46,7 @@ components:
     CreateResponse:
       type: object
       properties:
-        paymentId:
+        payment_id:
           description: ID of the payment
           type: string
 

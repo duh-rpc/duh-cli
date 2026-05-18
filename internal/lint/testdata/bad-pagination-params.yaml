@@ -57,7 +57,7 @@ components:
     PageResponse:
       type: object
       properties:
-        endCursor:
+        end_cursor:
           type: string
 
     Pet:

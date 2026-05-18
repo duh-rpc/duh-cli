@@ -55,7 +55,7 @@ components:
     CreateResponse:
       type: object
       properties:
-        petId:
+        pet_id:
           type: string
     ErrorDetails:
       type: object
@@ -106,7 +106,7 @@ components:
     PetsCreateResponse:
       type: object
       properties:
-        petId:
+        pet_id:
           type: string
     ErrorDetails:
       type: object
@@ -157,7 +157,7 @@ components:
     PetResult:
       type: object
       properties:
-        petId:
+        pet_id:
           type: string
     ErrorDetails:
       type: object
@@ -214,7 +214,7 @@ components:
     CreateResponse:
       type: object
       properties:
-        petId:
+        pet_id:
           type: string
     ErrorDetails:
       type: object

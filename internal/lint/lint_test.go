@@ -184,9 +184,9 @@ func TestLinterAllRuleViolations(t *testing.T) {
 			expectedExitCode:  1,
 		},
 		{
-			name:              "NonCamelCaseProperty",
-			file:              "testdata/non-camelcase-property.yaml",
-			expectedViolation: "[PROPERTY_CAMELCASE]",
+			name:              "NonSnakeCaseProperty",
+			file:              "testdata/non-snakecase-property.yaml",
+			expectedViolation: "[PROPERTY_SNAKECASE]",
 			expectedExitCode:  1,
 		},
 		{
@@ -365,7 +365,7 @@ func TestLinterMultipleViolations(t *testing.T) {
 		"[PATH_PLURAL_RESOURCES]",
 		"[PATH_MULTIPLE_PARAMETERS]",
 		"[SCHEMA_NO_INLINE_OBJECTS]",
-		"[PROPERTY_CAMELCASE]",
+		"[PROPERTY_SNAKECASE]",
 		"[SCHEMA_ADDITIONAL_PROPERTIES_RESPONSE]",
 		"[NULLABLE_OPTIONAL_RESPONSE]",
 		"[PROHIBITED_ANYOF]",

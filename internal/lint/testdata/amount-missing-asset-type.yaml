@@ -46,7 +46,7 @@ components:
     CreateResponse:
       type: object
       properties:
-        paymentId:
+        payment_id:
           description: ID of the payment
           type: string
 

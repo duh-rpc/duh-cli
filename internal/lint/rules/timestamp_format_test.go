@@ -51,7 +51,7 @@ components:
     CreateRequest:
       type: object
       properties:
-        createdAt:
+        created_at:
           description: Creation timestamp
           type: string
           format: date-time
@@ -150,7 +150,7 @@ components:
     CreateRequest:
       type: object
       properties:
-        createdAt:
+        created_at:
           description: Creation timestamp
           type: integer
           format: int64
@@ -200,7 +200,7 @@ components:
     CreateRequest:
       type: object
       properties:
-        updatedTimestamp:
+        updated_timestamp:
           description: Update timestamp
           type: string
     Error:

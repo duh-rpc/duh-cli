@@ -7,19 +7,19 @@ import (
 	"github.com/pb33f/libopenapi/datamodel/high/v3"
 )
 
-var camelCaseRegex = regexp.MustCompile(`^[a-z][a-zA-Z0-9]*$`)
+var snakeCaseRegex = regexp.MustCompile(`^[a-z][a-z0-9]*(_[a-z0-9]+)*$`)
 
-type PropertyCamelCaseRule struct{}
+type PropertySnakeCaseRule struct{}
 
-func NewPropertyCamelCaseRule() *PropertyCamelCaseRule {
-	return &PropertyCamelCaseRule{}
+func NewPropertySnakeCaseRule() *PropertySnakeCaseRule {
+	return &PropertySnakeCaseRule{}
 }
 
-func (r *PropertyCamelCaseRule) Name() string {
-	return "PROPERTY_CAMELCASE"
+func (r *PropertySnakeCaseRule) Name() string {
+	return "PROPERTY_SNAKECASE"
 }
 
-func (r *PropertyCamelCaseRule) Validate(doc *v3.Document) []Violation {
+func (r *PropertySnakeCaseRule) Validate(doc *v3.Document) []Violation {
 	var violations []Violation
 
 	if doc == nil || doc.Components == nil || doc.Components.Schemas == nil {
@@ -37,10 +37,10 @@ func (r *PropertyCamelCaseRule) Validate(doc *v3.Document) []Violation {
 		}
 
 		for propName := range schema.Properties.FromOldest() {
-			if !camelCaseRegex.MatchString(propName) {
+			if !snakeCaseRegex.MatchString(propName) {
 				violations = append(violations, Violation{
-					Suggestion: "Rename property to camelCase (e.g., 'first_name' should be 'firstName')",
-					Message:    fmt.Sprintf("Property name '%s' is not camelCase", propName),
+					Suggestion: "Rename property to snake_case (e.g., 'firstName' should be 'first_name')",
+					Message:    fmt.Sprintf("Property name '%s' is not snake_case", propName),
 					Location:   fmt.Sprintf("components/schemas/%s/%s", schemaName, propName),
 					RuleName:   r.Name(),
 					Severity:   SeverityError,

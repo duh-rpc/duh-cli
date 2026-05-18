@@ -34,7 +34,7 @@ func (r *IdempotencyKeyDefinitionRule) Validate(doc *v3.Document) []Violation {
 		}
 
 		for propName, propProxy := range schema.Properties.FromOldest() {
-			if propName != "idempotencyKey" {
+			if propName != "idempotency_key" {
 				continue
 			}
 
@@ -43,12 +43,12 @@ func (r *IdempotencyKeyDefinitionRule) Validate(doc *v3.Document) []Violation {
 				continue
 			}
 
-			location := fmt.Sprintf("components/schemas/%s/idempotencyKey", schemaName)
+			location := fmt.Sprintf("components/schemas/%s/idempotency_key", schemaName)
 
 			if len(propSchema.Type) == 0 || propSchema.Type[0] != "string" {
 				violations = append(violations, Violation{
-					Suggestion: "Define idempotencyKey as type: string with maxLength: 128",
-					Message:    "Property 'idempotencyKey' must be type string",
+					Suggestion: "Define idempotency_key as type: string with maxLength: 128",
+					Message:    "Property 'idempotency_key' must be type string",
 					Location:   location,
 					RuleName:   r.Name(),
 					Severity:   SeverityError,
@@ -57,8 +57,8 @@ func (r *IdempotencyKeyDefinitionRule) Validate(doc *v3.Document) []Violation {
 
 			if propSchema.MaxLength == nil || *propSchema.MaxLength != 128 {
 				violations = append(violations, Violation{
-					Suggestion: "Define idempotencyKey as type: string with maxLength: 128",
-					Message:    "Property 'idempotencyKey' must have maxLength: 128",
+					Suggestion: "Define idempotency_key as type: string with maxLength: 128",
+					Message:    "Property 'idempotency_key' must have maxLength: 128",
 					Location:   location,
 					RuleName:   r.Name(),
 					Severity:   SeverityError,

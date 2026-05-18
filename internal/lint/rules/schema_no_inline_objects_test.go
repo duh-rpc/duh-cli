@@ -55,7 +55,7 @@ components:
     CreateResponse:
       type: object
       properties:
-        petId:
+        pet_id:
           type: string
     ErrorDetails:
       type: object
@@ -166,7 +166,7 @@ components:
     CreateResponse:
       type: object
       properties:
-        petId:
+        pet_id:
           type: string
     ErrorDetails:
       type: object
@@ -210,7 +210,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  petId:
+                  pet_id:
                     type: string
         400:
           description: Bad request
@@ -294,7 +294,7 @@ components:
     CreateResponse:
       type: object
       properties:
-        petId:
+        pet_id:
           type: string`,
 			expectedExit:   0,
 			expectedOutput: "compliant",

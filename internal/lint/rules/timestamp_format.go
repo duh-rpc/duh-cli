@@ -35,7 +35,7 @@ func (r *TimestampFormatRule) Validate(doc *v3.Document) []Violation {
 		}
 
 		for propName, propProxy := range schema.Properties.FromOldest() {
-			if !strings.HasSuffix(propName, "At") && !strings.HasSuffix(propName, "Timestamp") {
+			if !strings.HasSuffix(propName, "_at") && !strings.HasSuffix(propName, "_timestamp") {
 				continue
 			}
 
@@ -47,7 +47,7 @@ func (r *TimestampFormatRule) Validate(doc *v3.Document) []Violation {
 			if len(propSchema.Type) == 0 || propSchema.Type[0] != "string" || propSchema.Format != "date-time" {
 				violations = append(violations, Violation{
 					Suggestion: "Set type to 'string' and format to 'date-time' for timestamp fields",
-					Message:    fmt.Sprintf("Field '%s' ending in 'At'/'Timestamp' must be type string with format: date-time", propName),
+					Message:    fmt.Sprintf("Field '%s' ending in '_at'/'_timestamp' must be type string with format: date-time", propName),
 					Location:   fmt.Sprintf("components/schemas/%s/%s", schemaName, propName),
 					RuleName:   r.Name(),
 					Severity:   SeverityError,

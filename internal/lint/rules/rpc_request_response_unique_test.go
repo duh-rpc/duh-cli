@@ -76,7 +76,7 @@ components:
     CreateResponse:
       type: object
       properties:
-        petId:
+        pet_id:
           type: string
     UpdateRequest:
       type: object
@@ -86,7 +86,7 @@ components:
     UpdateResponse:
       type: object
       properties:
-        petId:
+        pet_id:
           type: string
     ErrorDetails:
       type: object
@@ -158,12 +158,12 @@ components:
     CreateResponse:
       type: object
       properties:
-        petId:
+        pet_id:
           type: string
     UpdateResponse:
       type: object
       properties:
-        petId:
+        pet_id:
           type: string
     ErrorDetails:
       type: object
@@ -240,7 +240,7 @@ components:
     SharedResponse:
       type: object
       properties:
-        petId:
+        pet_id:
           type: string
     ErrorDetails:
       type: object
@@ -291,7 +291,7 @@ components:
     CreateResponse:
       type: object
       properties:
-        petId:
+        pet_id:
           type: string
     ErrorDetails:
       type: object
