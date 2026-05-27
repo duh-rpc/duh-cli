@@ -19,8 +19,8 @@ func (r *ErrorResponseRule) Name() string {
 	return "ERROR_SCHEMA"
 }
 
-const errorSchemaSuggestion = "Error response schema must be type 'object' with required field [message] (string). " +
-	"Optional fields: code (string), type (string), details (object with additionalProperties: { type: string })."
+const errorSchemaSuggestion = "Error response schema must be type 'object'. " +
+	"Optional fields: code (string), message (string), details (object with additionalProperties: { type: string })."
 
 func (r *ErrorResponseRule) Validate(doc *v3.Document) []Violation {
 	var violations []Violation
@@ -113,7 +113,6 @@ func (r *ErrorResponseRule) validateErrorSchema(schema *base.Schema, visited map
 	// Handle allOf - all sub-schemas must combine to meet requirements
 	if len(schema.AllOf) > 0 {
 		allProperties := make(map[string]*base.SchemaProxy)
-		allRequired := make(map[string]bool)
 		hasObjectType := false
 
 		for _, subSchemaProxy := range schema.AllOf {
@@ -131,18 +130,10 @@ func (r *ErrorResponseRule) validateErrorSchema(schema *base.Schema, visited map
 					allProperties[propName] = propProxy
 				}
 			}
-
-			for _, req := range subSchema.Required {
-				allRequired[req] = true
-			}
 		}
 
 		if !hasObjectType {
 			return fmt.Errorf("error schema must have explicit type 'object'")
-		}
-
-		if !allRequired["message"] {
-			return fmt.Errorf("error schema must have required field: message")
 		}
 
 		return r.validateFields(allProperties)
@@ -174,19 +165,8 @@ func (r *ErrorResponseRule) validateErrorSchema(schema *base.Schema, visited map
 		return fmt.Errorf("error schema must have explicit type 'object'")
 	}
 
-	hasMessage := false
-	for _, req := range schema.Required {
-		if req == "message" {
-			hasMessage = true
-		}
-	}
-
-	if !hasMessage {
-		return fmt.Errorf("error schema must have required field: message")
-	}
-
 	if schema.Properties == nil {
-		return fmt.Errorf("error schema must define properties for message")
+		return nil
 	}
 
 	// Collect properties into a map for shared validation
@@ -200,14 +180,12 @@ func (r *ErrorResponseRule) validateErrorSchema(schema *base.Schema, visited map
 
 // validateFields checks that known fields have the correct types
 func (r *ErrorResponseRule) validateFields(properties map[string]*base.SchemaProxy) error {
-	// message must exist and be type string
+	// message is optional, but if present must be type string
 	if msgProxy, ok := properties["message"]; ok {
 		msgSchema := msgProxy.Schema()
 		if msgSchema == nil || len(msgSchema.Type) == 0 || msgSchema.Type[0] != "string" {
 			return fmt.Errorf("message field must be type string")
 		}
-	} else {
-		return fmt.Errorf("message field not found in schema properties")
 	}
 
 	// code is optional, but if present must be type string
