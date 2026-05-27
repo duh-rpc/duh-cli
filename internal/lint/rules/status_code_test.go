@@ -258,7 +258,7 @@ paths:
 			expectedExit: 1,
 			expectedOutput: `[ERROR] [STATUS_CODE_ALLOWED] POST /users.create
   Status code 452 is not allowed
-  Use one of the allowed status codes: [200 201 202 400 401 403 404 409 429 500]`,
+  Use one of the allowed status codes: [200 201 202 400 401 403 404 409 429 453 454 455 500 501]`,
 		},
 		{
 			name: "DisallowedStatusCode204",
@@ -281,7 +281,7 @@ paths:
 			expectedExit: 1,
 			expectedOutput: `[ERROR] [STATUS_CODE_ALLOWED] POST /users.delete
   Status code 204 is not allowed
-  Use one of the allowed status codes: [200 201 202 400 401 403 404 409 429 500]`,
+  Use one of the allowed status codes: [200 201 202 400 401 403 404 409 429 453 454 455 500 501]`,
 		},
 		{
 			name: "DisallowedStatusCode503",
@@ -308,7 +308,151 @@ paths:
 			expectedExit: 1,
 			expectedOutput: `[ERROR] [STATUS_CODE_ALLOWED] POST /users.create
   Status code 503 is not allowed
-  Use one of the allowed status codes: [200 201 202 400 401 403 404 409 429 500]`,
+  Use one of the allowed status codes: [200 201 202 400 401 403 404 409 429 453 454 455 500 501]`,
+		},
+		{
+			name: "AllowedStatusCode453",
+			spec: `openapi: 3.0.0
+info:
+  title: Test
+  version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
+paths:
+  /users.create:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+        453:
+          description: Request Failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string`,
+			expectedExit:   0,
+			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
+		},
+		{
+			name: "AllowedStatusCode454",
+			spec: `openapi: 3.0.0
+info:
+  title: Test
+  version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
+paths:
+  /users.create:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+        454:
+          description: Retry Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string`,
+			expectedExit:   0,
+			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
+		},
+		{
+			name: "AllowedStatusCode455",
+			spec: `openapi: 3.0.0
+info:
+  title: Test
+  version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
+paths:
+  /users.create:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+        455:
+          description: Client Content Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string`,
+			expectedExit:   0,
+			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
+		},
+		{
+			name: "AllowedStatusCode501",
+			spec: `openapi: 3.0.0
+info:
+  title: Test
+  version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
+paths:
+  /users.create:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+        501:
+          description: Not Implemented
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string`,
+			expectedExit:   0,
+			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
 		},
 		{
 			name: "MultipleAllowedCodes",

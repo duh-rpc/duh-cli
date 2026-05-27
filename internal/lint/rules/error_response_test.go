@@ -104,12 +104,14 @@ paths:
 			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
 		},
 		{
-			name: "MissingRequiredFields",
+			name: "ValidWithNoReplyFields",
 			spec: `
 openapi: 3.0.0
 info:
   title: Test
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
   /tests.action:
     post:
@@ -136,9 +138,8 @@ paths:
                   error:
                     type: string
 `,
-			expectedExit: 1,
-			expectedOutput: `[ERROR] [ERROR_SCHEMA] POST /tests.action response 400 (application/json)
-  error schema must have required field: message`,
+			expectedExit:   0,
+			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
 		},
 		{
 			name: "WrongFieldTypes",

@@ -18,21 +18,26 @@ func (r *ContentTypeRule) Name() string {
 	return "CONTENT_TYPE"
 }
 
+var standardRequestTypes = map[string]bool{
+	"application/json":     true,
+	"application/protobuf": true,
+}
+
+var standardResponseTypes = map[string]bool{
+	"application/json":                true,
+	"application/protobuf":            true,
+	"application/octet-stream":        true,
+	"application/duh-stream+json":     true,
+	"application/duh-stream+protobuf": true,
+}
+
+func isStandardDUHType(contentType string) bool {
+	normalized := strings.ToLower(strings.TrimSpace(contentType))
+	return standardRequestTypes[normalized] || standardResponseTypes[normalized]
+}
+
 func (r *ContentTypeRule) Validate(doc *v3.Document) []Violation {
 	var violations []Violation
-
-	allowedTypes := map[string]bool{
-		"application/json":     true,
-		"application/protobuf": true,
-	}
-
-	allowedResponseTypes := map[string]bool{
-		"application/json":                  true,
-		"application/protobuf":              true,
-		"application/octet-stream":          true,
-		"application/duh-stream+json":       true,
-		"application/duh-stream+protobuf":   true,
-	}
 
 	if doc.Paths == nil || doc.Paths.PathItems == nil {
 		return violations
@@ -63,112 +68,183 @@ func (r *ContentTypeRule) Validate(doc *v3.Document) []Violation {
 				continue
 			}
 
-			// Check request body content types
-			if operation.RequestBody != nil && operation.RequestBody.Content != nil {
-				hasJSON := false
-				hasValidContentType := false
-				for contentType := range operation.RequestBody.Content.FromOldest() {
-					normalized := strings.ToLower(contentType)
-					hasJSON = hasJSON || normalized == "application/json"
-
-					v := r.validateContentType(contentType, allowedTypes, method, pathName, "request body")
-					if v != nil {
-						violations = append(violations, *v)
-					} else {
-						hasValidContentType = true
-					}
-				}
-
-				// Only report missing JSON if we have valid content types but none is JSON
-				if !hasJSON && hasValidContentType {
-					violations = append(violations, Violation{
-						Message:    "Request body must include application/json content type",
-						Suggestion: "Add application/json to request body content types",
-						Location:   method + " " + pathName,
-						RuleName:   r.Name(),
-						Severity:   SeverityError,
-					})
-				}
-			}
-
-			// Check response content types
-			if operation.Responses != nil && operation.Responses.Codes != nil {
-				for statusCode, response := range operation.Responses.Codes.FromOldest() {
-					if response == nil || response.Content == nil {
-						continue
-					}
-
-					for contentType := range response.Content.FromOldest() {
-						location := method + " " + pathName + " response " + statusCode
-						v := r.validateContentType(contentType, allowedResponseTypes, method, pathName+" response "+statusCode, "")
-						if v != nil {
-							v.Location = location
-							violations = append(violations, *v)
-						}
-					}
-				}
-			}
+			r.validateRequestBody(&violations, operation, method, pathName)
+			r.validateResponses(&violations, operation, method, pathName)
 		}
 	}
 
 	return violations
 }
 
-func isStreamingType(normalized string) bool {
-	switch normalized {
-	case "application/octet-stream", "application/duh-stream+json", "application/duh-stream+protobuf":
-		return true
+func (r *ContentTypeRule) validateRequestBody(violations *[]Violation, operation *v3.Operation, method, pathName string) {
+	if operation.RequestBody == nil || operation.RequestBody.Content == nil {
+		return
 	}
-	return false
-}
 
-func (r *ContentTypeRule) validateContentType(contentType string, allowedTypes map[string]bool, method, path, context string) *Violation {
-	normalized := strings.ToLower(contentType)
+	hasJSON := false
+	hasStandardType := false
 
-	// Check for MIME parameters
-	if strings.Contains(normalized, ";") {
-		msg := "MIME parameters not allowed in content type"
-		if context != "" {
-			msg = "MIME parameters not allowed in " + context + " content type"
+	for contentType := range operation.RequestBody.Content.FromOldest() {
+		normalized := strings.ToLower(contentType)
+		hasJSON = hasJSON || normalized == "application/json"
+
+		if isStandardDUHType(contentType) {
+			hasStandardType = true
 		}
-		return &Violation{
-			Message:    msg,
-			Suggestion: "Remove parameters from content type (use '" + strings.Split(normalized, ";")[0] + "' instead of '" + contentType + "')",
-			Location:   method + " " + path,
+
+		v := r.validateRequestContentType(contentType, method, pathName)
+		if v != nil {
+			*violations = append(*violations, *v)
+		}
+	}
+
+	// Require JSON when standard DUH types are present (JSON fallback rule).
+	// Content endpoint request bodies (only non-DUH types) don't need JSON.
+	if !hasJSON && hasStandardType {
+		*violations = append(*violations, Violation{
+			Message:    "Request body must include application/json content type",
+			Suggestion: "Add application/json to request body content types",
+			Location:   method + " " + pathName,
 			RuleName:   r.Name(),
 			Severity:   SeverityError,
-		}
+		})
 	}
+}
 
-	// Check for multipart and form-encoded content types
+func (r *ContentTypeRule) validateRequestContentType(contentType, method, pathName string) *Violation {
+	normalized := strings.ToLower(contentType)
+
 	if strings.HasPrefix(normalized, "multipart/") || normalized == "application/x-www-form-urlencoded" {
 		return &Violation{
 			Message:    "Multipart and form-encoded content types are not allowed",
 			Suggestion: "Use application/json or application/protobuf",
-			Location:   method + " " + path,
+			Location:   method + " " + pathName,
 			RuleName:   r.Name(),
 			Severity:   SeverityError,
 		}
 	}
 
-	// Check if content type is allowed
-	if !allowedTypes[normalized] {
-		msg := "Invalid content type: " + contentType
-		if context != "" {
-			msg = "Invalid " + context + " content type: " + contentType
+	// MIME parameters on standard DUH types are not allowed
+	if strings.Contains(normalized, ";") {
+		base := strings.TrimSpace(strings.Split(normalized, ";")[0])
+		if isStandardDUHType(base) {
+			return &Violation{
+				Message:    "MIME parameters not allowed in request body content type",
+				Suggestion: "Remove parameters from content type (use '" + base + "' instead of '" + contentType + "')",
+				Location:   method + " " + pathName,
+				RuleName:   r.Name(),
+				Severity:   SeverityError,
+			}
 		}
-		suggestion := "Use one of: application/json, application/protobuf"
-		if context == "request body" && isStreamingType(normalized) {
-			suggestion = "Streaming content types are only allowed in responses"
-		}
+		// MIME parameters on content endpoint types are allowed
+		return nil
+	}
+
+	// Standard DUH types: validate against allowed list
+	if standardRequestTypes[normalized] {
+		return nil
+	}
+
+	// Streaming types are only allowed in responses
+	if isStreamingType(normalized) {
 		return &Violation{
-			Message:    msg,
-			Suggestion: suggestion,
-			Location:   method + " " + path,
+			Message:    "Invalid request body content type: " + contentType,
+			Suggestion: "Streaming content types are only allowed in responses",
+			Location:   method + " " + pathName,
 			RuleName:   r.Name(),
 			Severity:   SeverityError,
 		}
 	}
 
+	// Non-standard type: allowed as content endpoint request body
 	return nil
+}
+
+func (r *ContentTypeRule) validateResponses(violations *[]Violation, operation *v3.Operation, method, pathName string) {
+	if operation.Responses == nil || operation.Responses.Codes == nil {
+		return
+	}
+
+	for statusCode, response := range operation.Responses.Codes.FromOldest() {
+		if response == nil || response.Content == nil {
+			continue
+		}
+
+		isError := len(statusCode) == 3 && (statusCode[0] == '4' || statusCode[0] == '5')
+
+		for contentType := range response.Content.FromOldest() {
+			location := method + " " + pathName + " response " + statusCode
+			v := r.validateResponseContentType(contentType, isError, location)
+			if v != nil {
+				*violations = append(*violations, *v)
+			}
+		}
+	}
+}
+
+func (r *ContentTypeRule) validateResponseContentType(contentType string, isError bool, location string) *Violation {
+	normalized := strings.ToLower(contentType)
+
+	// MIME parameters on standard DUH types are not allowed
+	if strings.Contains(normalized, ";") {
+		base := strings.TrimSpace(strings.Split(normalized, ";")[0])
+		if isStandardDUHType(base) {
+			return &Violation{
+				Message:    "MIME parameters not allowed in content type",
+				Suggestion: "Remove parameters from content type (use '" + base + "' instead of '" + contentType + "')",
+				Location:   location,
+				RuleName:   r.Name(),
+				Severity:   SeverityError,
+			}
+		}
+		// MIME parameters on content endpoint types are allowed
+		if isError {
+			return &Violation{
+				Message:    "Error response must use a standard DUH-RPC content type",
+				Suggestion: "Use application/json or application/protobuf for error responses",
+				Location:   location,
+				RuleName:   r.Name(),
+				Severity:   SeverityError,
+			}
+		}
+		return nil
+	}
+
+	// Multipart and form-encoded are always prohibited
+	if strings.HasPrefix(normalized, "multipart/") || normalized == "application/x-www-form-urlencoded" {
+		return &Violation{
+			Message:    "Multipart and form-encoded content types are not allowed",
+			Suggestion: "Use application/json or application/protobuf",
+			Location:   location,
+			RuleName:   r.Name(),
+			Severity:   SeverityError,
+		}
+	}
+
+	// Standard DUH response types are always allowed
+	if standardResponseTypes[normalized] {
+		return nil
+	}
+
+	// Error responses must use standard DUH types
+	if isError {
+		return &Violation{
+			Message:    "Error response must use a standard DUH-RPC content type",
+			Suggestion: "Use application/json or application/protobuf for error responses",
+			Location:   location,
+			RuleName:   r.Name(),
+			Severity:   SeverityError,
+		}
+	}
+
+	// Non-error responses: non-standard types are allowed (content endpoints)
+	return nil
+}
+
+func isStreamingType(normalized string) bool {
+	switch normalized {
+	case "application/duh-stream+json", "application/duh-stream+protobuf":
+		return true
+	}
+	return false
 }

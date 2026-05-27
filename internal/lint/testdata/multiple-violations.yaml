@@ -17,19 +17,22 @@ paths:
         201:
           description: Created
           content:
-            application/xml:  # VIOLATION: invalid content type
+            application/json:
               schema:
                 type: object
         400:
           description: Bad Request
           content:
+            application/xml:  # VIOLATION: non-standard content type in error response
+              schema:
+                type: object
             application/json:
               schema:
                 type: object
-                # VIOLATION: bad error schema (missing required field: message)
+                # VIOLATION: bad error schema (message wrong type)
                 properties:
-                  error:
-                    type: string
+                  message:
+                    type: integer
 
   /v1/products.list:  # VIOLATION: PATH_NO_VERSION_PREFIX
     post:

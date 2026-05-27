@@ -78,7 +78,7 @@ paths:
 			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
 		},
 		{
-			name: "InvalidOctetStreamContentType",
+			name: "ValidOctetStreamRequestAndResponse",
 			spec: `
 openapi: 3.0.0
 info:
@@ -107,8 +107,8 @@ paths:
               schema:
                 type: string
 `,
-			expectedExit:   1,
-			expectedOutput: `Invalid request body content type: application/octet-stream`,
+			expectedExit:   0,
+			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
 		},
 		{
 			name: "ValidOctetStreamResponse",
@@ -198,7 +198,7 @@ paths:
 			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
 		},
 		{
-			name: "InvalidOctetStreamRequest",
+			name: "ValidOctetStreamRequestOnly",
 			spec: `
 openapi: 3.0.0
 info:
@@ -227,8 +227,8 @@ paths:
               schema:
                 type: object
 `,
-			expectedExit:   1,
-			expectedOutput: `Invalid request body content type: application/octet-stream`,
+			expectedExit:   0,
+			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
 		},
 		{
 			name: "InvalidDuhStreamJsonRequest",
@@ -327,12 +327,14 @@ paths:
 			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
 		},
 		{
-			name: "InvalidXMLContentType",
+			name: "ValidContentEndpointXMLRequest",
 			spec: `
 openapi: 3.0.0
 info:
   title: Test
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
   /tests.action:
     post:
@@ -350,17 +352,18 @@ paths:
               schema:
                 type: object
 `,
-			expectedExit: 1,
-			expectedOutput: `[ERROR] [CONTENT_TYPE] POST /tests.action
-  Invalid request body content type: application/xml`,
+			expectedExit:   0,
+			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
 		},
 		{
-			name: "InvalidTextHTMLContentType",
+			name: "ValidContentEndpointHTMLResponse",
 			spec: `
 openapi: 3.0.0
 info:
   title: Test
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
   /tests.action:
     post:
@@ -378,12 +381,40 @@ paths:
               schema:
                 type: string
 `,
-			expectedExit: 1,
-			expectedOutput: `[ERROR] [CONTENT_TYPE] POST /tests.action response 200
-  Invalid content type: text/html`,
+			expectedExit:   0,
+			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
 		},
 		{
-			name: "InvalidTextPlainContentType",
+			name: "ValidContentEndpointTextPlainResponse",
+			spec: `
+openapi: 3.0.0
+info:
+  title: Test
+  version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
+paths:
+  /tests.action:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        200:
+          description: Success
+          content:
+            text/plain:
+              schema:
+                type: string
+`,
+			expectedExit:   0,
+			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
+		},
+		{
+			name: "InvalidContentTypeInErrorResponse",
 			spec: `
 openapi: 3.0.0
 info:
@@ -402,13 +433,19 @@ paths:
         200:
           description: Success
           content:
-            text/plain:
+            application/json:
+              schema:
+                type: object
+        400:
+          description: Bad Request
+          content:
+            text/html:
               schema:
                 type: string
 `,
 			expectedExit: 1,
-			expectedOutput: `[ERROR] [CONTENT_TYPE] POST /tests.action response 200
-  Invalid content type: text/plain`,
+			expectedOutput: `[ERROR] [CONTENT_TYPE] POST /tests.action response 400
+  Error response must use a standard DUH-RPC content type`,
 		},
 		{
 			name: "InvalidMultipartFormData",
@@ -497,6 +534,35 @@ paths:
   MIME parameters not allowed in request body content type`,
 		},
 		{
+			name: "ValidMIMEParametersOnContentType",
+			spec: `
+openapi: 3.0.0
+info:
+  title: Test
+  version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
+paths:
+  /tests.action:
+    post:
+      requestBody:
+        required: true
+        content:
+          text/html; charset=utf-8:
+            schema:
+              type: string
+      responses:
+        200:
+          description: Success
+          content:
+            text/html; charset=utf-8:
+              schema:
+                type: string
+`,
+			expectedExit:   0,
+			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
+		},
+		{
 			name: "MissingApplicationJSON",
 			spec: `
 openapi: 3.0.0
@@ -525,12 +591,14 @@ paths:
   Request body must include application/json content type`,
 		},
 		{
-			name: "MultipleInvalidContentTypes",
+			name: "ValidContentEndpointBothSides",
 			spec: `
 openapi: 3.0.0
 info:
   title: Test
   version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
 paths:
   /tests.action:
     post:
@@ -545,6 +613,45 @@ paths:
           description: Success
           content:
             text/html:
+              schema:
+                type: string
+`,
+			expectedExit:   0,
+			expectedOutput: "✓ spec.yaml is DUH-RPC compliant",
+		},
+		{
+			name: "InvalidMultipleErrorContentTypes",
+			spec: `
+openapi: 3.0.0
+info:
+  title: Test
+  version: 1.0.0
+paths:
+  /tests.action:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+        400:
+          description: Bad Request
+          content:
+            application/xml:
+              schema:
+                type: object
+        500:
+          description: Server Error
+          content:
+            text/plain:
               schema:
                 type: string
 `,
