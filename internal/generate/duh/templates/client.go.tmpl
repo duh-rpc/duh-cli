@@ -97,7 +97,7 @@ func (c *Client) {{.IteratorName}}(first int32) *duh.Iterator[{{.ItemType}}] {
 			endCursor = resp.Pagination.EndCursor
 		}
 		return resp.{{.ResponseField}}, duh.Page{
-			HasNextPage: resp.Pagination != nil && resp.Pagination.HasMore,
+			HasNextPage: resp.Pagination != nil && resp.Pagination.HasNextPage,
 			EndCursor:   endCursor,
 		}, nil
 	})
