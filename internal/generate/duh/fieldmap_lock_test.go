@@ -84,14 +84,25 @@ const (
           description: The widget size`
 )
 
+// pkgDir is the package directory, captured once at package initialization while
+// the working directory is still valid. Other tests in this package chdir into a
+// t.TempDir() without restoring, so by the time these tests run the prior cwd may be
+// a deleted directory — calling os.Getwd() then fails on Linux (ENOENT). Restoring
+// to this captured directory avoids that.
+var pkgDir = func() string {
+	d, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+	return d
+}()
+
 // writeProject lays down a go.mod (required for code generation) and the spec, and
 // chdir's into the temp dir so the default lock path resolves next to the spec.
 func writeProject(t *testing.T, spec string) string {
 	t.Helper()
 	dir := t.TempDir()
-	wd, err := os.Getwd()
-	require.NoError(t, err)
-	t.Cleanup(func() { _ = os.Chdir(wd) })
+	t.Cleanup(func() { _ = os.Chdir(pkgDir) })
 
 	require.NoError(t, os.WriteFile(filepath.Join(dir, "go.mod"), []byte("module github.com/example/widget\n"), 0644))
 	require.NoError(t, os.WriteFile(filepath.Join(dir, "openapi.yaml"), []byte(spec), 0644))
