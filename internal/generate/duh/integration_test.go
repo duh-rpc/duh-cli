@@ -172,7 +172,7 @@ components:
       properties:
         end_cursor:
           type: string
-        has_more:
+        has_next_page:
           type: boolean
     User:
       type: object
@@ -403,7 +403,7 @@ type PaginationResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 	EndCursor     string
-	HasMore       bool
+	HasNextPage       bool
 }
 func (x *PaginationResponse) Reset() {}
 func (x *PaginationResponse) String() string { return "PaginationResponse{}" }
@@ -737,7 +737,7 @@ type PaginationResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 	EndCursor     string
-	HasMore       bool
+	HasNextPage       bool
 }
 func (x *PaginationResponse) Reset() {}
 func (x *PaginationResponse) String() string { return "PaginationResponse{}" }

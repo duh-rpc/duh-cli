@@ -15,10 +15,18 @@ Today `duh` assigns field numbers **positionally** (the generator walks schema p
 declaration order). Inserting or reordering a field mid-schema silently reassigns the numbers
 of every field after it. Protobuf consumers then decode old wire data into the wrong fields —
 **silent data corruption with no error**. JSON consumers are unaffected, which makes the
-failure invisible in review and in any test that exercises only the JSON path. The same hazard
-applies to **string enums**: on the JSON wire the variant *name* is transmitted (immune to
-reordering), but on the proto wire each variant has an *integer*, so reordering an `enum` list
-silently renumbers it.
+failure invisible in review and in any test that exercises only the JSON path.
+
+> **Enum clarification.** DUH **string** enums are deliberately generated as protobuf
+> `string` fields, not protobuf `enum` types, so the JSON produced from the generated proto
+> stays wire-compatible with the JSON produced directly from the OpenAPI schema. The
+> `ENUM_UNSPECIFIED_VARIANT` lint rule enforces this convention. Because a string enum is a
+> proto `string` field, reordering its values is inherently wire-safe (the JSON variant
+> *name* is transmitted, and the proto side carries no per-variant integer). The positional
+> renumbering hazard therefore applies only to **proto `enum` types**, which in DUH arise from
+> **integer** enums; the lock's enum-number tracking, the `*_UNSPECIFIED`=0 invariant, and the
+> seeding precondition below all scope to those proto enums. Acceptance criteria referencing
+> enums apply to integer/proto enums, not to string enums.
 
 This is the most dangerous class of contract bug in a Protobuf-over-OpenAPI system. The
 current safety nets — the DUH linter rules and `buf breaking` in CI — do **not** prevent
@@ -91,15 +99,20 @@ the inviolable core; the rest follow from them.
   reserved; new assignments draw strictly from never-before-used numbers.
 - **Numbers are unique within a message/enum.** Violated by two entries sharing a number.
   Enforcement: `duh lint` uniqueness check.
-- **`*_UNSPECIFIED` enum variant is always `0`.** Violated by assigning it any other number or
-  placing another variant at `0`. Enforcement: at first-run seeding, `duh generate` requires each
-  enum's first declared variant to be its `*_UNSPECIFIED`, so declaration-order seeding assigns it
-  `0` with no special case; if it is not first, `duh generate` hard-errors (non-zero exit, no files
-  written) rather than seeding a violating lock. After seeding the number is pinned by name, so
-  reordering cannot disturb it, and the lock lint check validates `*_UNSPECIFIED` is `0` thereafter.
-  The `ENUM_UNSPECIFIED_VARIANT` linter rule enforces the same first-variant ordering at lint time;
-  `duh generate` enforces it independently at seeding because it is a separate command that cannot
-  assume `duh lint` was run.
+- **`*_UNSPECIFIED` enum variant is always `0`** (proto/integer enums only; string enums are
+  proto `string` fields and have no per-variant number — see the *Enum clarification* above).
+  Violated by assigning the sentinel any other number or placing another variant at `0`.
+  Enforcement: at first-run seeding of a proto enum that uses an `*_UNSPECIFIED` sentinel,
+  `duh generate` (via `fieldmap.Reconcile`) requires that sentinel to be the first declared
+  variant, so declaration-order seeding assigns it `0` with no special case; if it is not first,
+  `duh generate` hard-errors (non-zero exit, no files written) rather than seeding a violating
+  lock. After seeding the number is pinned by literal value, so reordering cannot disturb it, and
+  the lock lint check validates `*_UNSPECIFIED` is `0` thereafter. The `ENUM_UNSPECIFIED_VARIANT`
+  linter rule enforces the same first-variant ordering at the spec level. Note: because that lint
+  rule (which `duh generate` requires to pass) rejects an integer enum whose first value is not an
+  `*_UNSPECIFIED` name, this seeding precondition is reached only when both an integer enum and a
+  sentinel name coincide; for the common DUH spec — string enums — it is not exercised, and the
+  enum-number consistency that *is* relevant is validated through the `duh lint` surface.
 - **Every spec field/variant has a lock entry.** Violated by editing the spec (adding a field)
   without regenerating, leaving the committed lock stale. Enforcement: `duh lint` completeness
   check fails.
@@ -167,8 +180,11 @@ legitimate merge resolution and is redundant with lint re-deriving the mapping f
     field gets the next available number, and generation proceeds without error.
   - **Hard-errors** (non-zero exit, no files written) on a corrupt/inconsistent lock or a forced
     collision; never auto-repairs.
-- **Enums in scope**, treated identically to message fields: variant names are the lock key,
-  append-only for new variants, reserve on removal, `*_UNSPECIFIED` pinned at `0`.
+- **Proto (integer) enums in scope**, treated identically to message fields: variant *literal
+  values* are the lock key, append-only for new variants, reserve on removal, `*_UNSPECIFIED`
+  pinned at `0`. **String enums are out of this scope**: they generate proto `string` fields (see
+  *Enum clarification*), so they carry no enum lock unit and their containing field is tracked as
+  an ordinary message field by JSON name.
 - `duh lint` validates the lock against the spec (CI gate). Checks:
   1. **Completeness** — every spec field/variant has a lock entry (fails on a stale lock where the
      spec gained a field but `generate` was not re-run).
@@ -179,9 +195,10 @@ legitimate merge resolution and is redundant with lint re-deriving the mapping f
      field/variant in the same message/enum, and no live field/variant's number falls in the
      `reserved` set. The committed `reserved` list is treated as authoritative; lint does not
      reconstruct removal history (it has no prior snapshot to do so).
-  5. **Enum invariant** — `*_UNSPECIFIED` is `0`, validated by this check directly (independent of
-     the separate `ENUM_UNSPECIFIED_VARIANT` rule, which enforces first-variant ordering at the spec
-     level).
+  5. **Enum invariant** — for a proto enum that uses an `*_UNSPECIFIED` sentinel, the sentinel is
+     `0` and no other variant occupies `0`, validated by this check directly (independent of the
+     separate `ENUM_UNSPECIFIED_VARIANT` rule, which enforces first-variant ordering at the spec
+     level). A plain integer enum with no sentinel legitimately numbers its first value `0`.
   6. **Structural validity** — well-formed YAML in the expected shape (catches a mangled merge).
 
   **Absent lock.** `duh lint` is a standalone OpenAPI linter; the lock-consistency checks above
@@ -254,10 +271,19 @@ written lock and proto):
    never reuses a reserved number.
 5. **Rename = remove + add.** Renaming a field reserves the old name's number and assigns the new
    name the next available number, without error.
-6. **Enum reordering is safe.** Reordering an enum's variants does not change their locked proto
-   integers; adding a variant appends; removing one reserves; `*_UNSPECIFIED` stays `0`. First-run
-   seeding requires each enum's first declared variant to be its `*_UNSPECIFIED`; seeding a spec
-   whose enum lists `*_UNSPECIFIED` non-first exits non-zero without writing.
+6. **Enum reordering is safe** (proto/integer enums; string enums are proto `string` fields and are
+   inherently reorder-safe — see *Enum clarification*). Reordering a proto enum's variants does not
+   change their locked proto integers (they are keyed by literal value); adding a variant appends;
+   removing one reserves; a re-added variant takes a fresh number while the old number stays
+   reserved; `*_UNSPECIFIED` stays `0`. The seeding precondition — an enum that uses an
+   `*_UNSPECIFIED` sentinel must declare it first, else `duh generate` exits non-zero without
+   writing — is enforced in `fieldmap.Reconcile`. **Surface coverage:** because `duh generate`
+   requires a clean lint and the `ENUM_UNSPECIFIED_VARIANT` rule rejects an integer enum whose first
+   value is not an `*_UNSPECIFIED` name, no proto enum reaches *seeding* through `duh generate` in a
+   lint-clean DUH spec; the lock's enum behavior (value-keyed reorder stability, completeness,
+   uniqueness, reserved retention, re-add, `*_UNSPECIFIED`=0) is therefore surface-tested through
+   `duh lint` (with the spec-level enum rule disabled for the integer-enum fixture). The seeding and
+   reconciliation logic is implemented and unit-faithful regardless.
 7. **Independent regenerations agree.** Two `duh generate` runs against the same
    `openapi.yaml` + `fieldmap.lock` produce identical field numbering.
 8. **Lint catches inconsistency.** `duh lint` fails when the lock is missing a mapping the spec

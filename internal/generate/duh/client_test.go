@@ -160,7 +160,7 @@ type PaginationResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 	EndCursor     string
-	HasMore       bool
+	HasNextPage       bool
 }
 
 func (x *PaginationResponse) Reset() {}

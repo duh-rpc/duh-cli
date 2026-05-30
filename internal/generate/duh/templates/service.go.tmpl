@@ -148,9 +148,9 @@ func (s *Service) {{.MethodName}}(ctx context.Context, req *{{.RequestType}}, re
 
 	resp.Items = available[:end]
 	resp.Pagination = &pb.PaginationResponse{
-		HasMore: end < len(available),
+		HasNextPage: end < len(available),
 	}
-	if resp.Pagination.HasMore {
+	if resp.Pagination.HasNextPage {
 		resp.Pagination.EndCursor = strconv.Itoa(offset + end)
 	}
 

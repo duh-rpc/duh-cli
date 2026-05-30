@@ -257,7 +257,7 @@ func TestUsersListPagination(t *testing.T) {
 	require.NoError(t, err)
 	assert.Len(t, page1.Items, 10)
 	require.NotNil(t, page1.Pagination)
-	assert.True(t, page1.Pagination.HasMore)
+	assert.True(t, page1.Pagination.HasNextPage)
 
 	var page2 pb.ListResponse
 	err = c.{{$listMethod}}(ctx, &pb.ListRequest{

@@ -263,7 +263,7 @@ components:
       properties:
         end_cursor:
           type: string
-        has_more:
+        has_next_page:
           type: boolean
     ListActiveRequest:
       type: object
