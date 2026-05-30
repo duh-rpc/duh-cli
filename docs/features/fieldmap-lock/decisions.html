@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>fieldmap.lock — Three Decisions</title>
+<style>
+  :root {
+    --bg: #0f1115; --panel: #171a21; --panel2: #1e222b; --ink: #e6e8ec;
+    --muted: #9aa3b2; --line: #2a2f3a; --accent: #6ea8fe; --good: #4ec9a4;
+    --bad: #e06c75; --warn: #e5c07b; --key: #c678dd; --str: #98c379; --num: #d19a66;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  .wrap { max-width: 940px; margin: 0 auto; padding: 48px 28px 96px; }
+  h1 { font-size: 30px; line-height: 1.2; margin: 0 0 6px; letter-spacing: -0.02em; }
+  .sub { color: var(--muted); margin: 0 0 36px; font-size: 15px; }
+  h2 {
+    font-size: 13px; text-transform: uppercase; letter-spacing: 0.12em;
+    color: var(--accent); margin: 0 0 4px;
+  }
+  h3 { font-size: 23px; margin: 6px 0 14px; letter-spacing: -0.01em; }
+  h4 { font-size: 15px; margin: 26px 0 8px; color: var(--ink); }
+  section {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+    padding: 28px 30px; margin: 0 0 26px;
+  }
+  p { margin: 12px 0; }
+  code {
+    font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace; font-size: 13.5px;
+    background: var(--panel2); padding: 1px 6px; border-radius: 5px; color: #d7c2ff;
+  }
+  pre {
+    background: #11141a; border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px 18px; overflow-x: auto; margin: 12px 0;
+    font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+    font-size: 13px; line-height: 1.55;
+  }
+  pre .k { color: var(--key); }
+  pre .s { color: var(--str); }
+  pre .n { color: var(--num); }
+  pre .c { color: var(--muted); font-style: italic; }
+  pre .add { color: var(--good); }
+  pre .del { color: var(--bad); }
+  pre .hl { color: var(--warn); }
+  .muted { color: var(--muted); }
+  .lead {
+    font-size: 17px; color: var(--ink); border-left: 3px solid var(--accent);
+    padding-left: 16px; margin: 0 0 8px;
+  }
+  table { border-collapse: collapse; width: 100%; margin: 16px 0; font-size: 14px; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; }
+  .pick { color: var(--good); font-weight: 600; }
+  .nope { color: var(--bad); }
+  .verdict {
+    margin-top: 18px; padding: 14px 18px; border-radius: 10px;
+    background: rgba(78,201,164,0.08); border: 1px solid rgba(78,201,164,0.3);
+  }
+  .verdict strong { color: var(--good); }
+  .twocol { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 760px) { .twocol { grid-template-columns: 1fr; } }
+  .cap { font-size: 12px; color: var(--muted); margin: 2px 0 0; }
+  .badge {
+    display: inline-block; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;
+    padding: 2px 9px; border-radius: 20px; border: 1px solid var(--line); color: var(--muted);
+    margin-left: 8px; vertical-align: middle;
+  }
+  .badge.adr { color: var(--accent); border-color: rgba(110,168,254,0.4); }
+  hr.s { border: none; border-top: 1px solid var(--line); margin: 26px 0; }
+  ul { margin: 10px 0; padding-left: 22px; }
+  li { margin: 5px 0; }
+  .toc { font-size: 14px; }
+  .toc a { color: var(--accent); text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>fieldmap.lock — the three decisions</h1>
+  <p class="sub">Tech-spec deep dive · duh-cli · candidates for ADRs</p>
+
+  <section>
+    <p class="lead">All three decisions share one root cause: Protobuf field numbers are
+    wire-critical and must never change for a field once published, but OpenAPI field order is
+    meaningless. <code>fieldmap.lock</code> pins the mapping. These three choices decide
+    <em>how the numbers get injected</em>, <em>how removals are recorded</em>, and <em>what
+    identifies an enum variant</em>.</p>
+    <p class="toc">Jump to:
+      &nbsp;<a href="#d1">1 · Injection API</a>
+      &nbsp;·&nbsp;<a href="#d2">2 · Tombstones</a>
+      &nbsp;·&nbsp;<a href="#d3">3 · Enum key</a>
+    </p>
+  </section>
+
+  <!-- ============================ DECISION 1 ============================ -->
+  <section id="d1">
+    <h2>Decision 1 <span class="badge adr">ADR candidate</span></h2>
+    <h3>How locked numbers reach the generated proto</h3>
+
+    <p class="lead">Inject resolved numbers as a structured <code>FieldNumbers</code> argument to
+    the conversion library — not by writing numbers into the OpenAPI spec, and not by rewriting
+    proto text after the fact.</p>
+
+    <h4>The problem</h4>
+    <p>duh-cli does not assign field numbers itself. It hands the OpenAPI bytes to the
+    <code>openapi-schema.go</code> library, which builds the proto. Numbering lives inside that
+    library's <code>internal</code> package (not importable) and is purely positional:</p>
+<pre><span class="c">// inside the library's builder — today</span>
+fieldNumber := <span class="n">1</span>
+for propName := range schema.Properties.FromOldest() {
+    field.Number = fieldNumber  <span class="c">// position decides the number</span>
+    fieldNumber++
+}</pre>
+    <p>So inserting a field mid-schema silently renumbers everything after it. We need the
+    <em>lock</em> to decide numbers instead of position. Three ways to make that happen:</p>
+
+    <table>
+      <tr><th>Option</th><th>How</th><th>Why not</th></tr>
+      <tr>
+        <td><b>(a)</b> In-spec <code>x-proto-number</code></td>
+        <td>The library already reads an <code>x-proto-number</code> extension on each property.
+            duh-cli could write numbers into the spec before conversion.</td>
+        <td class="nope">Pollutes the author's spec with numbers the lock is meant to own;
+            all-or-nothing per schema; <b>no enum support</b>; no <code>reserved</code>.
+            And <code>Convert()</code> takes raw bytes, so we'd have to re-serialize mangled YAML.</td>
+      </tr>
+      <tr>
+        <td><b>(b)</b> Proto-text post-process</td>
+        <td>Let the library emit positional proto, then rewrite each <code>= N</code> using the
+            <code>json_name</code> annotation as a join key.</td>
+        <td class="nope">A fragile text layer over an external output format; re-derives nothing
+            the library already knows; breaks the moment proto formatting shifts.</td>
+      </tr>
+      <tr>
+        <td class="pick"><b>(c)</b> Structured <code>FieldNumbers</code></td>
+        <td>Add an optional, typed field-number map to the library's options. When present it
+            overrides positional numbering and emits <code>reserved</code>.</td>
+        <td class="pick">You own the library. The contract is data, not text. Covers messages,
+            enums, and reserved uniformly. Back-compatible (nil = today's behavior).</td>
+      </tr>
+    </table>
+
+    <h4>What it looks like</h4>
+    <p>The library gains one optional field. <code>nil</code> keeps every existing
+    (non-duh) consumer working exactly as before:</p>
+<pre><span class="k">type</span> ConvertOptions <span class="k">struct</span> {
+    PackageName   <span class="k">string</span>
+    PackagePath   <span class="k">string</span>
+    GoPackagePath <span class="k">string</span>
+    FieldNumbers  *FieldNumbers <span class="c">// NEW — nil ⇒ positional numbering</span>
+}
+
+<span class="k">type</span> FieldNumbers <span class="k">struct</span> {
+    Messages <span class="k">map</span>[<span class="k">string</span>]MessageNumbers <span class="c">// key: OpenAPI schema name</span>
+    Enums    <span class="k">map</span>[<span class="k">string</span>]EnumNumbers    <span class="c">// key: OpenAPI schema name</span>
+}
+<span class="k">type</span> MessageNumbers <span class="k">struct</span> {
+    Fields   <span class="k">map</span>[<span class="k">string</span>]<span class="k">int</span> <span class="c">// key: JSON field name → proto number</span>
+    Reserved []<span class="k">int</span>         <span class="c">// rendered as `reserved N;`</span>
+}</pre>
+
+    <p>The three map keys are <em>OpenAPI-native</em> and join cleanly to fields the library
+    already tracks — no new name-derivation, no guessing:</p>
+    <table>
+      <tr><th>Lock key</th><th>Joins to (library)</th></tr>
+      <tr><td>message → OpenAPI component schema name</td><td><code>ProtoMessage.OriginalSchema</code></td></tr>
+      <tr><td>field → JSON field name</td><td><code>ProtoField.JSONName</code></td></tr>
+      <tr><td>enum variant → literal enum value</td><td>enum <code>value.Value</code></td></tr>
+    </table>
+
+    <h4>The flow, end to end</h4>
+<pre>duh generate users.yaml
+   │
+   ├─ load + lint (spec rules only)
+   ├─ fieldmap.Reconcile(spec, existingLock)  ──▶  lock + *FieldNumbers
+   ├─ converter.Convert(specBytes, …, FieldNumbers)
+   │        └─ library numbers by NAME, ignores declaration order, emits reserved
+   └─ write proto + code + fieldmap.lock   <span class="c">(atomically, only if all succeeded)</span></pre>
+
+    <div class="verdict">
+      <strong>Why it's ADR-worthy.</strong> Hard to reverse (it defines the library's public
+      contract and forces the migration off <code>openapi-proto.go</code>); surprising without
+      context (a future reader will ask "why a typed option and not the <code>x-proto-number</code>
+      that's already there?"); a real trade-off against two working alternatives.
+    </div>
+  </section>
+
+  <!-- ============================ DECISION 2 ============================ -->
+  <section id="d2">
+    <h2>Decision 2 <span class="badge adr">ADR candidate</span></h2>
+    <h3>How removed fields are recorded — tombstones</h3>
+
+    <p class="lead">When a field is removed, keep its entry in the lock with
+    <code>reserved: true</code>, retaining the original name→number binding — rather than moving
+    the bare number into a separate <code>reserved: [N]</code> list.</p>
+
+    <p>Reserved numbers are permanent (<a href="../../adr/0002-reserved-proto-field-numbers-are-permanent.md">ADR&nbsp;0002</a>):
+    once a number is used it is never reassigned, because old wire data may still carry it. The
+    question is purely <em>how the lock file records that fact</em>.</p>
+
+    <h4>Worked example</h4>
+    <p>Start with three fields, then <span class="del">remove <code>nickname</code></span> and
+    <span class="add">add <code>displayName</code></span>:</p>
+
+    <div class="twocol">
+      <div>
+        <p class="cap">CHOSEN — tombstone entry</p>
+<pre>messages:
+  CreateUserRequest:
+    fields:
+      name:        {number: <span class="n">1</span>}
+      email:       {number: <span class="n">2</span>}
+<span class="del">      nickname:    {number: 3, reserved: true}</span>
+<span class="add">      displayName: {number: 4}</span></pre>
+        <p class="cap">The name <code>nickname</code> and its number <code>3</code> stay together,
+        flagged dead. The next number is <code>4</code>, never <code>3</code>.</p>
+      </div>
+      <div>
+        <p class="cap">REJECTED — bare reserved list</p>
+<pre>messages:
+  CreateUserRequest:
+    fields:
+      name:        {number: <span class="n">1</span>}
+      email:       {number: <span class="n">2</span>}
+<span class="add">      displayName: {number: 4}</span>
+<span class="del">    reserved: [3]</span></pre>
+        <p class="cap">The number <code>3</code> survives, but <em>which</em> field held it is
+        gone. The diff just shows a bare <code>3</code> appearing.</p>
+      </div>
+    </div>
+
+    <h4>Why tombstones won</h4>
+    <p>The PRD's primary guard against a bad hand-edit is the <em>reviewable diff</em> — "treat a
+    surprising lock diff like a surprising <code>go.sum</code> diff." Compare what a reviewer sees
+    when <code>nickname</code> is removed:</p>
+<pre><span class="c"># tombstone diff — self-explanatory</span>
+<span class="del">-     nickname: {number: 3}</span>
+<span class="add">+     nickname: {number: 3, reserved: true}</span>
+
+<span class="c"># reserved-list diff — needs archaeology</span>
+<span class="del">-     nickname: {number: 3}</span>
+<span class="add">+   reserved: [3]</span>   <span class="c"># reviewer must remember 3 *was* nickname</span></pre>
+
+    <table>
+      <tr><th></th><th class="pick">Tombstone (chosen)</th><th>Reserved list (rejected)</th></tr>
+      <tr><td>Removal history</td><td class="pick">Preserved — name→number stays visible</td><td>Lost — only the number remains</td></tr>
+      <tr><td>Diff readability</td><td class="pick">"nickname became reserved"</td><td>"3 appeared in a list"</td></tr>
+      <tr><td>Lint reserved-retention check</td><td class="pick">Reads tombstones directly as authoritative</td><td>Reads the list — also fine</td></tr>
+      <tr><td>File compactness</td><td>Slightly busier</td><td class="pick">Tighter</td></tr>
+      <tr><td>Mirrors proto's own <code>reserved</code></td><td>No (richer)</td><td class="pick">Yes</td></tr>
+    </table>
+
+    <p class="muted">Note: the library still receives a flat <code>Reserved: [3]</code> list inside
+    <code>FieldNumbers</code> — duh-cli flattens tombstones into that list at conversion time. The
+    tombstone is the <em>file</em> representation; the list is the <em>wire</em> to the library.</p>
+
+    <h4>Rename is "remove + add" — tombstones shine here too</h4>
+    <p>Renaming <code>nickname</code> → <code>handle</code>: the old name is tombstoned, the new
+    one gets the next number. The lock literally tells the story:</p>
+<pre>      email:    {number: <span class="n">2</span>}
+      nickname: {number: <span class="n">3</span>, reserved: <span class="hl">true</span>}   <span class="c">// was here</span>
+      handle:   {number: <span class="n">4</span>}              <span class="c">// is now here</span></pre>
+
+    <div class="verdict">
+      <strong>Why it's ADR-worthy.</strong> Hard to reverse (it's a committed file format — locks
+      in the wild encode it); surprising (a reader expecting proto-style <code>reserved [3]</code>
+      will wonder why entries linger); a real trade-off (compactness &amp; proto-symmetry vs.
+      diff-reviewability — and we deliberately chose reviewability).
+    </div>
+  </section>
+
+  <!-- ============================ DECISION 3 ============================ -->
+  <section id="d3">
+    <h2>Decision 3 <span class="badge adr">ADR candidate</span></h2>
+    <h3>What identifies an enum variant — the literal value</h3>
+
+    <p class="lead">Key each enum variant on the <em>literal string from the spec's
+    <code>enum:</code> list</em> (e.g. <code>"active"</code>), not the derived proto constant
+    (<code>STATUS_ACTIVE</code>).</p>
+
+    <h4>The two candidates</h4>
+    <p>A DUH spec declares the sentinel first (<a href="../../adr/0004-duh-generate-requires-unspecified-as-first-enum-variant.md">ADR&nbsp;0004</a>):</p>
+<pre>Status:
+  <span class="k">type</span>: string
+  enum: [STATUS_UNSPECIFIED, active, inactive, suspended]</pre>
+
+    <div class="twocol">
+      <div>
+        <p class="cap">CHOSEN — literal value as key</p>
+<pre>enums:
+  Status:
+    variants:
+      STATUS_UNSPECIFIED: {number: <span class="n">0</span>}
+      active:             {number: <span class="n">1</span>}
+      inactive:           {number: <span class="n">2</span>}
+      suspended:          {number: <span class="n">3</span>}</pre>
+      </div>
+      <div>
+        <p class="cap">REJECTED — proto constant as key</p>
+<pre>enums:
+  Status:
+    variants:
+      STATUS_UNSPECIFIED: {number: <span class="n">0</span>}
+      STATUS_ACTIVE:      {number: <span class="n">1</span>}
+      STATUS_INACTIVE:    {number: <span class="n">2</span>}
+      STATUS_SUSPENDED:   {number: <span class="n">3</span>}</pre>
+      </div>
+    </div>
+
+    <h4>Why the literal value</h4>
+    <ul>
+      <li><b>It's the JSON-wire identifier.</b> On the JSON wire the variant <em>name</em> —
+      <code>"active"</code> — is what's transmitted. The lock's whole job is to map the JSON world
+      to proto numbers, so the JSON-side key should be the JSON-side string.</li>
+      <li><b>It's stable under proto-name-derivation changes.</b> The constant
+      <code>STATUS_ACTIVE</code> is computed from the schema name + value
+      (<code>ToEnumValueName("Status", "active")</code>). If the enum schema is renamed, or the
+      derivation rule changes, every constant key shifts — and a shifted key reads as
+      "old variant removed, new variant added," tombstoning live numbers. The literal
+      <code>"active"</code> never moves.</li>
+      <li><b>No derivation needed to validate.</b> Lint and reconcile read the literal straight
+      from <code>value.Value</code>; keying on the constant would force them to re-run the
+      library's naming logic just to match entries.</li>
+    </ul>
+
+    <h4>The failure the constant key invites</h4>
+    <p>Suppose someone renames the schema <code>Status</code> → <code>UserStatus</code>. The
+    proto constants become <code>USER_STATUS_ACTIVE</code>, etc. Watch what each key does:</p>
+<pre><span class="c"># literal-value key — survives the rename, numbers intact</span>
+  active: {number: <span class="n">1</span>}        →   active: {number: <span class="n">1</span>}   ✓
+
+<span class="c"># constant key — every variant looks removed + re-added</span>
+  STATUS_ACTIVE:      {number: <span class="n">1</span>}
+  <span class="del">→ tombstoned as reserved, and:</span>
+  <span class="add">USER_STATUS_ACTIVE: {number: 5}</span>   <span class="hl">← silent renumber of a live variant</span></pre>
+    <p class="muted">That is exactly the silent renumbering this entire feature exists to prevent —
+    so the key must not be coupled to a derived name.</p>
+
+    <div class="verdict">
+      <strong>Why it's ADR-worthy.</strong> Hard to reverse (committed locks encode the key choice);
+      surprising (the ADRs discuss <code>*_UNSPECIFIED</code> in constant form, so a reader might
+      assume constants are the key); a real trade-off (constant keys read more "proto-native," but
+      we chose JSON-wire stability).
+    </div>
+  </section>
+
+  <section>
+    <h2>Recap</h2>
+    <table>
+      <tr><th>#</th><th>Decision</th><th>Chosen</th><th>Over</th></tr>
+      <tr><td>1</td><td>Number injection</td><td class="pick">Structured <code>FieldNumbers</code> option</td><td>in-spec <code>x-proto-number</code> · proto-text rewrite</td></tr>
+      <tr><td>2</td><td>Removal record</td><td class="pick">Tombstone entries</td><td>bare <code>reserved: [N]</code> list</td></tr>
+      <tr><td>3</td><td>Enum variant key</td><td class="pick">Literal OpenAPI value</td><td>derived proto constant</td></tr>
+    </table>
+  </section>
+
+</div>
+</body>
+</html>
