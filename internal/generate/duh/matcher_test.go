@@ -127,7 +127,7 @@ components:
       type: object
       properties:
         end_cursor: {type: string}
-        has_more: {type: boolean}
+        has_next_page: {type: boolean}
     UpdateRequest:
       type: object
       properties:
@@ -375,7 +375,7 @@ components:
       type: object
       properties:
         end_cursor: {type: string}
-        has_more: {type: boolean}
+        has_next_page: {type: boolean}
     UpdateRequest:
       type: object
       properties:

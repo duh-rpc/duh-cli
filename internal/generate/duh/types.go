@@ -10,6 +10,7 @@ type RunConfig struct {
 	ProtoPath    string
 	ProtoImport  string
 	ProtoPackage string
+	LockPath     string
 	FullFlag     bool
 	Converter    ProtoConverter
 }

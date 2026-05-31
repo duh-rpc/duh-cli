@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/duh-rpc/duh-cli/internal/add"
+	"github.com/duh-rpc/duh-cli/internal/fieldmap"
 	"github.com/duh-rpc/duh-cli/internal/generate/duh"
 	init_ "github.com/duh-rpc/duh-cli/internal/init"
 	"github.com/duh-rpc/duh-cli/internal/lint"
@@ -70,6 +71,13 @@ Exit Codes:
 			}
 
 			result := lint.Validate(doc, filePath, disabled)
+
+			lockPath, _ := cmd.Flags().GetString("lock-path")
+			if lockPath == "" {
+				lockPath = fieldmap.DefaultLockPath(filePath)
+			}
+			result.Violations = append(result.Violations, lint.ValidateLock(doc, lockPath)...)
+
 			lint.Print(cmd.OutOrStdout(), result)
 
 			if result.Valid() {
@@ -80,6 +88,7 @@ Exit Codes:
 		},
 	}
 	lintCmd.Flags().String("disable", "", "Comma-separated list of rules to disable")
+	lintCmd.Flags().String("lock-path", "", "Path to fieldmap.lock (default <spec-dir>/fieldmap.lock)")
 
 	initCmd := &cobra.Command{
 		Use:   "init [openapi-file]",
@@ -186,6 +195,7 @@ Exit Codes:
 			protoPath, _ := cmd.Flags().GetString("proto-path")
 			protoImport, _ := cmd.Flags().GetString("proto-import")
 			protoPackage, _ := cmd.Flags().GetString("proto-package")
+			lockPath, _ := cmd.Flags().GetString("lock-path")
 			fullFlag, _ := cmd.Flags().GetBool("full")
 
 			if err := duh.Run(duh.RunConfig{
@@ -196,6 +206,7 @@ Exit Codes:
 				ProtoPath:    protoPath,
 				ProtoImport:  protoImport,
 				ProtoPackage: protoPackage,
+				LockPath:     lockPath,
 				FullFlag:     fullFlag,
 				Converter:    duh.NewProtoConverter(),
 			}); err != nil {
@@ -210,6 +221,7 @@ Exit Codes:
 	generateCmd.Flags().String("proto-path", "proto/v1/api.proto", "Proto file path")
 	generateCmd.Flags().String("proto-import", "", "Proto import override (optional)")
 	generateCmd.Flags().String("proto-package", "", "Proto package override (optional)")
+	generateCmd.Flags().String("lock-path", "", "Path to fieldmap.lock (default <spec-dir>/fieldmap.lock)")
 	generateCmd.Flags().Bool("full", false, "Generate additional editable scaffolding files")
 
 	rootCmd.AddCommand(lintCmd, initCmd, addCmd, generateCmd)
