@@ -3,7 +3,7 @@ module github.com/duh-rpc/duh-cli
 go 1.24.7
 
 require (
-	github.com/duh-rpc/openapi-schema.go v0.9.1-0.20260530163201-b7a789a2630f
+	github.com/duh-rpc/openapi-schema.go v0.10.0
 	github.com/pb33f/libopenapi v0.28.2
 	github.com/spf13/cobra v1.10.1
 	github.com/stretchr/testify v1.11.1
