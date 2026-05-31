@@ -2,7 +2,6 @@ package fieldmap
 
 import (
 	"fmt"
-	"strings"
 
 	v3 "github.com/pb33f/libopenapi/datamodel/high/v3"
 )
@@ -151,7 +150,7 @@ func checkUnit(kind, unit string, specNames []string, entries map[string]*Entry,
 func checkEnumInvariant(name string, variants map[string]*Entry) []Finding {
 	hasSentinel := false
 	for variant := range variants {
-		if strings.HasSuffix(variant, "UNSPECIFIED") {
+		if isUnspecifiedSentinel(variant) {
 			hasSentinel = true
 			break
 		}
@@ -164,7 +163,7 @@ func checkEnumInvariant(name string, variants map[string]*Entry) []Finding {
 	location := fmt.Sprintf("fieldmap.lock/enums/%s", name)
 
 	for variant, e := range variants {
-		sentinel := strings.HasSuffix(variant, "UNSPECIFIED")
+		sentinel := isUnspecifiedSentinel(variant)
 		if sentinel && e.Number != 0 {
 			findings = append(findings, Finding{
 				Check:      "enum",

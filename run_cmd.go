@@ -3,10 +3,10 @@ package duh
 import (
 	"fmt"
 	"io"
-	"path/filepath"
 	"strings"
 
 	"github.com/duh-rpc/duh-cli/internal/add"
+	"github.com/duh-rpc/duh-cli/internal/fieldmap"
 	"github.com/duh-rpc/duh-cli/internal/generate/duh"
 	init_ "github.com/duh-rpc/duh-cli/internal/init"
 	"github.com/duh-rpc/duh-cli/internal/lint"
@@ -74,7 +74,7 @@ Exit Codes:
 
 			lockPath, _ := cmd.Flags().GetString("lock-path")
 			if lockPath == "" {
-				lockPath = filepath.Join(filepath.Dir(filePath), "fieldmap.lock")
+				lockPath = fieldmap.DefaultLockPath(filePath)
 			}
 			result.Violations = append(result.Violations, lint.ValidateLock(doc, lockPath)...)
 

@@ -8,6 +8,7 @@ package fieldmap
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"sort"
 	"strconv"
 
@@ -16,6 +17,15 @@ import (
 
 // Version is the current lock file schema version.
 const Version = 1
+
+// LockFileName is the conventional lock filename, co-located with the spec.
+const LockFileName = "fieldmap.lock"
+
+// DefaultLockPath returns the conventional lock location: fieldmap.lock next to
+// the spec. Both duh generate and duh lint resolve an unset --lock-path this way.
+func DefaultLockPath(specPath string) string {
+	return filepath.Join(filepath.Dir(specPath), LockFileName)
+}
 
 // Lock is the in-memory model of fieldmap.lock.
 type Lock struct {

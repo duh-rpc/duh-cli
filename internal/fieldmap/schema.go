@@ -1,9 +1,17 @@
 package fieldmap
 
 import (
+	"strings"
+
 	"github.com/pb33f/libopenapi/datamodel/high/base"
 	v3 "github.com/pb33f/libopenapi/datamodel/high/v3"
 )
+
+// isUnspecifiedSentinel reports whether an enum variant name is the *_UNSPECIFIED
+// sentinel that must own proto number 0 (the wire default; see ADR 0004).
+func isUnspecifiedSentinel(name string) bool {
+	return strings.HasSuffix(name, "UNSPECIFIED")
+}
 
 // messageSpec is a top-level object component schema and its field JSON names in
 // OpenAPI declaration order.

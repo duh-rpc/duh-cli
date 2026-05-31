@@ -2,7 +2,6 @@ package fieldmap
 
 import (
 	"fmt"
-	"strings"
 
 	schema "github.com/duh-rpc/openapi-schema.go"
 	v3 "github.com/pb33f/libopenapi/datamodel/high/v3"
@@ -110,10 +109,13 @@ func reconcileEntries(prior map[string]*Entry, priorReserved []int, ordered []st
 	// no longer be a named tombstone (the name is live again) so it moves to the
 	// orphaned reserved list and is never reused.
 	for _, name := range ordered {
-		if e, ok := result[name]; ok && !e.Reserved {
+		e, ok := result[name]
+		if ok && !e.Reserved {
 			continue
 		}
-		if e, ok := result[name]; ok && e.Reserved {
+		if ok {
+			// A previously-removed name is live again: its tombstone number can no
+			// longer key the name, so it moves to the orphaned reserved list forever.
 			orphaned = append(orphaned, e.Number)
 		}
 		highWater++
@@ -152,7 +154,7 @@ func assertNoDuplicateNumbers(prior map[string]*Entry, priorReserved []int, kind
 func assertUnspecifiedFirst(e enumSpec) error {
 	hasSentinel := false
 	for _, v := range e.Variants {
-		if strings.HasSuffix(v, "UNSPECIFIED") {
+		if isUnspecifiedSentinel(v) {
 			hasSentinel = true
 			break
 		}
@@ -160,13 +162,10 @@ func assertUnspecifiedFirst(e enumSpec) error {
 	if !hasSentinel {
 		return nil
 	}
-	if len(e.Variants) == 0 || !strings.HasSuffix(e.Variants[0], "UNSPECIFIED") {
-		first := ""
-		if len(e.Variants) > 0 {
-			first = e.Variants[0]
-		}
+	// A sentinel exists, so e.Variants is non-empty; it must be the first variant.
+	if !isUnspecifiedSentinel(e.Variants[0]) {
 		return fmt.Errorf("enum %q: first declared variant %q is not an *_UNSPECIFIED variant; "+
-			"reorder it first (see ADR 0004) — no files written", e.Name, first)
+			"reorder it first (see ADR 0004) — no files written", e.Name, e.Variants[0])
 	}
 	return nil
 }
@@ -185,28 +184,29 @@ func priorEnum(existing *Lock, name string) (map[string]*Entry, []int) {
 	return existing.Enums[name].Variants, existing.Enums[name].Reserved
 }
 
-func toMessageNumbers(entries map[string]*Entry, orphaned []int) schema.MessageNumbers {
-	fields := make(map[string]int)
+// splitEntries separates an entry set into live name→number bindings and the full
+// reserved list (the orphaned numbers plus every tombstone's number). It copies
+// orphaned rather than appending in place because the caller also stores that slice
+// in the Lock, where a shared backing array must not be mutated.
+func splitEntries(entries map[string]*Entry, orphaned []int) (map[string]int, []int) {
+	live := make(map[string]int, len(entries))
 	reserved := append([]int(nil), orphaned...)
 	for name, e := range entries {
 		if e.Reserved {
 			reserved = append(reserved, e.Number)
 		} else {
-			fields[name] = e.Number
+			live[name] = e.Number
 		}
 	}
+	return live, reserved
+}
+
+func toMessageNumbers(entries map[string]*Entry, orphaned []int) schema.MessageNumbers {
+	fields, reserved := splitEntries(entries, orphaned)
 	return schema.MessageNumbers{Fields: fields, Reserved: reserved}
 }
 
 func toEnumNumbers(entries map[string]*Entry, orphaned []int) schema.EnumNumbers {
-	variants := make(map[string]int)
-	reserved := append([]int(nil), orphaned...)
-	for name, e := range entries {
-		if e.Reserved {
-			reserved = append(reserved, e.Number)
-		} else {
-			variants[name] = e.Number
-		}
-	}
+	variants, reserved := splitEntries(entries, orphaned)
 	return schema.EnumNumbers{Variants: variants, Reserved: reserved}
 }

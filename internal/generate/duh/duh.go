@@ -40,7 +40,7 @@ func Run(config RunConfig) error {
 	// --output-dir. A nonexistent parent directory errors, matching --output-dir.
 	lockPath := config.LockPath
 	if lockPath == "" {
-		lockPath = filepath.Join(filepath.Dir(config.SpecPath), "fieldmap.lock")
+		lockPath = fieldmap.DefaultLockPath(config.SpecPath)
 	}
 	if _, err := os.Stat(filepath.Dir(lockPath)); os.IsNotExist(err) {
 		return fmt.Errorf("lock directory does not exist: %s", filepath.Dir(lockPath))
