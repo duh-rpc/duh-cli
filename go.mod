@@ -11,6 +11,11 @@ require (
 	gopkg.in/yaml.v3 v3.0.1
 )
 
+// Style-B oneOf support (ENG-61) is not yet released; build against the local
+// openapi-schema.go so `lint` and `generate` agree. Replace with a tagged
+// version once ENG-61 ships.
+replace github.com/duh-rpc/openapi-schema.go => ../openapi-schema.go
+
 require (
 	github.com/basgys/goxml2json v1.1.1-0.20231018121955-e66ee54ceaad // indirect
 	github.com/pb33f/libopenapi-validator v0.9.2 // indirect

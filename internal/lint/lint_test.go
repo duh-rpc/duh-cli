@@ -291,30 +291,6 @@ func TestLinterAllRuleViolations(t *testing.T) {
 			expectedViolation: "[DESCRIPTION_REQUIRED]",
 			expectedExitCode:  0,
 		},
-		{
-			name:              "OneOfNoDiscriminator",
-			file:              "testdata/oneof-no-discriminator.yaml",
-			expectedViolation: "[DISCRIMINATOR_REQUIRED]",
-			expectedExitCode:  1,
-		},
-		{
-			name:              "DiscriminatorNoMapping",
-			file:              "testdata/discriminator-no-mapping.yaml",
-			expectedViolation: "[DISCRIMINATOR_MAPPING]",
-			expectedExitCode:  1,
-		},
-		{
-			name:              "DiscriminatorWrongProperty",
-			file:              "testdata/discriminator-wrong-property.yaml",
-			expectedViolation: "[DISCRIMINATOR_PROPERTY_NAME]",
-			expectedExitCode:  1,
-		},
-		{
-			name:              "DiscriminatorMissingVariantField",
-			file:              "testdata/discriminator-missing-variant-field.yaml",
-			expectedViolation: "[DISCRIMINATOR_VARIANT_FIELD]",
-			expectedExitCode:  1,
-		},
 	}
 
 	for _, test := range tests {
@@ -382,11 +358,11 @@ func TestLinterMultipleViolations(t *testing.T) {
 		"[AMOUNT_SCHEMA_PATTERN]",
 		"[IDEMPOTENCY_KEY_DEFINITION]",
 		"[DESCRIPTION_REQUIRED]",
-		"[DISCRIMINATOR_REQUIRED]",
-		"[DISCRIMINATOR_MAPPING]",
-		"[DISCRIMINATOR_PROPERTY_NAME]",
-		"[DISCRIMINATOR_VARIANT_FIELD]",
 	}
+
+	// The four DISCRIMINATOR_* rules were removed; the discriminated/flat oneOf
+	// schemas in this spec are now reported solely by PROHIBITED_ONEOF.
+	assert.NotContains(t, output, "[DISCRIMINATOR_")
 
 	for _, violation := range expectedViolations {
 		assert.Contains(t, output, violation)
@@ -395,9 +371,8 @@ func TestLinterMultipleViolations(t *testing.T) {
 	// Verify output structure
 	assert.Contains(t, output, "errors")
 
-	// Count violations - should have at least 42 (28 existing + 14 new ERROR violations)
 	violationCount := strings.Count(output, "[ERROR]")
-	assert.GreaterOrEqual(t, violationCount, 42)
+	assert.GreaterOrEqual(t, violationCount, 38)
 }
 
 func TestLinterFileNotFound(t *testing.T) {

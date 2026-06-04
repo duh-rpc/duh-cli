@@ -1,0 +1,85 @@
+openapi: "3.0.3"
+info:
+  title: Malformed Style B - Array Variant
+  version: 1.0.0
+  description: A style-B oneOf whose variant property is an array (forbidden in a oneof)
+
+servers:
+  - url: https://api.example.com/v1
+
+paths:
+  /events.get:
+    post:
+      operationId: getEvent
+      description: Get a single event
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetRequest'
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetResponse'
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetails'
+
+components:
+  schemas:
+    GetRequest:
+      description: Request a single event by identifier
+      type: object
+      required: [id]
+      properties:
+        id:
+          description: Unique identifier of the event to fetch
+          type: string
+
+    GetResponse:
+      description: A malformed style-B union whose variant property is an array
+      type: object
+      properties:
+        cat_event:
+          description: An array-typed variant, which a protobuf oneof cannot hold
+          type: array
+          items:
+            $ref: '#/components/schemas/Cat'
+        dog_event:
+          $ref: '#/components/schemas/Dog'
+      oneOf:
+        - required: [cat_event]
+        - required: [dog_event]
+
+    Cat:
+      description: A cat event payload
+      type: object
+      required: [pet_name]
+      properties:
+        pet_name:
+          description: Name of the cat
+          type: string
+
+    Dog:
+      description: A dog event payload
+      type: object
+      required: [pet_name]
+      properties:
+        pet_name:
+          description: Name of the dog
+          type: string
+
+    ErrorDetails:
+      type: object
+      required: [message]
+      properties:
+        message:
+          description: Human-readable error message
+          type: string
