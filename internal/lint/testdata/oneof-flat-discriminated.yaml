@@ -1,0 +1,84 @@
+openapi: "3.0.3"
+info:
+  title: Flat Discriminated Union API
+  version: 1.0.0
+  description: A spec using the prohibited flat/discriminated oneOf
+
+servers:
+  - url: https://api.example.com/v1
+
+paths:
+  /pets.get:
+    post:
+      operationId: getPet
+      description: Get a pet using a discriminated union response
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetRequest'
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pet'
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetails'
+
+components:
+  schemas:
+    GetRequest:
+      description: Request a pet by identifier
+      type: object
+      required: [id]
+      properties:
+        id:
+          description: Unique identifier of the pet
+          type: string
+
+    Pet:
+      description: A pet that is one of several variants, tagged by a discriminator
+      oneOf:
+        - $ref: '#/components/schemas/Cat'
+        - $ref: '#/components/schemas/Dog'
+      discriminator:
+        propertyName: pet_type
+
+    Cat:
+      description: A cat variant
+      type: object
+      required: [pet_type, pet_name]
+      properties:
+        pet_type:
+          description: Discriminator tag
+          type: string
+        pet_name:
+          description: Name of the cat
+          type: string
+
+    Dog:
+      description: A dog variant
+      type: object
+      required: [pet_type, pet_name]
+      properties:
+        pet_type:
+          description: Discriminator tag
+          type: string
+        pet_name:
+          description: Name of the dog
+          type: string
+
+    ErrorDetails:
+      type: object
+      required: [message]
+      properties:
+        message:
+          description: Human-readable error message
+          type: string

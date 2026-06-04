@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package proof;
+
+// go_package mirrors how openapi-schema.go emits a module-rooted package.
+option go_package = "proof/gen;gen";
+
+// Variant payloads. pet_name is intentionally a MULTI-WORD snake_case field —
+// this is the casing trap: protojson's default would emit "petName" UNLESS a
+// json_name annotation overrides it. openapi-schema.go always emits an explicit
+// json_name equal to the original (snake_case) property name, so we replicate
+// that here to model duh faithfully.
+message Cat {
+  string pet_name = 1 [json_name = "pet_name"];
+}
+
+message Dog {
+  string pet_name = 1 [json_name = "pet_name"];
+}
+
+// Form A — a genuine protobuf `oneof`. This is the encoding a future
+// "wire-compatible oneOf" feature might generate.
+message OneofEvent {
+  oneof kind {
+    Cat cat_event = 1 [json_name = "cat_event"];
+    Dog dog_event = 2 [json_name = "dog_event"];
+  }
+}
+
+// Form B — plain optional message fields. This is what openapi-schema.go
+// generates TODAY for the already-allowed "optional properties" union form
+// (no oneOf keyword). Message-typed proto3 fields track presence and are
+// omitted by protojson when unset.
+message OptionalEvent {
+  Cat cat_event = 1 [json_name = "cat_event"];
+  Dog dog_event = 2 [json_name = "dog_event"];
+}

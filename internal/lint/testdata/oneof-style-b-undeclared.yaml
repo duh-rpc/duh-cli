@@ -1,0 +1,71 @@
+openapi: "3.0.3"
+info:
+  title: Malformed Style B - Undeclared Property
+  version: 1.0.0
+  description: A style-B oneOf branch naming a property absent from properties
+
+servers:
+  - url: https://api.example.com/v1
+
+paths:
+  /events.get:
+    post:
+      operationId: getEvent
+      description: Get a single event
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetRequest'
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetResponse'
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetails'
+
+components:
+  schemas:
+    GetRequest:
+      description: Request a single event by identifier
+      type: object
+      required: [id]
+      properties:
+        id:
+          description: Unique identifier of the event to fetch
+          type: string
+
+    GetResponse:
+      description: A malformed style-B union whose branch names an undeclared property
+      type: object
+      properties:
+        cat_event:
+          $ref: '#/components/schemas/Cat'
+      oneOf:
+        - required: [cat_event]
+        - required: [bird_event]
+
+    Cat:
+      description: A cat event payload
+      type: object
+      required: [pet_name]
+      properties:
+        pet_name:
+          description: Name of the cat
+          type: string
+
+    ErrorDetails:
+      type: object
+      required: [message]
+      properties:
+        message:
+          description: Human-readable error message
+          type: string

@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DUH unions &amp; oneOf — wire-compatibility, explained</title>
+<style>
+  :root{
+    --bg:#0f1115; --panel:#171a21; --ink:#e6e9ef; --mut:#9aa4b2;
+    --green:#2ecc71; --greenbg:#11271b; --red:#ff5d5d; --redbg:#2a1416;
+    --amber:#f5b454; --amberbg:#2a2110; --blue:#5aa9ff; --line:#262b35;
+    --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;}
+  .wrap{max-width:1000px;margin:0 auto;padding:48px 24px 96px}
+  h1{font-size:30px;line-height:1.2;margin:0 0 6px}
+  h2{font-size:22px;margin:46px 0 10px;padding-top:18px;border-top:1px solid var(--line)}
+  h3{font-size:17px;margin:26px 0 8px;color:var(--blue)}
+  p{color:var(--ink)} .mut{color:var(--mut)}
+  .lede{font-size:18px;color:var(--mut);margin:0 0 8px}
+  code{font-family:var(--mono);font-size:.92em;background:#1d2230;padding:1px 6px;border-radius:5px}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:18px 0}
+  .cols3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin:18px 0}
+  @media(max-width:820px){.cols,.cols3{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+  .card h4{margin:0 0 10px;font-size:14px;letter-spacing:.04em;text-transform:uppercase;color:var(--mut)}
+  pre{font-family:var(--mono);font-size:13.5px;line-height:1.55;background:#0c0e13;
+    border:1px solid var(--line);border-radius:9px;padding:13px 14px;overflow:auto;margin:8px 0}
+  .ok{border-color:#1f5b3a} .ok h4{color:var(--green)}
+  .bad{border-color:#5b2326} .bad h4{color:var(--red)}
+  .warn{border-color:#5b4a23} .warn h4{color:var(--amber)}
+  .tag{display:inline-block;font:600 12px var(--mono);padding:2px 9px;border-radius:999px;vertical-align:middle}
+  .tag.g{background:var(--greenbg);color:var(--green);border:1px solid #1f5b3a}
+  .tag.r{background:var(--redbg);color:var(--red);border:1px solid #5b2326}
+  .tag.a{background:var(--amberbg);color:var(--amber);border:1px solid #5b4a23}
+  .key{color:var(--blue)} .str{color:#9ee7a8} .pun{color:var(--mut)} .cmt{color:#6b7686}
+  .hl-nest{background:#10301f;border-radius:4px;padding:0 2px}
+  .hl-flat{background:#301014;border-radius:4px;padding:0 2px}
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:14.5px}
+  th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--mut);font-weight:600;font-size:12px;letter-spacing:.04em;text-transform:uppercase}
+  td code{font-size:.86em}
+  .callout{background:var(--panel);border-left:3px solid var(--blue);border-radius:0 10px 10px 0;
+    padding:14px 18px;margin:18px 0}
+  .callout.amber{border-left-color:var(--amber)}
+  .callout.green{border-left-color:var(--green)}
+  .callout.red{border-left-color:var(--red)}
+  .small{font-size:13.5px}
+  .arrow{color:var(--mut);text-align:center;font-size:22px;margin:2px 0}
+  footer{margin-top:60px;color:var(--mut);font-size:13px;border-top:1px solid var(--line);padding-top:18px}
+  .badged{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .proof{background:#0c0e13;border:1px solid #1f5b3a;border-radius:9px;padding:13px 15px;
+    font-family:var(--mono);font-size:13px;line-height:1.6;overflow:auto}
+  .proof .p{color:var(--green)} .proof .d{color:var(--mut)}
+  .pill{display:inline-block;font:600 11px var(--mono);letter-spacing:.05em;padding:3px 10px;border-radius:999px;
+    background:var(--greenbg);color:var(--green);border:1px solid #1f5b3a;margin-left:8px;vertical-align:middle}
+  ul.tight li{margin:3px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Unions on the wire in DUH-RPC</h1>
+  <p class="lede">How a union serializes decides whether DUH can use it — because the same schema is served as
+     both JSON and protobuf. Here's the why, the what's-allowed, and the proof.</p>
+
+  <div class="callout">
+    <strong>The whole idea in one sentence.</strong> DUH-RPC serves the <em>same</em> OpenAPI schema as both
+    <code>application/json</code> and <code>application/protobuf</code>. So a union is usable only if a single
+    schema can describe it truthfully on <em>both</em> wires — and that is true for exactly one JSON shape:
+    the <span class="hl-nest">nested, key-tagged</span> one.
+  </div>
+
+  <!-- ============ TEACHING NARRATIVE (the explainer) ============ -->
+
+  <h2>1. The two wire formats don't match</h2>
+  <p>Model an event that is either a cat or a dog. The obvious OpenAPI modelling — a discriminated
+     <code>oneOf</code> — and the obvious protobuf modelling — a <code>oneof</code> — describe the
+     <em>same idea</em>, but they put <strong>different bytes</strong> on the JSON wire for the same value.</p>
+
+  <div class="cols">
+    <div class="card bad">
+      <h4>OpenAPI discriminated <code>oneOf</code> → JSON</h4>
+<pre>oneOf:
+  - $ref: '#/.../CatEvent'
+  - $ref: '#/.../DogEvent'
+discriminator:
+  propertyName: <span class="key">type</span>
+  mapping: { cat: ..., dog: ... }</pre>
+      <div class="arrow">↓ on the wire ↓</div>
+<pre>{ <span class="hl-flat"><span class="key">"type"</span>: <span class="str">"cat"</span></span>, <span class="key">"pet_name"</span>: <span class="str">"Whiskers"</span> }</pre>
+      <p class="small mut"><span class="tag r">FLAT</span> The variant's fields are <strong>hoisted to the top
+        level</strong>; the discriminant is the <strong>value</strong> of a tag property.</p>
+    </div>
+
+    <div class="card ok">
+      <h4>Protobuf <code>oneof</code> → proto3 JSON</h4>
+<pre>message Event {
+  oneof kind {
+    Cat <span class="key">cat_event</span> = 1;
+    Dog <span class="key">dog_event</span> = 2;
+  }
+}
+message Cat { string pet_name = 1; }</pre>
+      <div class="arrow">↓ on the wire ↓</div>
+<pre>{ <span class="hl-nest"><span class="key">"cat_event"</span>: { <span class="key">"pet_name"</span>: <span class="str">"Whiskers"</span> }</span> }</pre>
+      <p class="small mut"><span class="tag g">NESTED</span> The set variant is <strong>nested under its field
+        name</strong>; the discriminant is <strong>which key is present</strong>. There is no separate tag.</p>
+    </div>
+  </div>
+
+  <div class="callout amber">
+    <strong>Why protobuf simply cannot produce the flat shape.</strong> proto3 has no "inline" or "flattened"
+    <code>oneof</code>. A <code>oneof</code> is always serialized by emitting the single set field under its
+    own name, with its value nested. There is no language construct that lifts a variant's fields up to the
+    parent object and adds a discriminator string. So the flat shape is <em>unreachable</em> from a
+    <code>.proto</code> — this is structural, not a tooling gap. A DUH schema that produced the flat JSON
+    could never be honestly served as protobuf.
+  </div>
+
+  <h2>2. The union shape that <span style="color:var(--green)">does</span> work on both wires</h2>
+  <p>Flip it around. Instead of a discriminated <code>oneOf</code>, describe an object with
+     <strong>one optional property per variant</strong>. Now the OpenAPI JSON and the protobuf JSON are the
+     <strong>same bytes</strong> — because both are nested and keyed by the variant name.</p>
+
+  <div class="cols">
+    <div class="card ok">
+      <h4>OpenAPI — optional properties</h4>
+<pre>Event:
+  type: object
+  properties:
+    <span class="key">cat_event</span>: { $ref: '#/.../Cat' }
+    <span class="key">dog_event</span>: { $ref: '#/.../Dog' }</pre>
+      <div class="arrow">↓</div>
+<pre>{ <span class="hl-nest"><span class="key">"cat_event"</span>: { <span class="key">"pet_name"</span>: <span class="str">"Whiskers"</span> }</span> }</pre>
+    </div>
+    <div class="card ok">
+      <h4>Protobuf — <code>oneof</code> (or plain optionals)</h4>
+<pre>oneof kind {
+  Cat <span class="key">cat_event</span> = 1;
+  Dog <span class="key">dog_event</span> = 2;
+}</pre>
+      <div class="arrow">↓</div>
+<pre>{ <span class="hl-nest"><span class="key">"cat_event"</span>: { <span class="key">"pet_name"</span>: <span class="str">"Whiskers"</span> }</span> }</pre>
+    </div>
+  </div>
+
+  <p class="badged"><span class="tag g">SAME BYTES</span>
+     <span class="mut small">The key (<code>cat_event</code>) <em>is</em> the discriminant on both sides. A
+     protobuf <code>oneof</code> with one field set serializes identically to optional message fields with one
+     field set — and identically to what a generic JSON client writes.</span></p>
+
+  <div class="callout green">
+    <strong>So the takeaway:</strong> a compatible union is one whose JSON is <em>nested and key-tagged</em>.
+    DUH supports that shape; it does not support the <em>flat, value-tagged</em> shape that a discriminated
+    <code>oneOf</code> produces. The rest of this page is the precise rules and the proof.
+  </div>
+
+  <!-- ============ DEFINITIVE REFERENCE ============ -->
+
+  <h2>3. The two union styles DUH supports</h2>
+  <p>Both produce the identical nested wire shape from §2. They differ only in whether the schema also
+     <em>declares</em> the variants mutually exclusive. Pick by how strict you want JSON-Schema validation to
+     be — the bytes on the wire are the same either way.</p>
+
+  <div class="cols">
+    <div class="card ok">
+      <h4>A · Optional-properties union <span class="tag g">no oneOf</span></h4>
+<pre>Event:
+  <span class="key">type</span>: object
+  <span class="key">properties</span>:
+    <span class="key">cat_event</span>: { $ref: '#/.../Cat' }
+    <span class="key">dog_event</span>: { $ref: '#/.../Dog' }</pre>
+      <ul class="tight small mut">
+        <li>One optional <code>$ref</code> property per variant.</li>
+        <li>Validation does <strong>not</strong> enforce "exactly one" — zero, one, or several may appear.</li>
+        <li>Maps to plain optional protobuf message fields.</li>
+      </ul>
+    </div>
+    <div class="card ok">
+      <h4>B · Mutually-exclusive union <span class="tag g">wire-safe oneOf</span></h4>
+<pre>Event:
+  <span class="key">type</span>: object
+  <span class="key">properties</span>:
+    <span class="key">cat_event</span>: { $ref: '#/.../Cat' }
+    <span class="key">dog_event</span>: { $ref: '#/.../Dog' }
+  <span class="key">oneOf</span>:
+    - required: [cat_event]
+    - required: [dog_event]</pre>
+      <ul class="tight small mut">
+        <li>Same properties; the <code>oneOf</code> constrains <strong>which one key</strong> must be present.</li>
+        <li>Validators enforce "exactly one." Maps to a protobuf <code>oneof</code>.</li>
+        <li><strong>No <code>discriminator</code>.</strong> The key <em>is</em> the tag.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout">
+    <strong>Why style B is a <em>wire-safe</em> use of <code>oneOf</code>.</strong> Unlike the discriminated
+    form, this <code>oneOf</code> does <em>not</em> flatten anything — it lists <code>required</code>
+    constraints over the <em>same named, nested properties</em>. The wire shape stays
+    <code>{"cat_event":{…}}</code>, identical to style A, and is fully protobuf-representable. The
+    distinguishing test is mechanical: <strong>a <code>oneOf</code> with a <code>discriminator</code> is the
+    prohibited flat form; a <code>oneOf</code> of <code>required</code> over existing object properties (no
+    discriminator) is the supported nested form.</strong>
+  </div>
+
+  <h2>4. The one prohibited style</h2>
+  <div class="card bad">
+    <h4>❌ Discriminated / flattening <code>oneOf</code> <span class="tag r">PROHIBITED</span></h4>
+<pre>Event:
+  <span class="key">oneOf</span>:
+    - $ref: '#/.../CatEvent'
+    - $ref: '#/.../DogEvent'
+  <span class="key">discriminator</span>:
+    <span class="key">propertyName</span>: type
+    <span class="key">mapping</span>: { cat: ..., dog: ... }</pre>
+    <div class="arrow">↓ produces the flat shape protobuf can't ↓</div>
+<pre>{ <span class="hl-flat"><span class="key">"type"</span>: <span class="str">"cat"</span></span>, <span class="key">"pet_name"</span>: <span class="str">"Whiskers"</span> }</pre>
+    <p class="small mut">This is the §1 form. A top-level <code>oneOf</code> of <code>$ref</code> variants plus
+       a <code>discriminator</code> hoists each variant's fields to the top level, which no protobuf
+       <code>oneof</code> serialization matches. <strong>It is the only union form DUH rejects.</strong></p>
+  </div>
+
+  <h2>5. How each maps to protobuf</h2>
+  <table>
+    <tr><th>OpenAPI input</th><th>Discriminator?</th><th>JSON wire</th><th>Protobuf mapping</th><th>Status</th></tr>
+    <tr>
+      <td>Optional <code>$ref</code> properties (style A)</td>
+      <td class="mut">n/a</td>
+      <td><code>{"cat_event":{…}}</code></td>
+      <td>optional message fields</td>
+      <td><span class="tag g">SUPPORTED</span></td>
+    </tr>
+    <tr>
+      <td><code>oneOf</code> of <code>required</code> over properties (style B)</td>
+      <td>No</td>
+      <td><code>{"cat_event":{…}}</code></td>
+      <td>protobuf <code>oneof</code></td>
+      <td><span class="tag g">SUPPORTED</span></td>
+    </tr>
+    <tr>
+      <td><code>oneOf</code> of <code>$ref</code> + <code>discriminator</code></td>
+      <td>Yes</td>
+      <td><code>{"type":"cat",…}</code> flat</td>
+      <td class="mut">none possible</td>
+      <td><span class="tag r">PROHIBITED</span></td>
+    </tr>
+    <tr>
+      <td><code>allOf</code></td>
+      <td class="mut">n/a</td>
+      <td class="mut">flat merge</td>
+      <td class="mut">no merge concept — ambiguous numbering</td>
+      <td><span class="tag r">PROHIBITED</span></td>
+    </tr>
+    <tr>
+      <td><code>anyOf</code></td>
+      <td class="mut">n/a</td>
+      <td class="mut">arbitrary subset</td>
+      <td class="mut">no equivalent</td>
+      <td><span class="tag r">PROHIBITED</span></td>
+    </tr>
+  </table>
+  <p class="small mut"><code>allOf</code>/<code>anyOf</code> are prohibited for a <em>different</em> reason than
+     the flat <code>oneOf</code>: not JSON-wire divergence but <strong>schema-to-proto mapping ambiguity</strong>
+     (no protobuf merge or "one-or-more" concept, ambiguous field numbering).</p>
+
+  <h2>6. The proof <span class="pill">VERIFIED 100%</span></h2>
+  <p>The claim "nested unions are wire-compatible" is not a spec reading — it was verified end-to-end with the
+     actual protobuf toolchain (<code>protoc 23.4</code>, <code>protoc-gen-go</code>, and
+     <code>google.golang.org/protobuf/encoding/protojson</code> — the exact marshaler <code>duh.go</code> uses,
+     at its bare defaults). The harness lives in <code>docs/oneof-wire-proof/</code> and is re-runnable.</p>
+
+  <p>It compiles two protobuf encodings of the same union — a real <code>oneof</code> and plain optional
+     fields — with a multi-word <code>snake_case</code> field (<code>pet_name</code>) to catch the casing
+     trap, then asserts:</p>
+
+  <div class="proof">
+<span class="d">$ go test -v ./...</span>
+<span class="p">=== RUN   TestOneofAndOptionalProduceIdenticalWire</span>
+    oneof form    -> {"cat_event":{"pet_name":"Whiskers"}}
+    optional form -> {"cat_event":{"pet_name":"Whiskers"}}
+<span class="p">--- PASS</span>  <span class="d">// both proto encodings → identical nested JSON, snake_case preserved</span>
+<span class="p">--- PASS: TestDogVariantWire</span>            <span class="d">// other variant identical</span>
+<span class="p">--- PASS: TestCrossUnmarshal</span>            <span class="d">// oneof-server bytes read by optional-client, and reverse</span>
+<span class="p">--- PASS: TestGenericJSONConsumerInterop</span> <span class="d">// plain encoding/json (OpenAPI-side) reads/writes same shape</span>
+<span class="p">--- PASS: TestProtoOneofEnforcesExactlyOne</span> <span class="d">// real oneof rejects two-variant input; optional accepts</span>
+<span class="p">--- PASS: TestNeitherSetWire</span>            <span class="d">// empty case → {} on both</span>
+<span class="p">--- PASS: TestBinaryWireAlsoCompatible</span>   <span class="d">// BINARY protobuf wire identical too: 0a 0a 0a 08 ...</span>
+<span class="p">PASS</span>
+  </div>
+
+  <div class="cols">
+    <div class="card ok">
+      <h4>The casing trap — closed</h4>
+      <p class="small mut">protojson's default would emit <code>"petName"</code> for a field named
+        <code>pet_name</code>. openapi-schema.go always writes an explicit
+        <code>[json_name = "pet_name"]</code>, which protojson honors — so <code>snake_case</code> stays
+        byte-identical on both wires. The proof models this and confirms <code>"pet_name"</code>, not
+        <code>"petName"</code>.</p>
+    </div>
+    <div class="card ok">
+      <h4>Exactly-one, for free</h4>
+      <p class="small mut">A real protobuf <code>oneof</code> <em>rejects</em> JSON with two variants set
+        (<span class="mut">"oneof … is already set"</span>) — matching style B's <code>oneOf</code> semantics.
+        For every valid (single-variant) value the wire is identical; the forms only diverge on invalid input.
+        This is why style B maps cleanly to a protobuf <code>oneof</code>.</p>
+    </div>
+  </div>
+
+  <h2>7. Implementation status</h2>
+  <p class="small">Style A works today. Style B (the wire-safe <code>oneOf</code>) is proven compatible but not
+     yet accepted by the toolchain — these are the gates that must change together. The linter and the
+     converter are <strong>two independent gates</strong>; loosening only one moves the failure rather than
+     fixing it.</p>
+  <table>
+    <tr><th>Project</th><th>Today</th><th>Change to support style B</th></tr>
+    <tr>
+      <td><code>openapi-schema.go</code></td>
+      <td>Errors: <code>validateTopLevelSchema</code> requires a <code>discriminator</code> on any
+          <code>oneOf</code>.</td>
+      <td>Recognize the <code>oneOf</code>-of-<code>required</code> pattern (no discriminator, branches are
+          <code>required</code> over existing properties); emit a protobuf <code>oneof</code> over those
+          fields; treat the constraint as validation-only.</td>
+    </tr>
+    <tr>
+      <td><code>duh-cli</code></td>
+      <td><code>PROHIBITED_ONEOF</code> fires on <code>len(OneOf) &gt; 0</code> — any keyword use.</td>
+      <td>Narrow the rule: prohibit only <code>oneOf</code> <em>with a discriminator</em> (the flat form);
+          allow <code>oneOf</code>-of-<code>required</code> over object properties.</td>
+    </tr>
+    <tr>
+      <td><code>duh.go</code></td>
+      <td>Marshals with bare <code>protojson</code> defaults.</td>
+      <td><strong>No change required</strong> — proven compatible as-is (§6).</td>
+    </tr>
+  </table>
+
+  <h2>8. Rules of thumb</h2>
+  <ul class="tight">
+    <li><strong>Want a union?</strong> Give each variant its own optional <code>$ref</code> property (style A).
+        The key is the tag; the payload nests.</li>
+    <li><strong>Want "exactly one" enforced?</strong> Add <code>oneOf: [{required:[a]},{required:[b]}]</code>
+        over those properties (style B). Still nested, still wire-safe.</li>
+    <li><strong>Never</strong> use <code>oneOf</code> + <code>discriminator</code>, or <code>allOf</code>/
+        <code>anyOf</code> — those can't be honestly served over both wires.</li>
+    <li><strong>The mechanical test:</strong> <code>oneOf</code> + <code>discriminator</code> = flat = banned.
+        <code>oneOf</code> + <code>required</code> over named properties = nested = fine.</li>
+  </ul>
+
+  <footer>
+    Proof harness: <code>docs/oneof-wire-proof/</code> (re-run with <code>protoc</code> + <code>go test</code>) ·
+    Verified with <code>protoc 23.4</code> / <code>protojson</code> (duh.go's marshaler) ·
+    In-repo gates: <code>internal/lint/rules/rpc_prohibited_oneof_and_allof.go</code>,
+    <code>openapi-schema.go/.../builder.go</code> · spec: <code>duh.go/docs/spec.md</code>.
+  </footer>
+
+</div>
+</body>
+</html>

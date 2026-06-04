@@ -674,41 +674,55 @@ CreateUserRequest:
 
 ### `PROHIBITED_ONEOF` — ERROR
 
-`oneOf` MUST NOT be used. While OpenAPI supports discriminated unions via `oneOf` with a
-`discriminator`, the JSON wire format for a discriminated union is structurally incompatible with
-protobuf's `oneof` JSON serialization:
+The **flat/discriminated** `oneOf` MUST NOT be used; the **nested, key-tagged** `oneOf` ("style B")
+IS allowed. DUH-RPC serves the same schema as both `application/json` and `application/protobuf`, so
+a schema is usable only if a single description is truthful on both wires. `oneOf` admits two
+serializations, and only one survives that test:
 
-- **OpenAPI `oneOf`** flattens variant fields and uses a discriminator property:
-  `{"eventType": "cat", "name": "Whiskers"}`
-- **Protobuf `oneof`** nests the variant under its field name:
-  `{"cat": {"name": "Whiskers"}}`
-
-Since DUH-RPC supports both `application/json` and `application/protobuf`, a single schema cannot
-accurately describe both wire formats. Use flat objects with optional properties instead.
+- **Flat/discriminated** — a `oneOf` of `$ref`/inline variants plus a `discriminator` — hoists the
+  selected variant's fields to the top level and tags it by value:
+  `{"eventType": "cat", "pet_name": "Whiskers"}`. No protobuf serialization can produce this shape,
+  so it is **prohibited**.
+- **Nested, key-tagged (style B)** — an object with one optional `$ref` property per variant plus a
+  `oneOf` of single-`required` branches and **no `discriminator`** — names the variant by the present
+  key and nests its payload: `{"cat_event": {"pet_name": "Whiskers"}}`. This is exactly what a
+  protobuf `oneof` emits, byte-for-byte, so it is **allowed** and generates a protobuf `oneof`.
 
 ```yaml
-# ❌ invalid — even with discriminator
-oneOf:
-  - $ref: '#/components/schemas/CatEvent'
-  - $ref: '#/components/schemas/DogEvent'
-discriminator:
-  propertyName: eventType
+# ❌ invalid — flat/discriminated oneOf
+Pet:
+  oneOf:
+    - $ref: '#/components/schemas/Cat'
+    - $ref: '#/components/schemas/Dog'
+  discriminator:
+    propertyName: pet_type
 
-# ✅ valid — flat optional properties
+# ✅ valid — style B (nested, key-tagged); maps to a protobuf oneof
 Event:
   type: object
   properties:
-    eventType:
-      type: string
-    cat:
-      $ref: '#/components/schemas/CatEventData'
-    dog:
-      $ref: '#/components/schemas/DogEventData'
+    cat_event:
+      $ref: '#/components/schemas/Cat'
+    dog_event:
+      $ref: '#/components/schemas/Dog'
+  oneOf:
+    - required: [cat_event]
+    - required: [dog_event]
+
+# ✅ also valid — flat object with plain optional properties (no oneOf)
+Event:
+  type: object
+  properties:
+    cat_event:
+      $ref: '#/components/schemas/Cat'
+    dog_event:
+      $ref: '#/components/schemas/Dog'
 ```
 
-The flat-object form is protobuf-compatible whether the generator emits plain optional fields or a
-protobuf `oneof` — proto3 `oneof` JSON serializes as `{"cat": {...}}`, which matches the optional
-fields case when only one variant is set.
+A style-B schema must be well-formed: each `oneOf` branch names **exactly one** required property,
+that property must be **declared** in `properties`, and it must **not be an array** (proto3 forbids
+`repeated` inside a `oneof`). A malformed style-B schema is reported under `PROHIBITED_ONEOF` with a
+message naming the specific problem.
 
 Because DUH-RPC's core goal is protobuf compatibility, there are no fallback guardrails for disabled
 `PROHIBITED_ONEOF`. Disabling this rule knowingly opts out of protobuf compatibility for that schema.
@@ -1115,12 +1129,21 @@ idempotency_key:
 
 ## Rules Removed
 
-| Rule | Reason |
-|---|---|
-| `DISCRIMINATOR_REQUIRED` | Served as a fallback for disabled `PROHIBITED_ONEOF`. Removed because DUH-RPC's core goal is protobuf compatibility, and discriminated `oneOf` is still wire-incompatible with protobuf `oneof` JSON — a discriminated union is not meaningfully safer than a bare one for our purposes. |
-| `DISCRIMINATOR_MAPPING` | Same reason as above — fallback for a disabled rule that cannot restore protobuf compatibility. |
-| `DISCRIMINATOR_VARIANT_FIELD` | Same reason as above. |
-| `DISCRIMINATOR_PROPERTY_NAME` | Same reason as above. This rule governed discriminator property naming, which is only reachable when `PROHIBITED_ONEOF` is disabled. |
+The four `DISCRIMINATOR_*` rules each validated one way the **discriminated/flat `oneOf`**
+could be malformed. Per [ADR-0002](https://github.com/duh-rpc/duh.go/blob/main/docs/adr/0002-oneof-permitted-only-as-nested-key-tagged-union.md),
+that form is no longer "allowed but must be well-formed" — it is **categorically prohibited**
+(it cannot be served identically on both the JSON and protobuf wires), while the nested,
+key-tagged "style B" `oneOf` is now permitted. That makes all four rules dead: any schema with
+a discriminator is rejected outright by the narrowed `PROHIBITED_ONEOF`, and worse, these rules
+would **false-positive on style B** (which correctly has no discriminator). See the
+`PROHIBITED_ONEOF` section above.
+
+| Rule | What it validated | Reason removed |
+|---|---|---|
+| `DISCRIMINATOR_REQUIRED` | A `oneOf` must carry a `discriminator` | Per ADR-0002 the discriminated/flat form is prohibited entirely; this rule would fire on style B precisely *because* it has no discriminator. |
+| `DISCRIMINATOR_MAPPING` | The `discriminator` must have a `mapping` | Per ADR-0002; only reachable on the now-prohibited discriminated form. |
+| `DISCRIMINATOR_VARIANT_FIELD` | Every variant must contain the discriminator field | Per ADR-0002; only reachable on the now-prohibited discriminated form. |
+| `DISCRIMINATOR_PROPERTY_NAME` | The `propertyName` must name a declared property | Per ADR-0002; only reachable on the now-prohibited discriminated form. |
 
 ---
 
