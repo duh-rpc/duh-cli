@@ -1129,12 +1129,21 @@ idempotency_key:
 
 ## Rules Removed
 
-| Rule | Reason |
-|---|---|
-| `DISCRIMINATOR_REQUIRED` | Served as a fallback for disabled `PROHIBITED_ONEOF`. Removed because DUH-RPC's core goal is protobuf compatibility, and discriminated `oneOf` is still wire-incompatible with protobuf `oneof` JSON — a discriminated union is not meaningfully safer than a bare one for our purposes. |
-| `DISCRIMINATOR_MAPPING` | Same reason as above — fallback for a disabled rule that cannot restore protobuf compatibility. |
-| `DISCRIMINATOR_VARIANT_FIELD` | Same reason as above. |
-| `DISCRIMINATOR_PROPERTY_NAME` | Same reason as above. This rule governed discriminator property naming, which is only reachable when `PROHIBITED_ONEOF` is disabled. |
+The four `DISCRIMINATOR_*` rules each validated one way the **discriminated/flat `oneOf`**
+could be malformed. Per [ADR-0002](https://github.com/duh-rpc/duh.go/blob/main/docs/adr/0002-oneof-permitted-only-as-nested-key-tagged-union.md),
+that form is no longer "allowed but must be well-formed" — it is **categorically prohibited**
+(it cannot be served identically on both the JSON and protobuf wires), while the nested,
+key-tagged "style B" `oneOf` is now permitted. That makes all four rules dead: any schema with
+a discriminator is rejected outright by the narrowed `PROHIBITED_ONEOF`, and worse, these rules
+would **false-positive on style B** (which correctly has no discriminator). See the
+`PROHIBITED_ONEOF` section above.
+
+| Rule | What it validated | Reason removed |
+|---|---|---|
+| `DISCRIMINATOR_REQUIRED` | A `oneOf` must carry a `discriminator` | Per ADR-0002 the discriminated/flat form is prohibited entirely; this rule would fire on style B precisely *because* it has no discriminator. |
+| `DISCRIMINATOR_MAPPING` | The `discriminator` must have a `mapping` | Per ADR-0002; only reachable on the now-prohibited discriminated form. |
+| `DISCRIMINATOR_VARIANT_FIELD` | Every variant must contain the discriminator field | Per ADR-0002; only reachable on the now-prohibited discriminated form. |
+| `DISCRIMINATOR_PROPERTY_NAME` | The `propertyName` must name a declared property | Per ADR-0002; only reachable on the now-prohibited discriminated form. |
 
 ---
 
