@@ -3,18 +3,13 @@ module github.com/duh-rpc/duh-cli
 go 1.24.7
 
 require (
-	github.com/duh-rpc/openapi-schema.go v0.10.0
+	github.com/duh-rpc/openapi-schema.go v0.11.0
 	github.com/pb33f/libopenapi v0.28.2
 	github.com/spf13/cobra v1.10.1
 	github.com/stretchr/testify v1.11.1
 	go.yaml.in/yaml/v4 v4.0.0-rc.2
 	gopkg.in/yaml.v3 v3.0.1
 )
-
-// Style-B oneOf support (ENG-61) is not yet released; build against the local
-// openapi-schema.go so `lint` and `generate` agree. Replace with a tagged
-// version once ENG-61 ships.
-replace github.com/duh-rpc/openapi-schema.go => ../openapi-schema.go
 
 require (
 	github.com/basgys/goxml2json v1.1.1-0.20231018121955-e66ee54ceaad // indirect
