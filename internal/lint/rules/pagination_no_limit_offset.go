@@ -31,6 +31,10 @@ func (r *PaginationNoLimitOffsetRule) Validate(doc *v3.Document) []Violation {
 			continue
 		}
 
+		if !isPaginatedEndpoint(path) {
+			continue
+		}
+
 		if isOperationIgnored(pathItem.Post, r.Name()) {
 			continue
 		}

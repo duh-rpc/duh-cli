@@ -202,7 +202,7 @@ components:
 			expectedOutput: "[PAGINATION_NO_LIMIT_OFFSET]",
 		},
 		{
-			name: "InvalidLimitOnNonPaginatedEndpoint",
+			name: "LimitOnNonPaginatedEndpointAllowed",
 			spec: `openapi: 3.0.0
 info:
   title: Test
@@ -245,8 +245,58 @@ components:
       properties:
         message:
           type: string`,
-			expectedExit:   1,
-			expectedOutput: "[PAGINATION_NO_LIMIT_OFFSET]",
+			expectedExit:   0,
+			expectedOutput: "compliant",
+		},
+		{
+			name: "OffsetAsDomainFieldAllowed",
+			spec: `openapi: 3.0.0
+info:
+  title: Test
+  version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
+paths:
+  /messages.commit:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommitRequest'
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    CommitRequest:
+      type: object
+      properties:
+        partition:
+          type: integer
+          format: int32
+        offset:
+          type: integer
+          format: int64
+    Error:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string`,
+			expectedExit:   0,
+			expectedOutput: "compliant",
 		},
 		{
 			name: "ValidPaginationSubObject",
