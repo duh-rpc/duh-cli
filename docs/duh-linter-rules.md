@@ -846,13 +846,18 @@ Field names are matched using normalization (strip separators, lowercase).
 
 ### `PAGINATION_NO_LIMIT_OFFSET` — ERROR
 
-The following parameter names are prohibited as they imply offset-style pagination:
+This rule applies only to paginated endpoints (paths ending in `.list`, `.search`, or `.query`).
+On those endpoints the following top-level request body parameter names are prohibited as they
+imply offset-style pagination:
 
 - `limit`
 - `offset`
 - `page` as a standalone top-level integer parameter
 
 The `pagination` sub-object described above is the only permitted pagination construct.
+
+On non-paginated endpoints these names are unrestricted, so domain fields such as a Kafka partition
+`offset` or a byte `offset` are allowed.
 
 ---
 
