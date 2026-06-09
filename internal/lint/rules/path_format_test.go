@@ -2,6 +2,7 @@ package rules_test
 
 import (
 	"bytes"
+	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -486,7 +487,7 @@ paths:
 			filePath := writeYAML(t, test.spec)
 
 			var stdout bytes.Buffer
-			exitCode := duh.RunCmd(&stdout, []string{"lint", filePath})
+			exitCode := duh.RunCmd(context.Background(), &stdout, []string{"lint", filePath})
 
 			assert.Equal(t, test.expectedExit, exitCode)
 			assert.Contains(t, stdout.String(), test.expectedOutput)

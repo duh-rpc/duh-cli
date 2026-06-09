@@ -1,6 +1,7 @@
 package duh_test
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"strings"
@@ -97,7 +98,7 @@ func TestGenerateDuhCreatesProtoFile(t *testing.T) {
 	specPath, stdout := setupTest(t, simpleValidSpec)
 	tempDir := filepath.Dir(specPath)
 
-	exitCode := duh.RunCmd(stdout, []string{"generate", specPath})
+	exitCode := duh.RunCmd(context.Background(), stdout, []string{"generate", specPath})
 
 	require.Equal(t, 0, exitCode)
 	assert.Contains(t, stdout.String(), "✓")
@@ -137,7 +138,7 @@ func TestProtoWithCustomPath(t *testing.T) {
 	specPath, stdout := setupTest(t, simpleValidSpec)
 	tempDir := filepath.Dir(specPath)
 
-	exitCode := duh.RunCmd(stdout, []string{
+	exitCode := duh.RunCmd(context.Background(), stdout, []string{
 		"generate", specPath,
 		"--proto-path", "custom/path/api.proto",
 	})
@@ -158,7 +159,7 @@ func TestProtoSchemaExtraction(t *testing.T) {
 	specPath, stdout := setupTest(t, multiSchemaSpec)
 	tempDir := filepath.Dir(specPath)
 
-	exitCode := duh.RunCmd(stdout, []string{"generate", specPath})
+	exitCode := duh.RunCmd(context.Background(), stdout, []string{"generate", specPath})
 
 	require.Equal(t, 0, exitCode)
 
@@ -219,7 +220,7 @@ components:
 
 	specPath, stdout := setupTest(t, invalidFieldSpec)
 
-	exitCode := duh.RunCmd(stdout, []string{"generate", specPath})
+	exitCode := duh.RunCmd(context.Background(), stdout, []string{"generate", specPath})
 
 	require.Equal(t, 2, exitCode)
 	output := stdout.String()

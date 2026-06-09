@@ -2,6 +2,7 @@ package rules_test
 
 import (
 	"bytes"
+	"context"
 	"testing"
 
 	"github.com/duh-rpc/duh-cli"
@@ -59,7 +60,7 @@ components:
 	filePath := writeYAML(t, spec)
 
 	var stdout bytes.Buffer
-	exitCode := duh.RunCmd(&stdout, []string{"lint", filePath})
+	exitCode := duh.RunCmd(context.Background(), &stdout, []string{"lint", filePath})
 
 	// DESCRIPTION_REQUIRED should not appear for that operation
 	assert.Equal(t, 0, exitCode)
@@ -111,7 +112,7 @@ components:
 	filePath := writeYAML(t, spec)
 
 	var stdout bytes.Buffer
-	exitCode := duh.RunCmd(&stdout, []string{"lint", filePath})
+	exitCode := duh.RunCmd(context.Background(), &stdout, []string{"lint", filePath})
 
 	assert.Equal(t, 0, exitCode)
 	assert.NotContains(t, stdout.String(), "DESCRIPTION_REQUIRED")
@@ -178,7 +179,7 @@ components:
 	filePath := writeYAML(t, spec)
 
 	var stdout bytes.Buffer
-	exitCode := duh.RunCmd(&stdout, []string{"lint", filePath})
+	exitCode := duh.RunCmd(context.Background(), &stdout, []string{"lint", filePath})
 
 	// Unknown rule is silently ignored, NO_NULLABLE still fires for the schema
 	assert.Equal(t, 1, exitCode)
@@ -238,7 +239,7 @@ components:
 	filePath := writeYAML(t, spec)
 
 	var stdout bytes.Buffer
-	exitCode := duh.RunCmd(&stdout, []string{"lint", filePath})
+	exitCode := duh.RunCmd(context.Background(), &stdout, []string{"lint", filePath})
 
 	// NO_NULLABLE should not appear since schema has x-duh-lint-ignore
 	assert.Equal(t, 0, exitCode)

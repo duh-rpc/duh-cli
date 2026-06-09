@@ -2,6 +2,7 @@ package add_test
 
 import (
 	"bytes"
+	"context"
 	"os"
 	"path/filepath"
 	"strings"
@@ -47,7 +48,7 @@ func TestAddCommandWithDefaultFile(t *testing.T) {
 	require.NoError(t, err)
 
 	var stdout bytes.Buffer
-	exitCode := duh.RunCmd(&stdout, []string{"add", "/users.create", "CreateUser"})
+	exitCode := duh.RunCmd(context.Background(), &stdout, []string{"add", "/users.create", "CreateUser"})
 
 	require.Equal(t, 0, exitCode)
 	require.Contains(t, stdout.String(), "✓ Added endpoint /users.create")
@@ -67,7 +68,7 @@ func TestAddCommandWithFFlag(t *testing.T) {
 	require.NoError(t, err)
 
 	var stdout bytes.Buffer
-	exitCode := duh.RunCmd(&stdout, []string{"add", "-f", customPath, "/products.list", "ListProducts"})
+	exitCode := duh.RunCmd(context.Background(), &stdout, []string{"add", "-f", customPath, "/products.list", "ListProducts"})
 
 	require.Equal(t, 0, exitCode)
 	require.Contains(t, stdout.String(), "✓ Added endpoint /products.list")
@@ -104,7 +105,7 @@ components:
 	require.NoError(t, err)
 
 	var stdout bytes.Buffer
-	exitCode := duh.RunCmd(&stdout, []string{"add", "-f", filePath, "/users.create", "CreateUser"})
+	exitCode := duh.RunCmd(context.Background(), &stdout, []string{"add", "-f", filePath, "/users.create", "CreateUser"})
 
 	require.Equal(t, 2, exitCode)
 	require.Contains(t, stdout.String(), "Error:")
@@ -140,7 +141,7 @@ func TestAddCommandInvalidPath(t *testing.T) {
 		},
 	} {
 		var stdout bytes.Buffer
-		exitCode := duh.RunCmd(&stdout, []string{"add", "-f", filePath, test.path, test.name})
+		exitCode := duh.RunCmd(context.Background(), &stdout, []string{"add", "-f", filePath, test.path, test.name})
 
 		assert.Equal(t, 2, exitCode)
 		assert.Contains(t, stdout.String(), "Error:")
@@ -153,7 +154,7 @@ func TestAddCommandFileNotFound(t *testing.T) {
 	nonexistentFile := filepath.Join(tempDir, "nonexistent.yaml")
 
 	var stdout bytes.Buffer
-	exitCode := duh.RunCmd(&stdout, []string{"add", "-f", nonexistentFile, "/users.create", "CreateUser"})
+	exitCode := duh.RunCmd(context.Background(), &stdout, []string{"add", "-f", nonexistentFile, "/users.create", "CreateUser"})
 
 	require.Equal(t, 2, exitCode)
 	require.Contains(t, stdout.String(), "Error:")
@@ -162,7 +163,7 @@ func TestAddCommandFileNotFound(t *testing.T) {
 
 func TestAddCommandNoArguments(t *testing.T) {
 	var stdout bytes.Buffer
-	exitCode := duh.RunCmd(&stdout, []string{"add"})
+	exitCode := duh.RunCmd(context.Background(), &stdout, []string{"add"})
 
 	require.Equal(t, 2, exitCode)
 	output := strings.ToLower(stdout.String())
@@ -171,7 +172,7 @@ func TestAddCommandNoArguments(t *testing.T) {
 
 func TestAddCommandHelp(t *testing.T) {
 	var stdout bytes.Buffer
-	exitCode := duh.RunCmd(&stdout, []string{"add", "--help"})
+	exitCode := duh.RunCmd(context.Background(), &stdout, []string{"add", "--help"})
 
 	require.Equal(t, 0, exitCode)
 	require.Contains(t, stdout.String(), "add <path> <name>")
@@ -205,11 +206,11 @@ components:
 	require.NoError(t, err)
 
 	var addStdout bytes.Buffer
-	addExitCode := duh.RunCmd(&addStdout, []string{"add", "-f", filePath, "/orders.update", "Update"})
+	addExitCode := duh.RunCmd(context.Background(), &addStdout, []string{"add", "-f", filePath, "/orders.update", "Update"})
 	require.Equal(t, 0, addExitCode)
 
 	var lintStdout bytes.Buffer
-	lintExitCode := duh.RunCmd(&lintStdout, []string{"lint", filePath})
+	lintExitCode := duh.RunCmd(context.Background(), &lintStdout, []string{"lint", filePath})
 	require.Equal(t, 0, lintExitCode)
 	require.Contains(t, lintStdout.String(), "✓")
 	require.Contains(t, lintStdout.String(), "DUH-RPC compliant")
@@ -223,11 +224,11 @@ func TestAddCommandMultipleEndpoints(t *testing.T) {
 	require.NoError(t, err)
 
 	var stdout1 bytes.Buffer
-	exitCode1 := duh.RunCmd(&stdout1, []string{"add", "-f", filePath, "/users.create", "CreateUser"})
+	exitCode1 := duh.RunCmd(context.Background(), &stdout1, []string{"add", "-f", filePath, "/users.create", "CreateUser"})
 	require.Equal(t, 0, exitCode1)
 
 	var stdout2 bytes.Buffer
-	exitCode2 := duh.RunCmd(&stdout2, []string{"add", "-f", filePath, "/users.get", "GetUser"})
+	exitCode2 := duh.RunCmd(context.Background(), &stdout2, []string{"add", "-f", filePath, "/users.get", "GetUser"})
 	require.Equal(t, 0, exitCode2)
 
 	content, err := os.ReadFile(filePath)
@@ -246,7 +247,7 @@ func TestAddCommandVerifyResponseStructure(t *testing.T) {
 	require.NoError(t, err)
 
 	var stdout bytes.Buffer
-	exitCode := duh.RunCmd(&stdout, []string{"add", "-f", filePath, "/products.create", "CreateProduct"})
+	exitCode := duh.RunCmd(context.Background(), &stdout, []string{"add", "-f", filePath, "/products.create", "CreateProduct"})
 	require.Equal(t, 0, exitCode)
 
 	content, err := os.ReadFile(filePath)

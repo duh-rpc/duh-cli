@@ -2,6 +2,7 @@ package rules_test
 
 import (
 	"bytes"
+	"context"
 	"testing"
 
 	"github.com/duh-rpc/duh-cli"
@@ -213,7 +214,7 @@ paths:
 			filePath := writeYAML(t, test.spec)
 
 			var stdout bytes.Buffer
-			exitCode := duh.RunCmd(&stdout, []string{"lint", filePath})
+			exitCode := duh.RunCmd(context.Background(), &stdout, []string{"lint", filePath})
 
 			assert.Equal(t, test.expectedExit, exitCode)
 			assert.Contains(t, stdout.String(), test.expectedOutput)
@@ -253,7 +254,7 @@ paths:
 		filePath := writeYAML(t, spec)
 
 		var stdout bytes.Buffer
-		exitCode := duh.RunCmd(&stdout, []string{"lint", filePath})
+		exitCode := duh.RunCmd(context.Background(), &stdout, []string{"lint", filePath})
 
 		assert.Equal(t, 1, exitCode)
 		assert.Contains(t, stdout.String(), "Pagination parameter 'first' must be nested under 'pagination' sub-object")

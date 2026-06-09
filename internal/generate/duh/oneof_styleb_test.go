@@ -1,6 +1,7 @@
 package duh_test
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"strings"
@@ -96,7 +97,7 @@ func TestGenerateStyleBEmitsProtoOneof(t *testing.T) {
 	specPath, stdout := setupTest(t, styleBValidSpec)
 	tempDir := filepath.Dir(specPath)
 
-	exitCode := duh.RunCmd(stdout, []string{"generate", specPath})
+	exitCode := duh.RunCmd(context.Background(), stdout, []string{"generate", specPath})
 
 	require.Equal(t, 0, exitCode)
 

@@ -2,6 +2,7 @@ package duh_test
 
 import (
 	"bytes"
+	"context"
 	"os"
 	"path/filepath"
 	"strings"
@@ -40,7 +41,7 @@ func TestGenerateDuhWithFullFlagAndInitSpec(t *testing.T) {
 	var err error
 	var stdout bytes.Buffer
 	args := []string{"generate", "openapi.yaml", "--full"}
-	exitCode := duh.RunCmd(&stdout, args)
+	exitCode := duh.RunCmd(context.Background(), &stdout, args)
 
 	require.Equal(t, 0, exitCode)
 	assert.Contains(t, stdout.String(), "Generated 9 file(s)")
@@ -117,7 +118,7 @@ func TestGenerateDuhWithFullFlagAndCustomSpec(t *testing.T) {
 	var err error
 	var stdout bytes.Buffer
 	args := []string{"generate", "openapi.yaml", "--full"}
-	exitCode := duh.RunCmd(&stdout, args)
+	exitCode := duh.RunCmd(context.Background(), &stdout, args)
 
 	require.Equal(t, 0, exitCode)
 	assert.Contains(t, stdout.String(), "Generated 9 file(s)")
@@ -150,7 +151,7 @@ func TestGenerateDuhWithoutFullFlag(t *testing.T) {
 	var err error
 	var stdout bytes.Buffer
 	args := []string{"generate", "openapi.yaml"}
-	exitCode := duh.RunCmd(&stdout, args)
+	exitCode := duh.RunCmd(context.Background(), &stdout, args)
 
 	require.Equal(t, 0, exitCode)
 	assert.Contains(t, stdout.String(), "Generated 5 file(s)")
@@ -188,7 +189,7 @@ func TestRegenerateWithFullFlagOverwrites(t *testing.T) {
 	var err error
 	var stdout bytes.Buffer
 	args := []string{"generate", "openapi.yaml", "--full"}
-	exitCode := duh.RunCmd(&stdout, args)
+	exitCode := duh.RunCmd(context.Background(), &stdout, args)
 	require.Equal(t, 0, exitCode)
 
 	const customContent = "// MY CUSTOM EDIT"
@@ -196,7 +197,7 @@ func TestRegenerateWithFullFlagOverwrites(t *testing.T) {
 	require.NoError(t, err)
 
 	var stdout2 bytes.Buffer
-	exitCode = duh.RunCmd(&stdout2, args)
+	exitCode = duh.RunCmd(context.Background(), &stdout2, args)
 	require.Equal(t, 0, exitCode)
 
 	serviceContent, err := os.ReadFile("service.go")
@@ -224,7 +225,7 @@ func TestMakefileGoesToProjectRoot(t *testing.T) {
 	var err error
 	var stdout bytes.Buffer
 	args := []string{"generate", "openapi.yaml", "--output-dir", "api", "--full"}
-	exitCode := duh.RunCmd(&stdout, args)
+	exitCode := duh.RunCmd(context.Background(), &stdout, args)
 	require.Equal(t, 0, exitCode)
 
 	_, err = os.Stat(filepath.Join("api", "Makefile"))
@@ -257,7 +258,7 @@ func TestFullGeneratedCodeFormat(t *testing.T) {
 
 	var stdout bytes.Buffer
 	args := []string{"generate", "openapi.yaml", "--full"}
-	exitCode := duh.RunCmd(&stdout, args)
+	exitCode := duh.RunCmd(context.Background(), &stdout, args)
 	require.Equal(t, 0, exitCode)
 
 	goFiles := []string{"daemon.go", "service.go", "api_test.go", "server.go", "client.go"}
@@ -301,7 +302,7 @@ func TestBufFilesNotOverwrittenWhenExist(t *testing.T) {
 	var err error
 	var stdout bytes.Buffer
 	args := []string{"generate", "openapi.yaml"}
-	exitCode := duh.RunCmd(&stdout, args)
+	exitCode := duh.RunCmd(context.Background(), &stdout, args)
 
 	require.Equal(t, 0, exitCode)
 	assert.Contains(t, stdout.String(), "Generated 3 file(s)")
@@ -582,7 +583,7 @@ func TestGenerateDuhWithFullFlagAndExtraEndpoint(t *testing.T) {
 	var err error
 	var stdout bytes.Buffer
 	args := []string{"generate", "openapi.yaml", "--full"}
-	exitCode := duh.RunCmd(&stdout, args)
+	exitCode := duh.RunCmd(context.Background(), &stdout, args)
 
 	require.Equal(t, 0, exitCode)
 

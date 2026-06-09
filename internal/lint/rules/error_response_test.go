@@ -2,6 +2,7 @@ package rules_test
 
 import (
 	"bytes"
+	"context"
 	"testing"
 
 	duh "github.com/duh-rpc/duh-cli"
@@ -654,7 +655,7 @@ paths:
 			filePath := writeYAML(t, test.spec)
 
 			var stdout bytes.Buffer
-			exitCode := duh.RunCmd(&stdout, []string{"lint", filePath})
+			exitCode := duh.RunCmd(context.Background(), &stdout, []string{"lint", filePath})
 
 			assert.Equal(t, test.expectedExit, exitCode)
 			assert.Contains(t, stdout.String(), test.expectedOutput)
@@ -719,7 +720,7 @@ components:
 	filePath := writeYAML(t, spec)
 
 	var stdout bytes.Buffer
-	exitCode := duh.RunCmd(&stdout, []string{"lint", filePath})
+	exitCode := duh.RunCmd(context.Background(), &stdout, []string{"lint", filePath})
 
 	assert.Equal(t, 0, exitCode)
 	assert.Contains(t, stdout.String(), "✓ spec.yaml is DUH-RPC compliant")
@@ -777,7 +778,7 @@ components:
 	filePath := writeYAML(t, spec)
 
 	var stdout bytes.Buffer
-	exitCode := duh.RunCmd(&stdout, []string{"lint", filePath})
+	exitCode := duh.RunCmd(context.Background(), &stdout, []string{"lint", filePath})
 
 	assert.Equal(t, 0, exitCode)
 	assert.Contains(t, stdout.String(), "✓ spec.yaml is DUH-RPC compliant")

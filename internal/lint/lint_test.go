@@ -2,6 +2,7 @@ package lint_test
 
 import (
 	"bytes"
+	"context"
 	"strings"
 	"testing"
 
@@ -13,7 +14,7 @@ import (
 func TestLinterValidSpec(t *testing.T) {
 	var stdout bytes.Buffer
 
-	exitCode := duh.RunCmd(&stdout, []string{"lint", "testdata/valid-spec.yaml"})
+	exitCode := duh.RunCmd(context.Background(), &stdout, []string{"lint", "testdata/valid-spec.yaml"})
 
 	require.Equal(t, 0, exitCode)
 	assert.Contains(t, stdout.String(), "✓")
@@ -297,7 +298,7 @@ func TestLinterAllRuleViolations(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			var stdout bytes.Buffer
 
-			exitCode := duh.RunCmd(&stdout, []string{"lint", test.file})
+			exitCode := duh.RunCmd(context.Background(), &stdout, []string{"lint", test.file})
 
 			assert.Equal(t, test.expectedExitCode, exitCode)
 			output := stdout.String()
@@ -310,7 +311,7 @@ func TestLinterAllRuleViolations(t *testing.T) {
 func TestLinterMultipleViolations(t *testing.T) {
 	var stdout bytes.Buffer
 
-	exitCode := duh.RunCmd(&stdout, []string{"lint", "testdata/multiple-violations.yaml"})
+	exitCode := duh.RunCmd(context.Background(), &stdout, []string{"lint", "testdata/multiple-violations.yaml"})
 
 	require.Equal(t, 1, exitCode)
 
@@ -378,7 +379,7 @@ func TestLinterMultipleViolations(t *testing.T) {
 func TestLinterFileNotFound(t *testing.T) {
 	var stdout bytes.Buffer
 
-	exitCode := duh.RunCmd(&stdout, []string{"lint", "nonexistent.yaml"})
+	exitCode := duh.RunCmd(context.Background(), &stdout, []string{"lint", "nonexistent.yaml"})
 
 	require.Equal(t, 2, exitCode)
 	assert.Contains(t, stdout.String(), "file not found")
@@ -387,7 +388,7 @@ func TestLinterFileNotFound(t *testing.T) {
 func TestLinterInvalidYAML(t *testing.T) {
 	var stdout bytes.Buffer
 
-	exitCode := duh.RunCmd(&stdout, []string{"lint", "testdata/invalid-syntax.yaml"})
+	exitCode := duh.RunCmd(context.Background(), &stdout, []string{"lint", "testdata/invalid-syntax.yaml"})
 
 	require.Equal(t, 2, exitCode)
 	assert.Contains(t, stdout.String(), "failed to parse OpenAPI spec")

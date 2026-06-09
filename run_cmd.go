@@ -1,11 +1,13 @@
 package duh
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"strings"
 
 	"github.com/duh-rpc/duh-cli/internal/add"
+	"github.com/duh-rpc/duh-cli/internal/docs"
 	"github.com/duh-rpc/duh-cli/internal/fieldmap"
 	"github.com/duh-rpc/duh-cli/internal/generate/duh"
 	init_ "github.com/duh-rpc/duh-cli/internal/init"
@@ -15,8 +17,9 @@ import (
 
 const Version = "1.0.0"
 
-// RunCmd executes the CLI logic and returns exit code
-func RunCmd(stdout io.Writer, args []string) int {
+// RunCmd executes the CLI logic and returns exit code. The context cancels
+// long-running commands (such as 'docs serve') on interrupt or from a test.
+func RunCmd(ctx context.Context, stdout io.Writer, args []string) int {
 	exitCode := 0
 
 	rootCmd := &cobra.Command{
@@ -224,7 +227,99 @@ Exit Codes:
 	generateCmd.Flags().String("lock-path", "", "Path to fieldmap.lock (default <spec-dir>/fieldmap.lock)")
 	generateCmd.Flags().Bool("full", false, "Generate additional editable scaffolding files")
 
-	rootCmd.AddCommand(lintCmd, initCmd, addCmd, generateCmd)
+	docsCmd := &cobra.Command{
+		Use:   "docs",
+		Short: "Render an OpenAPI spec as browsable API documentation",
+		Long: `Render an OpenAPI spec as browsable API documentation using ReDoc.
+
+docs is a viewer, not a validator: it renders any OpenAPI document that parses and
+deliberately does not require DUH-RPC lint compliance (that is 'duh lint's job).`,
+		Run: func(cmd *cobra.Command, args []string) {
+			_ = cmd.Help()
+		},
+	}
+
+	docsServeCmd := &cobra.Command{
+		Use:   "serve [openapi-file]",
+		Short: "Serve live, auto-reloading API documentation",
+		Long: `Serve live, auto-reloading API documentation for an OpenAPI spec.
+
+Starts a local web server that renders the spec and reloads the browser whenever
+the spec file changes on disk. Terminate with Ctrl-C.
+
+If no file path is provided, defaults to 'openapi.yaml' in the current directory.
+
+Exit Codes:
+  0    Server shut down cleanly
+  2    Error (file not found, parse error, bind failure, etc.)`,
+		Args: cobra.MaximumNArgs(1),
+		Run: func(cmd *cobra.Command, args []string) {
+			const defaultFile = "openapi.yaml"
+			specPath := defaultFile
+			if len(args) > 0 {
+				specPath = args[0]
+			}
+
+			port, _ := cmd.Flags().GetInt("port")
+			publicURL, _ := cmd.Flags().GetString("public-url")
+			noOpen, _ := cmd.Flags().GetBool("no-open")
+
+			if err := docs.Serve(ctx, docs.ServeConfig{
+				Writer:    cmd.OutOrStdout(),
+				SpecPath:  specPath,
+				Port:      port,
+				PublicURL: publicURL,
+				NoOpen:    noOpen,
+			}); err != nil {
+				_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Error: %v\n", err)
+				exitCode = 2
+				return
+			}
+		},
+	}
+	docsServeCmd.Flags().Int("port", 8080, "Port to bind (0 selects a free port)")
+	docsServeCmd.Flags().String("public-url", "", "Override the printed URL; suppresses auto-open")
+	docsServeCmd.Flags().Bool("no-open", false, "Suppress local browser auto-open")
+
+	docsExportCmd := &cobra.Command{
+		Use:   "export [openapi-file]",
+		Short: "Export a single self-contained HTML documentation file",
+		Long: `Export a single self-contained HTML documentation file for an OpenAPI spec.
+
+Writes one portable HTML file with ReDoc and the spec inlined. It renders offline
+with no build step and no network access, for handing to non-engineers and partners.
+
+If no file path is provided, defaults to 'openapi.yaml' in the current directory.
+
+Exit Codes:
+  0    Documentation exported successfully
+  2    Error (file not found, parse error, write failure, etc.)`,
+		Args: cobra.MaximumNArgs(1),
+		Run: func(cmd *cobra.Command, args []string) {
+			const defaultFile = "openapi.yaml"
+			specPath := defaultFile
+			if len(args) > 0 {
+				specPath = args[0]
+			}
+
+			output, _ := cmd.Flags().GetString("output")
+
+			if err := docs.Export(docs.ExportConfig{
+				Writer:   cmd.OutOrStdout(),
+				SpecPath: specPath,
+				Output:   output,
+			}); err != nil {
+				_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Error: %v\n", err)
+				exitCode = 2
+				return
+			}
+		},
+	}
+	docsExportCmd.Flags().StringP("output", "o", "docs.html", "Output file path")
+
+	docsCmd.AddCommand(docsServeCmd, docsExportCmd)
+
+	rootCmd.AddCommand(lintCmd, initCmd, addCmd, generateCmd, docsCmd)
 	rootCmd.SetOut(stdout)
 	rootCmd.SetErr(stdout)
 	rootCmd.SetArgs(args)
