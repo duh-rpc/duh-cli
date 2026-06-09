@@ -8,12 +8,14 @@ Accepted
 
 ## Context
 
-`fieldmap.lock` pins each enum variant to a stable Protobuf number. A DUH spec declares the
-`*_UNSPECIFIED` sentinel first (ADR 0004):
+`fieldmap.lock` pins each enum variant to a stable Protobuf number. Only **integer** enums become
+proto enums (and are locked); a `type: string` enum is generated as a proto `string` field and is not
+locked. A proto enum that declares an `*_UNSPECIFIED` sentinel declares it first (ADR 0004) — note the
+declaration is `type: integer` with named variant values, which is legal OpenAPI:
 
 ```yaml
 Status:
-  type: string
+  type: integer
   enum: [STATUS_UNSPECIFIED, active, inactive, suspended]
 ```
 
