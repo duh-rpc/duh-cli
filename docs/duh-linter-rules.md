@@ -613,39 +613,82 @@ metadata:
 
 ### `ENUM_UNSPECIFIED_VARIANT` — ERROR
 
-Schemas defining an `enum` MUST include an `UNSPECIFIED` variant as the first entry. This follows
-the protobuf enum convention where the zero value represents an unset or unknown state, which is
-critical because:
+A `type: integer` enum that declares an `*_UNSPECIFIED` sentinel MUST declare it as the first
+variant. Only integer enums become closed protobuf enums, where number `0` is the wire default for
+an unset field; the sentinel must own `0` so an absent field never decodes as a real value. This
+rule fires only when all of the following hold, mirroring `duh generate` exactly (`duh lint` rejects
+precisely the enum specs `duh generate` rejects):
 
-- Protobuf has no concept of "unset" for scalar fields — the zero value is always the default.
-- An `UNSPECIFIED` entry at position 0 gives the generated enum a safe default when the field is
-  absent from the wire.
-- Consumers can distinguish "value not provided" from any legitimate business value.
+- the schema is `type: integer`;
+- some variant value ends in `UNSPECIFIED`;
+- the first variant value does not.
 
-The variant name SHOULD be prefixed with the enum's name to avoid collisions in languages that
-share a flat enum namespace (e.g. C++, protobuf codegen).
+A `type: string` enum (an open protobuf `string` field) and a sentinel-less integer enum (whose
+first value legitimately takes `0`) are both accepted — neither has an `*_UNSPECIFIED` sentinel to
+position.
 
 ```yaml
-# ✅ valid
-EventStatus:
-  type: string
+# ✅ valid — sentinel owns number 0
+Code:
+  type: integer
+  format: int32
   enum:
-    - EVENT_STATUS_UNSPECIFIED
-    - EVENT_STATUS_ACTIVE
-    - EVENT_STATUS_CLOSED
+    - CODE_UNSPECIFIED
+    - CODE_OK
+    - CODE_ERR
 
-# ❌ invalid — no unspecified variant
-EventStatus:
-  type: string
+# ✅ valid — bare integer enum, first value legitimately takes 0
+Code:
+  type: integer
+  format: int32
   enum:
-    - ACTIVE
-    - CLOSED
+    - 200
+    - 404
+    - 500
+
+# ❌ invalid — sentinel exists but is not first
+Code:
+  type: integer
+  format: int32
+  enum:
+    - CODE_OK
+    - CODE_UNSPECIFIED
 ```
 
 **Note on `type: string` vs. enums:** A schema with `type: string` and no `enum` field is a free-form
 string, not an enum. Protobuf generators MUST emit such fields as protobuf `string` scalars, never
-as protobuf enums. Only schemas with an explicit `enum` list are candidates for protobuf enum
-generation.
+as protobuf enums. A `type: string` schema *with* an `enum` generates an open protobuf `string`
+field (any value is valid on the wire), not a closed protobuf enum — so it is never flagged by this
+rule. See `ENUM_STRING_SENTINEL_NAMES` for the advisory that targets sentinel naming on string enums.
+
+---
+
+### `ENUM_STRING_SENTINEL_NAMES` — WARNING
+
+A `type: string` enum whose values use protobuf-enum sentinel naming (any value ending in
+`UNSPECIFIED`) almost certainly belongs to an author who meant a closed protobuf enum but reached for
+the wrong `type`. A string enum generates an open protobuf `string` field, so the sentinel buys
+nothing. This is advisory only — the spec generates correctly, so the warning never fails lint.
+
+```yaml
+# ⚠️ warning — sentinel naming on a string enum (an open string field, not a closed enum)
+Status:
+  type: string
+  enum:
+    - STATUS_UNSPECIFIED
+    - STATUS_ACTIVE
+
+# ✅ no warning — open string enum without sentinel naming
+OffsetMode:
+  type: string
+  enum:
+    - earliest
+    - latest
+    - at_offset
+```
+
+To get a closed, wire-safe protobuf enum, use `type: integer` with named variants and an
+`*_UNSPECIFIED` sentinel first; to keep an open string field, drop the sentinel.
 
 ---
 
@@ -1098,6 +1141,7 @@ idempotency_key:
 | `NO_NESTED_ARRAYS` | ERROR | Protobuf |
 | `TYPED_ADDITIONAL_PROPERTIES` | ERROR | Protobuf |
 | `ENUM_UNSPECIFIED_VARIANT` | ERROR | Protobuf |
+| `ENUM_STRING_SENTINEL_NAMES` | WARNING | Protobuf |
 | `PROHIBITED_ALLOF` | ERROR | Protobuf |
 | `PROHIBITED_ANYOF` | ERROR | Protobuf |
 | `PROHIBITED_ONEOF` | ERROR | Protobuf |

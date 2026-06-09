@@ -582,13 +582,13 @@ enums:
 
 // Acceptance #6 (validation surface): an enum's variants are keyed by literal value,
 // so reordering them in the spec does not disturb the locked proto integers and lint
-// still passes. The ENUM_UNSPECIFIED_VARIANT rule is disabled because a bare integer
-// enum (a proto enum) legitimately has no *_UNSPECIFIED sentinel.
+// still passes. A bare integer enum (a proto enum) legitimately has no *_UNSPECIFIED
+// sentinel, so ENUM_UNSPECIFIED_VARIANT does not fire and runs un-disabled here.
 func TestFieldmapLockEnumReorderIsSafe(t *testing.T) {
 	dir := writeProject(t, enumSpec("        - 200\n        - 404\n        - 500"))
 	require.NoError(t, os.WriteFile(filepath.Join(dir, "fieldmap.lock"), []byte(enumLock), 0644))
 
-	exitCode, out := lint(t, "--disable", "ENUM_UNSPECIFIED_VARIANT")
+	exitCode, out := lint(t)
 	require.Equal(t, 0, exitCode, out)
 
 	// Reorder the enum variants; lint must still pass because numbers are keyed by
@@ -596,7 +596,7 @@ func TestFieldmapLockEnumReorderIsSafe(t *testing.T) {
 	require.NoError(t, os.WriteFile("openapi.yaml",
 		[]byte(enumSpec("        - 500\n        - 200\n        - 404")), 0644))
 
-	exitCode, out = lint(t, "--disable", "ENUM_UNSPECIFIED_VARIANT")
+	exitCode, out = lint(t)
 	assert.Equal(t, 0, exitCode, out)
 }
 
@@ -626,7 +626,7 @@ enums:
             "404": {number: 1}
 `), 0644))
 
-	exitCode, out := lint(t, "--disable", "ENUM_UNSPECIFIED_VARIANT")
+	exitCode, out := lint(t)
 	assert.Equal(t, 1, exitCode)
 	assert.Contains(t, out, "FIELDMAP_LOCK")
 	assert.Contains(t, out, "500")
@@ -661,7 +661,7 @@ enums:
         reserved: [0]
 `
 	require.NoError(t, os.WriteFile(filepath.Join(dir, "fieldmap.lock"), []byte(validLock), 0644))
-	exitCode, out := lint(t, "--disable", "ENUM_UNSPECIFIED_VARIANT")
+	exitCode, out := lint(t)
 	assert.Equal(t, 0, exitCode, out)
 
 	// A lock that hands the live '200' variant the reserved number 0 is rejected.
@@ -686,7 +686,7 @@ enums:
         reserved: [0]
 `
 	require.NoError(t, os.WriteFile(filepath.Join(dir, "fieldmap.lock"), []byte(badLock), 0644))
-	exitCode, out = lint(t, "--disable", "ENUM_UNSPECIFIED_VARIANT")
+	exitCode, out = lint(t)
 	assert.Equal(t, 1, exitCode)
 	assert.Contains(t, out, "FIELDMAP_LOCK")
 }
@@ -772,10 +772,9 @@ func TestFieldmapLockMultiNewFieldDeterminism(t *testing.T) {
 }
 
 // protoEnumSpec returns a DUH spec with a top-level integer enum (a real proto enum)
-// referenced by a response field. The enum carries x-duh-lint-ignore so it passes the
-// ENUM_UNSPECIFIED_VARIANT rule, which duh generate runs un-disabled; this is the only
-// way an integer enum reaches generate's lock/proto enum path. variants is the enum
-// block (each line indented 6 spaces, e.g. "      - 0").
+// referenced by a response field. A bare integer enum has no *_UNSPECIFIED sentinel, so
+// ENUM_UNSPECIFIED_VARIANT does not fire and the enum reaches generate's lock/proto enum
+// path un-disabled. variants is the enum block (each line indented 6 spaces, e.g. "      - 0").
 func protoEnumSpec(variants string) string {
 	return `openapi: 3.0.3
 info:
@@ -822,8 +821,6 @@ components:
       type: integer
       format: int32
       description: A proto enum priority
-      x-duh-lint-ignore:
-        - ENUM_UNSPECIFIED_VARIANT
       enum:
 ` + variants + `
     WidgetsCreateRequest:
