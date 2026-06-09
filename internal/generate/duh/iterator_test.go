@@ -1,6 +1,7 @@
 package duh_test
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -14,7 +15,7 @@ func TestGenerateDuhCreatesIteratorWithListOps(t *testing.T) {
 	specPath, stdout := setupTest(t, specWithListOp)
 	tempDir := filepath.Dir(specPath)
 
-	exitCode := duh.RunCmd(stdout, []string{"generate", specPath})
+	exitCode := duh.RunCmd(context.Background(), stdout, []string{"generate", specPath})
 
 	require.Equal(t, 0, exitCode)
 	assert.Contains(t, stdout.String(), "✓")
@@ -36,7 +37,7 @@ func TestGenerateDuhSkipsIteratorWithoutListOps(t *testing.T) {
 	specPath, stdout := setupTest(t, simpleValidSpec)
 	tempDir := filepath.Dir(specPath)
 
-	exitCode := duh.RunCmd(stdout, []string{"generate", specPath})
+	exitCode := duh.RunCmd(context.Background(), stdout, []string{"generate", specPath})
 
 	require.Equal(t, 0, exitCode)
 	assert.Contains(t, stdout.String(), "✓")
@@ -51,7 +52,7 @@ func TestIteratorStructure(t *testing.T) {
 	specPath, stdout := setupTest(t, specWithListOp)
 	tempDir := filepath.Dir(specPath)
 
-	exitCode := duh.RunCmd(stdout, []string{"generate", specPath})
+	exitCode := duh.RunCmd(context.Background(), stdout, []string{"generate", specPath})
 
 	require.Equal(t, 0, exitCode)
 

@@ -1,6 +1,7 @@
 package duh_test
 
 import (
+	"context"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -132,7 +133,7 @@ func TestGeneratedServerCompiles(t *testing.T) {
 	specPath, stdout := setupTest(t, simpleValidSpec)
 	tempDir := filepath.Dir(specPath)
 
-	exitCode := duh.RunCmd(stdout, []string{"generate", specPath})
+	exitCode := duh.RunCmd(context.Background(), stdout, []string{"generate", specPath})
 	require.Equal(t, 0, exitCode)
 
 	protoDir := filepath.Join(tempDir, "proto/v1")
@@ -213,7 +214,7 @@ func TestGeneratedServerStructure(t *testing.T) {
 	specPath, stdout := setupTest(t, simpleValidSpec)
 	tempDir := filepath.Dir(specPath)
 
-	exitCode := duh.RunCmd(stdout, []string{"generate", specPath})
+	exitCode := duh.RunCmd(context.Background(), stdout, []string{"generate", specPath})
 	require.Equal(t, 0, exitCode)
 	assert.Contains(t, stdout.String(), "✓")
 	assert.Contains(t, stdout.String(), "server.go")
@@ -244,7 +245,7 @@ func TestServerWithMultipleOperations(t *testing.T) {
 	specPath, stdout := setupTest(t, multiOpSpec)
 	tempDir := filepath.Dir(specPath)
 
-	exitCode := duh.RunCmd(stdout, []string{"generate", specPath})
+	exitCode := duh.RunCmd(context.Background(), stdout, []string{"generate", specPath})
 	require.Equal(t, 0, exitCode)
 
 	serverContent, err := os.ReadFile(filepath.Join(tempDir, "server.go"))

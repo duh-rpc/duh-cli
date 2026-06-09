@@ -2,6 +2,7 @@ package duh_test
 
 import (
 	"bytes"
+	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -27,7 +28,7 @@ func TestRenderBufGenYaml(t *testing.T) {
 
 	var err error
 	var stdout bytes.Buffer
-	exitCode := duh.RunCmd(&stdout, []string{"generate", "openapi.yaml"})
+	exitCode := duh.RunCmd(context.Background(), &stdout, []string{"generate", "openapi.yaml"})
 
 	require.Equal(t, 0, exitCode)
 
@@ -57,7 +58,7 @@ func TestBufFilesGeneratedWithoutFullFlag(t *testing.T) {
 
 	var err error
 	var stdout bytes.Buffer
-	exitCode := duh.RunCmd(&stdout, []string{"generate", "openapi.yaml"})
+	exitCode := duh.RunCmd(context.Background(), &stdout, []string{"generate", "openapi.yaml"})
 
 	require.Equal(t, 0, exitCode)
 	assert.Contains(t, stdout.String(), "Generated 5 file(s)")
@@ -89,7 +90,7 @@ func TestBufFilesGeneratedWithFullFlag(t *testing.T) {
 
 	var err error
 	var stdout bytes.Buffer
-	exitCode := duh.RunCmd(&stdout, []string{"generate", "openapi.yaml", "--full"})
+	exitCode := duh.RunCmd(context.Background(), &stdout, []string{"generate", "openapi.yaml", "--full"})
 
 	require.Equal(t, 0, exitCode)
 	assert.Contains(t, stdout.String(), "Generated 9 file(s)")
@@ -124,7 +125,7 @@ func TestMakefileWrittenToOutputDir(t *testing.T) {
 
 	var err error
 	var stdout bytes.Buffer
-	exitCode := duh.RunCmd(&stdout, []string{"generate", "openapi.yaml", "--output-dir", "api", "--full"})
+	exitCode := duh.RunCmd(context.Background(), &stdout, []string{"generate", "openapi.yaml", "--output-dir", "api", "--full"})
 	require.Equal(t, 0, exitCode)
 
 	_, err = os.Stat(filepath.Join("api", "Makefile"))

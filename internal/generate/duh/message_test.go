@@ -2,6 +2,7 @@ package duh_test
 
 import (
 	"bytes"
+	"context"
 	"os"
 	"path/filepath"
 	"strings"
@@ -27,7 +28,7 @@ func TestReminderMessageDisplayed(t *testing.T) {
 	require.NoError(t, os.Chdir(tempDir))
 
 	var stdout bytes.Buffer
-	exitCode := duh.RunCmd(&stdout, []string{"generate", "openapi.yaml"})
+	exitCode := duh.RunCmd(context.Background(), &stdout, []string{"generate", "openapi.yaml"})
 
 	require.Equal(t, 0, exitCode)
 
@@ -52,7 +53,7 @@ func TestReminderMessageWithFullFlag(t *testing.T) {
 	require.NoError(t, os.Chdir(tempDir))
 
 	var stdout bytes.Buffer
-	exitCode := duh.RunCmd(&stdout, []string{"generate", "openapi.yaml", "--full"})
+	exitCode := duh.RunCmd(context.Background(), &stdout, []string{"generate", "openapi.yaml", "--full"})
 
 	require.Equal(t, 0, exitCode)
 
@@ -77,7 +78,7 @@ func TestReminderMessageFormat(t *testing.T) {
 	require.NoError(t, os.Chdir(tempDir))
 
 	var stdout bytes.Buffer
-	exitCode := duh.RunCmd(&stdout, []string{"generate", "openapi.yaml"})
+	exitCode := duh.RunCmd(context.Background(), &stdout, []string{"generate", "openapi.yaml"})
 
 	require.Equal(t, 0, exitCode)
 

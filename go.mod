@@ -4,6 +4,7 @@ go 1.24.7
 
 require (
 	github.com/duh-rpc/openapi-schema.go v0.11.0
+	github.com/fsnotify/fsnotify v1.10.1
 	github.com/pb33f/libopenapi v0.28.2
 	github.com/spf13/cobra v1.10.1
 	github.com/stretchr/testify v1.11.1
@@ -29,5 +30,6 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rogpeppe/go-internal v1.12.0 // indirect
 	github.com/spf13/pflag v1.0.9 // indirect
+	golang.org/x/sys v0.37.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 )

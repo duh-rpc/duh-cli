@@ -1,6 +1,7 @@
 package duh_test
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -263,7 +264,7 @@ func getServerContent(t *testing.T, specPath string) string {
 func TestGenerateOperationNameUsersCreate(t *testing.T) {
 	specPath, stdout := setupTest(t, usersCreateSpec)
 
-	exitCode := duh.RunCmd(stdout, []string{"generate", specPath})
+	exitCode := duh.RunCmd(context.Background(), stdout, []string{"generate", specPath})
 
 	require.Equal(t, 0, exitCode)
 	content := getServerContent(t, specPath)
@@ -274,7 +275,7 @@ func TestGenerateOperationNameUsersCreate(t *testing.T) {
 func TestGenerateOperationNameUserProfilesGetById(t *testing.T) {
 	specPath, stdout := setupTest(t, userProfilesGetByIdSpec)
 
-	exitCode := duh.RunCmd(stdout, []string{"generate", specPath})
+	exitCode := duh.RunCmd(context.Background(), stdout, []string{"generate", specPath})
 
 	require.Equal(t, 0, exitCode)
 	content := getServerContent(t, specPath)
@@ -285,7 +286,7 @@ func TestGenerateOperationNameUserProfilesGetById(t *testing.T) {
 func TestGenerateOperationNameWithUnderscores(t *testing.T) {
 	specPath, stdout := setupTest(t, underscoreSpec)
 
-	exitCode := duh.RunCmd(stdout, []string{"generate", specPath})
+	exitCode := duh.RunCmd(context.Background(), stdout, []string{"generate", specPath})
 
 	// Underscore paths are now rejected by PATH_HYPHEN_SEPARATOR rule
 	require.Equal(t, 2, exitCode)
@@ -295,7 +296,7 @@ func TestGenerateOperationNameWithUnderscores(t *testing.T) {
 func TestGenerateOperationNamePathWithoutVersionPrefix(t *testing.T) {
 	specPath, stdout := setupTest(t, invalidPathNoVersionSpec)
 
-	exitCode := duh.RunCmd(stdout, []string{"generate", specPath})
+	exitCode := duh.RunCmd(context.Background(), stdout, []string{"generate", specPath})
 
 	require.Equal(t, 0, exitCode)
 	content := getServerContent(t, specPath)
@@ -305,7 +306,7 @@ func TestGenerateOperationNamePathWithoutVersionPrefix(t *testing.T) {
 func TestGenerateOperationNameInvalidPathNoMethod(t *testing.T) {
 	specPath, stdout := setupTest(t, invalidPathNoMethodSpec)
 
-	exitCode := duh.RunCmd(stdout, []string{"generate", specPath})
+	exitCode := duh.RunCmd(context.Background(), stdout, []string{"generate", specPath})
 
 	require.Equal(t, 2, exitCode)
 }
@@ -313,7 +314,7 @@ func TestGenerateOperationNameInvalidPathNoMethod(t *testing.T) {
 func TestGenerateConstNamePrefixesRPC(t *testing.T) {
 	specPath, stdout := setupTest(t, usersCreateSpec)
 
-	exitCode := duh.RunCmd(stdout, []string{"generate", specPath})
+	exitCode := duh.RunCmd(context.Background(), stdout, []string{"generate", specPath})
 
 	require.Equal(t, 0, exitCode)
 	content := getServerContent(t, specPath)
@@ -323,7 +324,7 @@ func TestGenerateConstNamePrefixesRPC(t *testing.T) {
 func TestToCamelCaseWithHyphens(t *testing.T) {
 	specPath, stdout := setupTest(t, userProfilesGetByIdSpec)
 
-	exitCode := duh.RunCmd(stdout, []string{"generate", specPath})
+	exitCode := duh.RunCmd(context.Background(), stdout, []string{"generate", specPath})
 
 	require.Equal(t, 0, exitCode)
 	content := getServerContent(t, specPath)
@@ -333,7 +334,7 @@ func TestToCamelCaseWithHyphens(t *testing.T) {
 func TestToCamelCaseWithUnderscores(t *testing.T) {
 	specPath, stdout := setupTest(t, underscoreSpec)
 
-	exitCode := duh.RunCmd(stdout, []string{"generate", specPath})
+	exitCode := duh.RunCmd(context.Background(), stdout, []string{"generate", specPath})
 
 	// Underscore paths are now rejected by PATH_HYPHEN_SEPARATOR rule
 	require.Equal(t, 2, exitCode)

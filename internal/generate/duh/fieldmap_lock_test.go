@@ -2,6 +2,7 @@ package duh_test
 
 import (
 	"bytes"
+	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -114,14 +115,14 @@ func writeProject(t *testing.T, spec string) string {
 func generate(t *testing.T, args ...string) (int, string) {
 	t.Helper()
 	var stdout bytes.Buffer
-	exitCode := duh.RunCmd(&stdout, append([]string{"generate", "openapi.yaml"}, args...))
+	exitCode := duh.RunCmd(context.Background(), &stdout, append([]string{"generate", "openapi.yaml"}, args...))
 	return exitCode, stdout.String()
 }
 
 func lint(t *testing.T, args ...string) (int, string) {
 	t.Helper()
 	var stdout bytes.Buffer
-	exitCode := duh.RunCmd(&stdout, append([]string{"lint", "openapi.yaml"}, args...))
+	exitCode := duh.RunCmd(context.Background(), &stdout, append([]string{"lint", "openapi.yaml"}, args...))
 	return exitCode, stdout.String()
 }
 

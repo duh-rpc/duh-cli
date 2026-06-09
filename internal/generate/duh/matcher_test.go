@@ -2,6 +2,7 @@ package duh_test
 
 import (
 	"bytes"
+	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -410,7 +411,7 @@ func TestIsInitTemplateSpecWithFullMatch(t *testing.T) {
 
 	var stdout bytes.Buffer
 	args := []string{"generate", "openapi.yaml"}
-	exitCode := duh.RunCmd(&stdout, args)
+	exitCode := duh.RunCmd(context.Background(), &stdout, args)
 
 	if exitCode != 0 {
 		t.Logf("Command output: %s", stdout.String())
@@ -435,7 +436,7 @@ func TestIsInitTemplateSpecWithPartialMatch(t *testing.T) {
 
 	var stdout bytes.Buffer
 	args := []string{"generate", "openapi.yaml"}
-	exitCode := duh.RunCmd(&stdout, args)
+	exitCode := duh.RunCmd(context.Background(), &stdout, args)
 
 	require.Equal(t, 0, exitCode)
 }
@@ -456,7 +457,7 @@ func TestIsInitTemplateSpecWithNoMatch(t *testing.T) {
 
 	var stdout bytes.Buffer
 	args := []string{"generate", "openapi.yaml"}
-	exitCode := duh.RunCmd(&stdout, args)
+	exitCode := duh.RunCmd(context.Background(), &stdout, args)
 
 	require.Equal(t, 0, exitCode)
 }
@@ -477,7 +478,7 @@ func TestIsInitTemplateSpecWithExtraEndpoints(t *testing.T) {
 
 	var stdout bytes.Buffer
 	args := []string{"generate", "openapi.yaml"}
-	exitCode := duh.RunCmd(&stdout, args)
+	exitCode := duh.RunCmd(context.Background(), &stdout, args)
 
 	require.Equal(t, 0, exitCode)
 }
@@ -499,7 +500,7 @@ func TestRunWithFullFlagFalse(t *testing.T) {
 	var err error
 	var stdout bytes.Buffer
 	args := []string{"generate", "openapi.yaml"}
-	exitCode := duh.RunCmd(&stdout, args)
+	exitCode := duh.RunCmd(context.Background(), &stdout, args)
 
 	require.Equal(t, 0, exitCode)
 

@@ -2,6 +2,7 @@ package init_test
 
 import (
 	"bytes"
+	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -29,7 +30,7 @@ func TestInitDefaultPath(t *testing.T) {
 
 	var stdout bytes.Buffer
 
-	exitCode := duh.RunCmd(&stdout, []string{"init"})
+	exitCode := duh.RunCmd(context.Background(), &stdout, []string{"init"})
 
 	require.Equal(t, 0, exitCode)
 	assert.Contains(t, stdout.String(), "✓")
@@ -48,7 +49,7 @@ func TestInitCustomPath(t *testing.T) {
 
 	var stdout bytes.Buffer
 
-	exitCode := duh.RunCmd(&stdout, []string{"init", outputPath})
+	exitCode := duh.RunCmd(context.Background(), &stdout, []string{"init", outputPath})
 
 	require.Equal(t, 0, exitCode)
 	assert.Contains(t, stdout.String(), "✓")
@@ -66,7 +67,7 @@ func TestInitFileAlreadyExists(t *testing.T) {
 
 	var stdout bytes.Buffer
 
-	exitCode := duh.RunCmd(&stdout, []string{"init", outputPath})
+	exitCode := duh.RunCmd(context.Background(), &stdout, []string{"init", outputPath})
 
 	require.Equal(t, 2, exitCode)
 	assert.Contains(t, stdout.String(), "file already exists")
@@ -78,7 +79,7 @@ func TestInitCreatesParentDirectory(t *testing.T) {
 
 	var stdout bytes.Buffer
 
-	exitCode := duh.RunCmd(&stdout, []string{"init", outputPath})
+	exitCode := duh.RunCmd(context.Background(), &stdout, []string{"init", outputPath})
 
 	require.Equal(t, 0, exitCode)
 

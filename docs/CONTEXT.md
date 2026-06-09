@@ -51,6 +51,24 @@ The `--output-dir` target for regenerated Go/proto code; typically gitignored. D
 the contract directory.
 _Avoid_: gen dir, build dir
 
+**Docs serve**:
+The long-running `duh docs serve` mode — a local web server that renders the spec with
+ReDoc and auto-reloads the browser on every spec save. The contract author's live
+authoring loop.
+_Avoid_: preview server, dev server
+
+**Docs export**:
+The one-shot `duh docs export` mode that writes a single self-contained HTML file of the
+rendered spec for sharing. Distinct from **`duh generate`** (which emits Go/proto code);
+"export" always refers to the docs HTML artifact, never code generation.
+_Avoid_: build, render, generate (for the HTML artifact)
+
+**Self-contained export**:
+The exported HTML with the spec and the ReDoc renderer inlined so it renders fully
+offline with no build step and no network. Works only for a single-file spec; external
+`$ref`s are not bundled.
+_Avoid_: standalone file, bundle
+
 ## Relationships
 
 - A **Contract author** maintains one `openapi.yaml` and its co-located **Fieldmap lock** per

@@ -2,6 +2,7 @@ package lint_test
 
 import (
 	"bytes"
+	"context"
 	"testing"
 
 	duh "github.com/duh-rpc/duh-cli"
@@ -16,7 +17,7 @@ import (
 func TestLintStyleBOneOfPasses(t *testing.T) {
 	var stdout bytes.Buffer
 
-	exitCode := duh.RunCmd(&stdout, []string{"lint", "testdata/oneof-style-b.yaml"})
+	exitCode := duh.RunCmd(context.Background(), &stdout, []string{"lint", "testdata/oneof-style-b.yaml"})
 
 	require.Equal(t, 0, exitCode)
 	output := stdout.String()
@@ -31,7 +32,7 @@ func TestLintStyleBOneOfPasses(t *testing.T) {
 func TestLintFlatDiscriminatedOneOfFails(t *testing.T) {
 	var stdout bytes.Buffer
 
-	exitCode := duh.RunCmd(&stdout, []string{"lint", "testdata/oneof-flat-discriminated.yaml"})
+	exitCode := duh.RunCmd(context.Background(), &stdout, []string{"lint", "testdata/oneof-flat-discriminated.yaml"})
 
 	require.Equal(t, 1, exitCode)
 	output := stdout.String()
@@ -45,7 +46,7 @@ func TestLintFlatDiscriminatedOneOfFails(t *testing.T) {
 func TestLintMalformedStyleBBranchMultipleRequired(t *testing.T) {
 	var stdout bytes.Buffer
 
-	exitCode := duh.RunCmd(&stdout, []string{"lint", "testdata/oneof-style-b-multi-required.yaml"})
+	exitCode := duh.RunCmd(context.Background(), &stdout, []string{"lint", "testdata/oneof-style-b-multi-required.yaml"})
 
 	require.Equal(t, 1, exitCode)
 	output := stdout.String()
@@ -59,7 +60,7 @@ func TestLintMalformedStyleBBranchMultipleRequired(t *testing.T) {
 func TestLintMalformedStyleBUndeclaredProperty(t *testing.T) {
 	var stdout bytes.Buffer
 
-	exitCode := duh.RunCmd(&stdout, []string{"lint", "testdata/oneof-style-b-undeclared.yaml"})
+	exitCode := duh.RunCmd(context.Background(), &stdout, []string{"lint", "testdata/oneof-style-b-undeclared.yaml"})
 
 	require.Equal(t, 1, exitCode)
 	output := stdout.String()
@@ -74,7 +75,7 @@ func TestLintMalformedStyleBUndeclaredProperty(t *testing.T) {
 func TestLintMalformedStyleBArrayVariant(t *testing.T) {
 	var stdout bytes.Buffer
 
-	exitCode := duh.RunCmd(&stdout, []string{"lint", "testdata/oneof-style-b-array-variant.yaml"})
+	exitCode := duh.RunCmd(context.Background(), &stdout, []string{"lint", "testdata/oneof-style-b-array-variant.yaml"})
 
 	require.Equal(t, 1, exitCode)
 	output := stdout.String()

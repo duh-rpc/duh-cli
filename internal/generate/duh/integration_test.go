@@ -2,6 +2,7 @@ package duh_test
 
 import (
 	"bytes"
+	"context"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -298,7 +299,7 @@ func TestEndToEndGeneration(t *testing.T) {
 	require.NoError(t, os.WriteFile(specPath, []byte(fullSpec), 0644))
 
 	var stdout bytes.Buffer
-	exitCode := duh.RunCmd(&stdout, []string{"generate", specPath})
+	exitCode := duh.RunCmd(context.Background(), &stdout, []string{"generate", specPath})
 
 	require.Equal(t, 0, exitCode)
 	assert.Contains(t, stdout.String(), "✓")
@@ -325,7 +326,7 @@ func TestGeneratedCodeCompiles(t *testing.T) {
 	require.NoError(t, os.WriteFile(specPath, []byte(fullSpec), 0644))
 
 	var stdout bytes.Buffer
-	exitCode := duh.RunCmd(&stdout, []string{"generate", specPath})
+	exitCode := duh.RunCmd(context.Background(), &stdout, []string{"generate", specPath})
 	require.Equal(t, 0, exitCode)
 
 	protoDir := filepath.Join(tempDir, "proto/v1")
@@ -502,7 +503,7 @@ func TestGeneratedCodeCompilesWithListOps(t *testing.T) {
 	require.NoError(t, os.WriteFile(specPath, []byte(fullSpec), 0644))
 
 	var stdout bytes.Buffer
-	exitCode := duh.RunCmd(&stdout, []string{"generate", specPath})
+	exitCode := duh.RunCmd(context.Background(), &stdout, []string{"generate", specPath})
 	require.Equal(t, 0, exitCode)
 	assert.Contains(t, stdout.String(), "5 file(s)")
 
@@ -530,7 +531,7 @@ func TestGeneratedCodeStructure(t *testing.T) {
 	require.NoError(t, os.WriteFile(specPath, []byte(fullSpec), 0644))
 
 	var stdout bytes.Buffer
-	exitCode := duh.RunCmd(&stdout, []string{"generate", specPath})
+	exitCode := duh.RunCmd(context.Background(), &stdout, []string{"generate", specPath})
 	require.Equal(t, 0, exitCode)
 
 	serverContent, err := os.ReadFile(filepath.Join(tempDir, "server.go"))
@@ -568,7 +569,7 @@ func TestProtoImportPaths(t *testing.T) {
 	require.NoError(t, os.WriteFile(specPath, []byte(simpleValidSpec), 0644))
 
 	var stdout bytes.Buffer
-	exitCode := duh.RunCmd(&stdout, []string{"generate", specPath})
+	exitCode := duh.RunCmd(context.Background(), &stdout, []string{"generate", specPath})
 	require.Equal(t, 0, exitCode)
 
 	serverContent, err := os.ReadFile(filepath.Join(tempDir, "server.go"))
@@ -589,7 +590,7 @@ func TestTimestampInHeaders(t *testing.T) {
 	require.NoError(t, os.WriteFile(specPath, []byte(fullSpec), 0644))
 
 	var stdout bytes.Buffer
-	exitCode := duh.RunCmd(&stdout, []string{"generate", specPath})
+	exitCode := duh.RunCmd(context.Background(), &stdout, []string{"generate", specPath})
 	require.Equal(t, 0, exitCode)
 
 	serverContent, err := os.ReadFile(filepath.Join(tempDir, "server.go"))
@@ -624,7 +625,7 @@ func TestNonAtomicGeneration(t *testing.T) {
 	require.NoError(t, os.WriteFile(specPath, []byte(invalidSpec), 0644))
 
 	var stdout bytes.Buffer
-	exitCode := duh.RunCmd(&stdout, []string{"generate", specPath})
+	exitCode := duh.RunCmd(context.Background(), &stdout, []string{"generate", specPath})
 
 	require.Equal(t, 2, exitCode)
 }
@@ -638,7 +639,7 @@ func TestFullPipelineWithDependencies(t *testing.T) {
 	require.NoError(t, os.WriteFile(specPath, []byte(fullSpec), 0644))
 
 	var stdout bytes.Buffer
-	exitCode := duh.RunCmd(&stdout, []string{"generate", specPath, "-p", "myapi", "--proto-path", "api/v1/service.proto"})
+	exitCode := duh.RunCmd(context.Background(), &stdout, []string{"generate", specPath, "-p", "myapi", "--proto-path", "api/v1/service.proto"})
 
 	require.Equal(t, 0, exitCode)
 	assert.Contains(t, stdout.String(), "✓")
@@ -836,7 +837,7 @@ func TestNoListOperations(t *testing.T) {
 	require.NoError(t, os.WriteFile(specPath, []byte(specWithoutListOps), 0644))
 
 	var stdout bytes.Buffer
-	exitCode := duh.RunCmd(&stdout, []string{"generate", specPath})
+	exitCode := duh.RunCmd(context.Background(), &stdout, []string{"generate", specPath})
 
 	require.Equal(t, 0, exitCode)
 	assert.Contains(t, stdout.String(), "✓")
