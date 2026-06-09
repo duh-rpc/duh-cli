@@ -31,9 +31,22 @@ _Avoid_: freed number, retired number, deleted number
 
 **Seeding**:
 The first `duh generate` run for a spec with no existing lock; it creates `fieldmap.lock` from
-current OpenAPI declaration order. Enforces the ADR 0004 precondition that each enum's first
-declared variant is its `*_UNSPECIFIED`.
+current OpenAPI declaration order. Enforces the ADR 0004 precondition that *when an integer enum
+declares an `*_UNSPECIFIED` sentinel, that variant is declared first* (string enums and
+sentinel-less integer enums are exempt).
 _Avoid_: bootstrapping, initialization
+
+**Open string enum**:
+A `type: string` + `enum` schema. Generates an open proto `string` field with allowed values in a
+comment; any string is valid on the wire (AIP-126 "may grow"). Not locked, has no `*_UNSPECIFIED`
+sentinel.
+_Avoid_: closed enum, string constant
+
+**Closed proto enum**:
+A `type: integer` + `enum` schema. Generates a Protobuf enum locked in **Fieldmap lock**; the first
+value owns number 0. When it declares an `*_UNSPECIFIED` sentinel that variant must be declared
+first so it owns 0 (the wire default for unset).
+_Avoid_: integer enum, numeric enum
 
 **FieldNumbers**:
 The structured input `duh generate` passes to the `openapi-schema.go` library to drive proto
