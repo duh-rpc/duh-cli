@@ -2,6 +2,7 @@ package duh
 
 import (
 	"fmt"
+	"net/url"
 	"strings"
 	"time"
 
@@ -63,6 +64,8 @@ func (p *Parser) extractOperations() ([]Operation, error) {
 	if p.spec.Paths == nil || p.spec.Paths.PathItems == nil {
 		return operations, nil
 	}
+
+	base := p.serverBasePath()
 
 	for pair := orderedmap.First(p.spec.Paths.PathItems); pair != nil; pair = pair.Next() {
 		path := pair.Key()
@@ -141,10 +144,28 @@ func (p *Parser) extractOperations() ([]Operation, error) {
 			RequestType:          requestType,
 			Summary:              summary,
 			Path:                 path,
+			RoutePath:            base + path,
 		})
 	}
 
 	return operations, nil
+}
+
+// serverBasePath returns the path component of the first server URL, with any
+// trailing slash trimmed. The DUH convention puts the version in
+// servers[].url (e.g. https://api.example.com/v1) and keeps it out of the
+// individual paths, so the served route is base + path (/v1/users.create).
+// Specs without a server (or a server with no path) yield an empty base,
+// leaving routes mounted at the root.
+func (p *Parser) serverBasePath() string {
+	if p.spec == nil || len(p.spec.Servers) == 0 || p.spec.Servers[0] == nil {
+		return ""
+	}
+	u, err := url.Parse(p.spec.Servers[0].URL)
+	if err != nil {
+		return ""
+	}
+	return strings.TrimSuffix(u.Path, "/")
 }
 
 func (p *Parser) detectListOperations(ops []Operation) ([]ListOperation, error) {
