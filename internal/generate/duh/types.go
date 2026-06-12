@@ -32,6 +32,7 @@ type TemplateData struct {
 type Operation struct {
 	MethodName           string
 	Path                 string
+	RoutePath            string
 	ConstName            string
 	Summary              string
 	RequestType          string

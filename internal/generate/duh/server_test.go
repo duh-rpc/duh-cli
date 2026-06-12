@@ -272,3 +272,23 @@ func TestServerWithMultipleOperations(t *testing.T) {
 	summaryCount := strings.Count(content, "// Create a new user")
 	assert.Equal(t, 1, summaryCount)
 }
+
+// The DUH convention keeps the version out of the openapi paths and puts it in
+// servers[].url. The generated RPC path constant — used for both server routing
+// and the client's request URL — must fold that version back in, so a server at
+// https://api.example.com/v1 routes /users.create at /v1/users.create.
+func TestServerRPCConstUsesServerVersionPrefix(t *testing.T) {
+	specPath, stdout := setupTest(t, simpleValidSpec)
+	tempDir := filepath.Dir(specPath)
+
+	exitCode := duh.RunCmd(context.Background(), stdout, []string{"generate", specPath})
+	require.Equal(t, 0, exitCode)
+
+	serverContent, err := os.ReadFile(filepath.Join(tempDir, "server.go"))
+	require.NoError(t, err)
+	assert.Contains(t, string(serverContent), `RPCUsersCreate = "/v1/users.create"`)
+
+	clientContent, err := os.ReadFile(filepath.Join(tempDir, "client.go"))
+	require.NoError(t, err)
+	assert.Contains(t, string(clientContent), "RPCUsersCreate")
+}
