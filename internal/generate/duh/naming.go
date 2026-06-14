@@ -37,7 +37,7 @@ func parseSubjectMethod(path string) (subject, method string, err error) {
 
 func ToCamelCase(s string) string {
 	parts := strings.FieldsFunc(s, func(r rune) bool {
-		return r == '-' || r == '_'
+		return r == '-' || r == '_' || r == '/'
 	})
 
 	var result strings.Builder

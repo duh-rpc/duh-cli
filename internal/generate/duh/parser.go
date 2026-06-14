@@ -151,6 +151,12 @@ func (p *Parser) requestType(operation *v3.Operation, path string) (string, erro
 		return "", nil
 	}
 
+	// Scan every content type rather than returning on the first $ref so the request
+	// body's structural type is derived independent of content-type declaration order.
+	// application/json and application/protobuf co-declare the same message (the JSON
+	// $ref and its application/protobuf wire twin {type:string,format:binary}); the
+	// binary twin carries no message and is skipped for type derivation.
+	unaryType := ""
 	contentEndpoint := ""
 	for pair := orderedmap.First(operation.RequestBody.Content); pair != nil; pair = pair.Next() {
 		contentType := pair.Key()
@@ -159,9 +165,12 @@ func (p *Parser) requestType(operation *v3.Operation, path string) (string, erro
 		case contentTypeJSON, contentTypeProtobuf:
 			if mediaType.Schema != nil {
 				if mediaType.Schema.IsReference() {
-					return "pb." + extractSchemaName(mediaType.Schema.GetReference()), nil
+					if unaryType == "" {
+						unaryType = "pb." + extractSchemaName(mediaType.Schema.GetReference())
+					}
+				} else if contentType == contentTypeJSON || isInlineStructured(mediaType.Schema) {
+					return "", fmt.Errorf("inline schema not supported for request body in path %s", path)
 				}
-				return "", fmt.Errorf("inline schema not supported for request body in path %s", path)
 			}
 		case contentTypeStreamJSON, contentTypeStreamProto:
 			return "", fmt.Errorf("streaming content types are response-only; found %q on the request body in path %s", contentType, path)
@@ -171,10 +180,27 @@ func (p *Parser) requestType(operation *v3.Operation, path string) (string, erro
 		}
 	}
 
+	if unaryType != "" {
+		return unaryType, nil
+	}
 	if contentEndpoint != "" {
 		return "", fmt.Errorf("content endpoints not yet supported: request content type %q in path %s%s", contentEndpoint, path, errContentEndpointSuffix)
 	}
 	return "", nil
+}
+
+// isInlineStructured reports whether a media type's schema is an inline (non-$ref)
+// object that declares properties — a genuine inline message the generator cannot
+// name. A propertyless inline schema (such as the {type:string,format:binary} wire
+// twin co-declared on application/protobuf) carries no message and is not structured,
+// mirroring the SCHEMA_NO_INLINE_OBJECTS lint rule, which only flags inline schemas
+// whose Properties.Len() > 0.
+func isInlineStructured(schemaProxy *base.SchemaProxy) bool {
+	if schemaProxy == nil || schemaProxy.IsReference() {
+		return false
+	}
+	schema := schemaProxy.Schema()
+	return schema != nil && schema.Properties != nil && schema.Properties.Len() > 0
 }
 
 // responseShape classifies an operation's success (2xx) response and returns the
@@ -220,7 +246,11 @@ func (p *Parser) responseShape(operation *v3.Operation, path string) (string, st
 						if unaryType == "" {
 							unaryType = "pb." + extractSchemaName(mediaType.Schema.GetReference())
 						}
-					} else {
+					} else if contentType == contentTypeJSON || isInlineStructured(mediaType.Schema) {
+						// application/json is the required structural content type, so an
+						// inline schema there is always an error. application/protobuf
+						// co-declares the wire twin {type:string,format:binary}; a
+						// propertyless binary schema carries no message and is skipped.
 						return "", StreamNone, fmt.Errorf("inline schema not supported for response body in path %s", path)
 					}
 				}
