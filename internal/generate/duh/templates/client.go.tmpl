@@ -8,6 +8,9 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
+{{- if .NeedsIO}}
+	"io"
+{{- end}}
 	"net/http"
 
 	"github.com/duh-rpc/duh.go/v2"
@@ -20,7 +23,13 @@ import (
 type ClientInterface interface {
 {{- range .Operations}}
 	{{if .Summary}}// {{.Summary}}{{end}}
+{{- if .IsByteStream}}
+	{{.MethodName}}(ctx context.Context, req *{{.RequestType}}) (io.ReadCloser, error)
+{{- else if .IsStructStream}}
+	{{.MethodName}}(ctx context.Context, req *{{.RequestType}}) (duh.StreamReader, error)
+{{- else}}
 	{{.MethodName}}(ctx context.Context, req *{{.RequestType}}, resp *{{.ResponseType}}) error
+{{- end}}
 {{- end}}
 	// Close the client
 	Close(ctx context.Context) error
@@ -60,6 +69,41 @@ func NewClient(conf ClientConfig) (*Client, error) {
 	}, nil
 }
 {{range .Operations}}
+{{- if .IsByteStream}}
+func (c *Client) {{.MethodName}}(ctx context.Context, req *{{.RequestType}}) (io.ReadCloser, error) {
+	payload, err := proto.Marshal(req)
+	if err != nil {
+		return nil, duh.NewClientError("while marshaling request payload: %w", err, nil)
+	}
+
+	r, err := http.NewRequestWithContext(ctx, http.MethodPost,
+		fmt.Sprintf("%s%s", c.conf.Endpoint, {{.ConstName}}), bytes.NewReader(payload))
+	if err != nil {
+		return nil, duh.NewClientError("", err, nil)
+	}
+
+	r.Header.Set("Content-Type", duh.ContentTypeProtoBuf)
+	r.Header.Set("Accept", {{.AcceptConst}})
+	return c.client.DoBytes(ctx, r)
+}
+{{- else if .IsStructStream}}
+func (c *Client) {{.MethodName}}(ctx context.Context, req *{{.RequestType}}) (duh.StreamReader, error) {
+	payload, err := proto.Marshal(req)
+	if err != nil {
+		return nil, duh.NewClientError("while marshaling request payload: %w", err, nil)
+	}
+
+	r, err := http.NewRequestWithContext(ctx, http.MethodPost,
+		fmt.Sprintf("%s%s", c.conf.Endpoint, {{.ConstName}}), bytes.NewReader(payload))
+	if err != nil {
+		return nil, duh.NewClientError("", err, nil)
+	}
+
+	r.Header.Set("Content-Type", duh.ContentTypeProtoBuf)
+	r.Header.Set("Accept", {{.AcceptConst}})
+	return c.client.DoStream(ctx, r)
+}
+{{- else}}
 func (c *Client) {{.MethodName}}(ctx context.Context, req *{{.RequestType}}, resp *{{.ResponseType}}) error {
 	payload, err := proto.Marshal(req)
 	if err != nil {
@@ -75,6 +119,7 @@ func (c *Client) {{.MethodName}}(ctx context.Context, req *{{.RequestType}}, res
 	r.Header.Set("Content-Type", duh.ContentTypeProtoBuf)
 	return c.client.Do(r, resp)
 }
+{{- end}}
 {{end}}
 func (c *Client) Close(ctx context.Context) error {
 	c.client.Client.CloseIdleConnections()

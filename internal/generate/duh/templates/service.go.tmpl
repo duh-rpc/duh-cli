@@ -203,9 +203,19 @@ func (s *Service) {{.MethodName}}(ctx context.Context, req *{{.RequestType}}, re
 }
 {{end}}
 {{else}}
+{{- if .IsByteStream}}
+func (s *Service) {{.MethodName}}(ctx context.Context, req *{{.RequestType}}, w duh.BytesWriter) error {
+	return duh.NewServiceError(duh.CodeNotImplemented, "{{.MethodName}} not implemented", nil, nil)
+}
+{{- else if .IsStructStream}}
+func (s *Service) {{.MethodName}}(ctx context.Context, req *{{.RequestType}}, stream duh.StreamWriter) error {
+	return duh.NewServiceError(duh.CodeNotImplemented, "{{.MethodName}} not implemented", nil, nil)
+}
+{{- else}}
 func (s *Service) {{.MethodName}}(ctx context.Context, req *{{.RequestType}}, resp *{{.ResponseType}}) error {
 	return duh.NewServiceError(duh.CodeNotImplemented, "{{.MethodName}} not implemented", nil, nil)
 }
+{{- end}}
 {{end}}
 {{end}}
 

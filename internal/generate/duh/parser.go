@@ -43,6 +43,14 @@ func (p *Parser) Parse() (*TemplateData, error) {
 
 	timestamp := time.Now().UTC().Format("2006-01-02 15:04:05 UTC")
 
+	needsIO := false
+	for _, op := range operations {
+		if op.IsByteStream() {
+			needsIO = true
+			break
+		}
+	}
+
 	return &TemplateData{
 		PackageImport:  p.config.ConstructPackageImport(modulePath),
 		Package:        p.config.PackageName,
@@ -52,11 +60,24 @@ func (p *Parser) Parse() (*TemplateData, error) {
 		Operations:     operations,
 		ListOps:        listOps,
 		HasListOps:     len(listOps) > 0,
+		NeedsIO:        needsIO,
 		Timestamp:      timestamp,
 		IsFullTemplate: p.isFullTemplate,
 		GoModule:       modulePath,
 	}, nil
 }
+
+// Standard DUH-RPC content types. The first two carry a structured (proto)
+// message; the remaining three are streaming response content types. Anything
+// else on a request/response body is a content endpoint (ENG-100).
+const (
+	contentTypeJSON          = "application/json"
+	contentTypeProtobuf      = "application/protobuf"
+	contentTypeOctetStream   = "application/octet-stream"
+	contentTypeStreamJSON    = "application/duh-stream+json"
+	contentTypeStreamProto   = "application/duh-stream+protobuf"
+	errContentEndpointSuffix = "; see ENG-100"
+)
 
 func (p *Parser) extractOperations() ([]Operation, error) {
 	var operations []Operation
@@ -81,51 +102,19 @@ func (p *Parser) extractOperations() ([]Operation, error) {
 			continue
 		}
 
-		requestType := ""
-		if operation.RequestBody != nil && operation.RequestBody.Content != nil {
-			for contentPair := orderedmap.First(operation.RequestBody.Content); contentPair != nil; contentPair = contentPair.Next() {
-				mediaType := contentPair.Value()
-				if mediaType.Schema != nil {
-					if mediaType.Schema.IsReference() {
-						ref := mediaType.Schema.GetReference()
-						requestType = "pb." + extractSchemaName(ref)
-						break
-					} else {
-						return nil, fmt.Errorf("inline schema not supported for request body in path %s", path)
-					}
-				}
-			}
+		requestType, err := p.requestType(operation, path)
+		if err != nil {
+			return nil, err
 		}
-
 		if requestType == "" {
 			continue
 		}
 
-		responseType := ""
-		if operation.Responses != nil && operation.Responses.Codes != nil {
-			for responsePair := orderedmap.First(operation.Responses.Codes); responsePair != nil; responsePair = responsePair.Next() {
-				response := responsePair.Value()
-				if response.Content != nil {
-					for contentPair := orderedmap.First(response.Content); contentPair != nil; contentPair = contentPair.Next() {
-						mediaType := contentPair.Value()
-						if mediaType.Schema != nil {
-							if mediaType.Schema.IsReference() {
-								ref := mediaType.Schema.GetReference()
-								responseType = "pb." + extractSchemaName(ref)
-								break
-							} else {
-								return nil, fmt.Errorf("inline schema not supported for response body in path %s", path)
-							}
-						}
-					}
-				}
-				if responseType != "" {
-					break
-				}
-			}
+		responseType, streamKind, err := p.responseShape(operation, path)
+		if err != nil {
+			return nil, err
 		}
-
-		if responseType == "" {
+		if responseType == "" && streamKind == StreamNone {
 			continue
 		}
 
@@ -142,6 +131,7 @@ func (p *Parser) extractOperations() ([]Operation, error) {
 			MethodName:           operationName,
 			ResponseType:         responseType,
 			RequestType:          requestType,
+			StreamKind:           streamKind,
 			Summary:              summary,
 			Path:                 path,
 			RoutePath:            base + path,
@@ -149,6 +139,112 @@ func (p *Parser) extractOperations() ([]Operation, error) {
 	}
 
 	return operations, nil
+}
+
+// requestType returns the proto type for an operation's request body. DUH-RPC
+// request bodies are always structured (application/json or application/protobuf
+// referencing a named schema); streaming content types are response-only, and an
+// opaque-content request body is a content endpoint (ENG-100). An operation with
+// no request body returns "" and is skipped by the caller.
+func (p *Parser) requestType(operation *v3.Operation, path string) (string, error) {
+	if operation.RequestBody == nil || operation.RequestBody.Content == nil {
+		return "", nil
+	}
+
+	contentEndpoint := ""
+	for pair := orderedmap.First(operation.RequestBody.Content); pair != nil; pair = pair.Next() {
+		contentType := pair.Key()
+		mediaType := pair.Value()
+		switch contentType {
+		case contentTypeJSON, contentTypeProtobuf:
+			if mediaType.Schema != nil {
+				if mediaType.Schema.IsReference() {
+					return "pb." + extractSchemaName(mediaType.Schema.GetReference()), nil
+				}
+				return "", fmt.Errorf("inline schema not supported for request body in path %s", path)
+			}
+		case contentTypeStreamJSON, contentTypeStreamProto:
+			return "", fmt.Errorf("streaming content types are response-only; found %q on the request body in path %s", contentType, path)
+		default:
+			// octet-stream or a native MIME type: a content endpoint request body.
+			contentEndpoint = contentType
+		}
+	}
+
+	if contentEndpoint != "" {
+		return "", fmt.Errorf("content endpoints not yet supported: request content type %q in path %s%s", contentEndpoint, path, errContentEndpointSuffix)
+	}
+	return "", nil
+}
+
+// responseShape classifies an operation's success (2xx) response and returns the
+// proto response type and the StreamKind. A streaming content type takes
+// precedence over a co-declared structured type so a mixed response is treated as
+// the stream it is. An opaque-content response is a content endpoint (ENG-100).
+// An operation with no usable success response returns ("", StreamNone, nil) and
+// is skipped by the caller.
+func (p *Parser) responseShape(operation *v3.Operation, path string) (string, string, error) {
+	if operation.Responses == nil || operation.Responses.Codes == nil {
+		return "", StreamNone, nil
+	}
+
+	for pair := orderedmap.First(operation.Responses.Codes); pair != nil; pair = pair.Next() {
+		if !isSuccessCode(pair.Key()) {
+			continue
+		}
+		response := pair.Value()
+		if response.Content == nil {
+			continue
+		}
+
+		unaryType := ""
+		contentEndpoint := ""
+		for cp := orderedmap.First(response.Content); cp != nil; cp = cp.Next() {
+			contentType := cp.Key()
+			mediaType := cp.Value()
+			switch contentType {
+			case contentTypeOctetStream:
+				return "", StreamBytes, nil
+			case contentTypeStreamJSON, contentTypeStreamProto:
+				if mediaType.Schema == nil || !mediaType.Schema.IsReference() {
+					return "", StreamNone, fmt.Errorf("structured stream response in path %s must reference a named schema", path)
+				}
+				kind := StreamJSON
+				if contentType == contentTypeStreamProto {
+					kind = StreamProtobuf
+				}
+				return "pb." + extractSchemaName(mediaType.Schema.GetReference()), kind, nil
+			case contentTypeJSON, contentTypeProtobuf:
+				if mediaType.Schema != nil {
+					if mediaType.Schema.IsReference() {
+						if unaryType == "" {
+							unaryType = "pb." + extractSchemaName(mediaType.Schema.GetReference())
+						}
+					} else {
+						return "", StreamNone, fmt.Errorf("inline schema not supported for response body in path %s", path)
+					}
+				}
+			default:
+				contentEndpoint = contentType
+			}
+		}
+
+		if unaryType != "" {
+			return unaryType, StreamNone, nil
+		}
+		if contentEndpoint != "" {
+			return "", StreamNone, fmt.Errorf("content endpoints not yet supported: response content type %q in path %s%s", contentEndpoint, path, errContentEndpointSuffix)
+		}
+	}
+
+	return "", StreamNone, nil
+}
+
+// isSuccessCode reports whether an OpenAPI response status code is a 2xx success.
+// Streaming and content-type classification keys off the success response; error
+// responses always carry a standard Reply and never define the endpoint shape.
+func isSuccessCode(code string) bool {
+	return len(code) == 3 && code[0] == '2'
 }
 
 // serverBasePath returns the path component of the first server URL, with any
@@ -172,6 +268,13 @@ func (p *Parser) detectListOperations(ops []Operation) ([]ListOperation, error) 
 	var listOps []ListOperation
 
 	for _, op := range ops {
+		// Streaming endpoints carry a single payload type over many frames, not a
+		// paginated collection; they are never list operations and their generated
+		// methods do not use the (req, resp) iterator signature.
+		if op.StreamKind != StreamNone {
+			continue
+		}
+
 		requestSchema, responseSchema, err := p.getSchemas(op.Path)
 		if err != nil {
 			continue
