@@ -3,7 +3,7 @@ module github.com/duh-rpc/duh-cli
 go 1.24.7
 
 require (
-	github.com/duh-rpc/openapi-schema.go v0.11.0
+	github.com/duh-rpc/openapi-schema.go v0.12.0
 	github.com/fsnotify/fsnotify v1.10.1
 	github.com/pb33f/libopenapi v0.28.2
 	github.com/spf13/cobra v1.10.1

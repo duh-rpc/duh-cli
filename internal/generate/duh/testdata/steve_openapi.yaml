@@ -1,0 +1,449 @@
+openapi: "3.0.3"
+info:
+  title: Steve Admin Jobs API
+  version: "1.0.0"
+  description: |
+    DUH-RPC admin job endpoints for managing long-running background jobs.
+    Services embed the steve library and mount the Manager HTTP handler to
+    expose these endpoints for operators and AI agents.
+
+servers:
+  - url: https://api.example.com/v1
+    description: Default server
+
+paths:
+  /admin/jobs.types:
+    post:
+      operationId: JobsTypes
+      summary: List all registered job types
+      description: Returns all registered job types with their parameter schemas and live instance counts.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TypesRequest"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TypesResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /admin/jobs.list:
+    post:
+      operationId: JobsList
+      summary: List job instances
+      description: Returns a paginated list of job instances, optionally filtered by status.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ListRequest"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /admin/jobs.status:
+    post:
+      operationId: JobsStatus
+      summary: Get job instance status
+      description: Returns the current status and metadata for a specific job instance.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StatusRequest"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /admin/jobs.stop:
+    post:
+      operationId: JobsStop
+      summary: Stop a running job
+      description: |
+        Requests cancellation of a running job by signaling its context. This is a
+        no-op if the job is already in a terminal state or stop has already been requested.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StopRequest"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StopResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /admin/jobs.run:
+    post:
+      operationId: JobsRun
+      summary: Start a new job and stream its output
+      description: |
+        Starts a new job instance and streams its output as newline-delimited lines.
+        The first line is always a JSON object containing the job_id:
+          {"job_id":"<uuid7>"}
+        Subsequent lines are raw output from the job. The final line is a terminal
+        status JSON object:
+          {"status":"completed","error":null}
+          {"status":"failed","error":"<message>"}
+          {"status":"stopped","error":null}
+          {"status":"stopped","error":"<message>"}
+        The stream reaches EOF when the terminal line has been written.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RunRequest"
+      responses:
+        "200":
+          description: |
+            Streaming job output as newline-delimited lines. See endpoint description
+            for the line protocol.
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /admin/jobs.attach:
+    post:
+      operationId: JobsAttach
+      summary: Attach to an existing job and stream its output
+      description: |
+        Attaches to a running or completed job instance and streams its output.
+        The line protocol is identical to jobs.run. If the job is already complete,
+        the full buffered output is replayed and the stream reaches EOF immediately.
+
+        Use the tail parameter to replay only the last N output lines plus the
+        terminal status line. If tail is 0 or omitted, the full output is replayed
+        from the beginning.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AttachRequest"
+      responses:
+        "200":
+          description: |
+            Streaming job output as newline-delimited lines. See jobs.run for the
+            line protocol.
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+components:
+  schemas:
+    Reply:
+      type: object
+      description: Standard DUH-RPC error response body.
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          description: Application-level error code matching the HTTP status code.
+        message:
+          type: string
+          description: Human-readable error message.
+        details:
+          type: object
+          additionalProperties:
+            type: string
+          description: Optional key/value map with additional error context.
+
+    TypeInfo:
+      type: object
+      description: Describes a registered job type with live instance counts.
+      properties:
+        name:
+          type: string
+          description: The unique registered name of the job type.
+        schema:
+          type: object
+          additionalProperties:
+            type: string
+          description: Parameter schema describing accepted params and their purpose.
+        running_count:
+          type: integer
+          format: int32
+          description: Number of instances currently running or with stop requested.
+        terminal_count:
+          type: integer
+          format: int32
+          description: Number of instances in a terminal state (completed, failed, stopped).
+      required:
+        - name
+        - running_count
+        - terminal_count
+
+    InstanceInfo:
+      type: object
+      description: Describes a job instance snapshot.
+      properties:
+        job_id:
+          type: string
+          description: UUID7 identifier for this job instance.
+        name:
+          type: string
+          description: The registered job type name.
+        status:
+          type: string
+          enum:
+            - running
+            - stop-requested
+            - completed
+            - failed
+            - stopped
+          description: Current lifecycle state of the job instance.
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when the job instance was created.
+        completed_at:
+          type: string
+          format: date-time
+          description: Timestamp when the job reached a terminal state. Omitted for running jobs.
+        duration:
+          type: string
+          description: Human-readable duration from creation to completion. Omitted for running jobs.
+        error:
+          type: string
+          description: Error message if the job failed or was stopped with an error. Omitted if no error.
+      required:
+        - job_id
+        - name
+        - status
+        - created_at
+
+    StatusResponse:
+      type: object
+      description: Response body for the jobs.status endpoint.
+      properties:
+        job_id:
+          type: string
+          description: UUID7 identifier for this job instance.
+        name:
+          type: string
+          description: The registered job type name.
+        status:
+          type: string
+          enum:
+            - running
+            - stop-requested
+            - completed
+            - failed
+            - stopped
+          description: Current lifecycle state of the job instance.
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when the job instance was created.
+        completed_at:
+          type: string
+          format: date-time
+          description: Timestamp when the job reached a terminal state. Omitted for running jobs.
+        duration:
+          type: string
+          description: Human-readable duration from creation to completion. Omitted for running jobs.
+        error:
+          type: string
+          description: Error message if the job failed or was stopped with an error. Omitted if no error.
+      required:
+        - job_id
+        - name
+        - status
+        - created_at
+
+    Pagination:
+      type: object
+      description: Cursor-based pagination state.
+      properties:
+        end_cursor:
+          type: string
+          description: The job_id of the last item in the current page. Use as after in the next request.
+        has_next_page:
+          type: boolean
+          description: True if there are more items after the current page.
+      required:
+        - end_cursor
+        - has_next_page
+
+    TypesRequest:
+      type: object
+      description: Request body for the jobs.types endpoint. Takes no parameters.
+
+    TypesResponse:
+      type: object
+      properties:
+        types:
+          type: array
+          description: List of all registered job types.
+          items:
+            $ref: "#/components/schemas/TypeInfo"
+      required:
+        - types
+
+    ListRequest:
+      type: object
+      properties:
+        status:
+          type: string
+          description: Filter instances by status. Omit to return all instances.
+          enum:
+            - running
+            - stop-requested
+            - completed
+            - failed
+            - stopped
+        pagination:
+          type: object
+          description: Cursor-based pagination parameters.
+          properties:
+            after:
+              type: string
+              description: Return items after this job_id cursor (exclusive).
+            first:
+              type: integer
+              format: int32
+              minimum: 1
+              maximum: 100
+              description: Maximum number of items to return. Defaults to 50.
+
+    ListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          description: The current page of job instances.
+          items:
+            $ref: "#/components/schemas/InstanceInfo"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+      required:
+        - items
+        - pagination
+
+    StatusRequest:
+      type: object
+      properties:
+        job_id:
+          type: string
+          description: UUID7 identifier of the job instance to query.
+      required:
+        - job_id
+
+    StopRequest:
+      type: object
+      properties:
+        job_id:
+          type: string
+          description: UUID7 identifier of the job instance to stop.
+      required:
+        - job_id
+
+    StopResponse:
+      type: object
+      description: Response body for the jobs.stop endpoint. Returns no fields.
+
+    RunRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The registered job type name to instantiate.
+        params:
+          type: object
+          additionalProperties:
+            type: string
+          description: Optional parameters passed to the job factory.
+      required:
+        - name
+
+    AttachRequest:
+      type: object
+      properties:
+        job_id:
+          type: string
+          description: UUID7 identifier of the job instance to attach to.
+        tail:
+          type: integer
+          format: int32
+          description: |
+            Number of output lines to replay from the end of the buffer.
+            The terminal status line is always included. If 0 or omitted,
+            the full output is replayed from the beginning.
+      required:
+        - job_id
+
+  responses:
+    BadRequest:
+      description: Bad request — invalid request body or parameters.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Reply"
+    NotFound:
+      description: Not found — the requested job type or instance does not exist.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Reply"
+    InternalError:
+      description: Internal server error.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Reply"
