@@ -21,7 +21,13 @@ const (
 type ServiceInterface interface {
 {{- range .Operations}}
 	{{if .Summary}}// {{.Summary}}{{end}}
+{{- if .IsByteStream}}
+	{{.MethodName}}(ctx context.Context, req *{{.RequestType}}, w duh.BytesWriter) error
+{{- else if .IsStructStream}}
+	{{.MethodName}}(ctx context.Context, req *{{.RequestType}}, stream duh.StreamWriter) error
+{{- else}}
 	{{.MethodName}}(ctx context.Context, req *{{.RequestType}}, resp *{{.ResponseType}}) error
+{{- end}}
 {{- end}}
 	// Shutdown the service, this is called when the daemon is shutting down.
 	Shutdown(ctx context.Context) error
@@ -46,13 +52,36 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) bool {
 				fmt.Sprintf("http method '%s' not allowed; only POST", r.Method))
 			return true
 		}
+{{- if .IsByteStream}}
+		duh.HandleBytes(w, r, h.handle{{.MethodName}})
+{{- else if .IsStructStream}}
+		duh.HandleStream(w, r, h.handle{{.MethodName}}, nil)
+{{- else}}
 		h.handle{{.MethodName}}(w, r)
+{{- end}}
 		return true
 {{- end}}
 	}
 	return false
 }
 {{range .Operations}}
+{{- if .IsByteStream}}
+func (h *Handler) handle{{.MethodName}}(r *http.Request, w duh.BytesWriter) error {
+	var req {{.RequestType}}
+	if err := duh.ReadRequest(r, &req, 5*duh.MegaByte); err != nil {
+		return err
+	}
+	return h.Service.{{.MethodName}}(r.Context(), &req, w)
+}
+{{- else if .IsStructStream}}
+func (h *Handler) handle{{.MethodName}}(r *http.Request, stream duh.StreamWriter) error {
+	var req {{.RequestType}}
+	if err := duh.ReadRequest(r, &req, 5*duh.MegaByte); err != nil {
+		return err
+	}
+	return h.Service.{{.MethodName}}(r.Context(), &req, stream)
+}
+{{- else}}
 func (h *Handler) handle{{.MethodName}}(w http.ResponseWriter, r *http.Request) {
 	var req {{.RequestType}}
 	if err := duh.ReadRequest(r, &req, 5*duh.MegaByte); err != nil {
@@ -66,4 +95,5 @@ func (h *Handler) handle{{.MethodName}}(w http.ResponseWriter, r *http.Request) 
 	}
 	duh.Reply(w, r, duh.CodeOK, &resp)
 }
+{{- end}}
 {{end}}

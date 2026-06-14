@@ -476,6 +476,27 @@ func TestUsersUpdateValidation(t *testing.T) {
 
 	// TODO: Create appropriate request for {{$firstOp.MethodName}}
 	var req {{$firstOp.RequestType}}
+{{- if $firstOp.IsByteStream}}
+
+	body, err := c.{{$firstOp.MethodName}}(ctx, &req)
+	require.NoError(t, err)
+	defer func() { _ = body.Close() }()
+
+	// TODO: Read and assert on the streamed bytes
+	_, err = io.ReadAll(body)
+	require.NoError(t, err)
+}
+{{- else if $firstOp.IsStructStream}}
+
+	stream, err := c.{{$firstOp.MethodName}}(ctx, &req)
+	require.NoError(t, err)
+	defer func() { _ = stream.Close() }()
+
+	// TODO: Loop with stream.Recv(&msg) until io.EOF and assert on each frame
+	var msg {{$firstOp.ResponseType}}
+	_ = stream.Recv(&msg)
+}
+{{- else}}
 	var resp {{$firstOp.ResponseType}}
 
 	err = c.{{$firstOp.MethodName}}(ctx, &req, &resp)
@@ -484,6 +505,7 @@ func TestUsersUpdateValidation(t *testing.T) {
 	require.NoError(t, err)
 	// assert.NotEmpty(t, resp.SomeField)
 }
+{{- end}}
 
 // TODO: Add more tests for your operations
 {{end}}
