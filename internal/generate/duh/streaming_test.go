@@ -369,10 +369,10 @@ func TestGenerateThenLintOctetStream(t *testing.T) {
 }
 
 // duhStreamRuntime is the duh.go/v2 release the generated streaming code compiles
-// against. The structured-stream server dispatch calls the four-argument
-// duh.HandleStream(w, r, handler, conf), which landed in v2.3.0; earlier releases
-// expose only the three-argument form and would fail this compile check.
-const duhStreamRuntime = "v2.3.0"
+// against. v2.3.0 introduced the four-argument duh.HandleStream(w, r, handler,
+// conf) the structured-stream dispatch calls; v2.4.0 added the
+// duh.HandleBytes/duh.BytesWriter runtime the octet-stream code requires.
+const duhStreamRuntime = "v2.4.0"
 
 // eventsProtoStub satisfies the pb.EventsWatchRequest reference in the generated
 // structured-stream client and server. A structured stream carries its payload
@@ -479,12 +479,10 @@ func TestGeneratedStructuredProtobufStreamCompiles(t *testing.T) {
 	buildGenerated(t, filepath.Dir(specPath), eventsProtoStub)
 }
 
-// The generated octet-stream code references duh.HandleBytes and duh.BytesWriter,
-// which no published duh.go/v2 release defines yet (pending duh.go#15). Skip until
-// that runtime ships; remove the Skip to turn this into a live compile check.
+// A generated octet-stream client and server compile against the real duh.go
+// runtime, proving the duh.HandleBytes dispatch and duh.BytesWriter server method
+// (added in v2.4.0) resolve to actual runtime symbols.
 func TestGeneratedOctetStreamCompiles(t *testing.T) {
-	t.Skip("pending duh.go#15: duh.HandleBytes/duh.BytesWriter are not in a published duh.go/v2 release")
-
 	specPath, stdout := setupTest(t, specOctetStream)
 
 	require.Equal(t, 0, duh.RunCmd(context.Background(), stdout, []string{"generate", specPath}))
