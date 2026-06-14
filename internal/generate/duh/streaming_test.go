@@ -1,10 +1,14 @@
 package duh_test
 
 import (
+	"context"
+	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
 
+	duh "github.com/duh-rpc/duh-cli"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -362,4 +366,127 @@ func TestGenerateThenLintOctetStream(t *testing.T) {
 	exitCode, out = lint(t)
 	require.Equal(t, 0, exitCode, out)
 	assert.Contains(t, out, "compliant")
+}
+
+// duhStreamRuntime is the duh.go/v2 release the generated streaming code compiles
+// against. The structured-stream server dispatch calls the four-argument
+// duh.HandleStream(w, r, handler, conf), which landed in v2.3.0; earlier releases
+// expose only the three-argument form and would fail this compile check.
+const duhStreamRuntime = "v2.3.0"
+
+// eventsProtoStub satisfies the pb.EventsWatchRequest reference in the generated
+// structured-stream client and server. A structured stream carries its payload
+// over duh.StreamWriter/StreamReader, so the response message is never named by
+// the generated code and is not stubbed here.
+const eventsProtoStub = `package v1
+
+import (
+	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/runtime/protoimpl"
+)
+
+type EventsWatchRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *EventsWatchRequest) Reset()         {}
+func (x *EventsWatchRequest) String() string { return "EventsWatchRequest{}" }
+func (x *EventsWatchRequest) ProtoMessage()  {}
+func (x *EventsWatchRequest) ProtoReflect() protoreflect.Message {
+	return (&protoimpl.MessageInfo{}).MessageOf(x)
+}
+`
+
+// jobsProtoStub satisfies the pb.JobsRunRequest reference in the generated
+// octet-stream client and server.
+const jobsProtoStub = `package v1
+
+import (
+	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/runtime/protoimpl"
+)
+
+type JobsRunRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *JobsRunRequest) Reset()         {}
+func (x *JobsRunRequest) String() string { return "JobsRunRequest{}" }
+func (x *JobsRunRequest) ProtoMessage()  {}
+func (x *JobsRunRequest) ProtoReflect() protoreflect.Message {
+	return (&protoimpl.MessageInfo{}).MessageOf(x)
+}
+`
+
+// buildGenerated drops the proto stub next to the generated client/server, pins
+// the duh.go runtime that defines the streaming symbols, and runs `go build` in
+// dir. It compiles the generated code against the real runtime, so a wrong or
+// renamed runtime symbol (e.g. duh.HandleStream's arity, duh.StreamWriter,
+// duh.ContentStreamJSON) fails here where a source-text assertion cannot.
+func buildGenerated(t *testing.T, dir, protoStub string) {
+	t.Helper()
+
+	protoDir := filepath.Join(dir, "proto", "v1")
+	require.NoError(t, os.MkdirAll(protoDir, 0755))
+	require.NoError(t, os.WriteFile(filepath.Join(protoDir, "api.pb.go"), []byte(protoStub), 0644))
+
+	goMod := `module github.com/example/test
+
+go 1.24
+
+require github.com/duh-rpc/duh.go/v2 ` + duhStreamRuntime + `
+require github.com/kapetan-io/tackle v0.0.0
+require google.golang.org/protobuf v0.0.0
+`
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "go.mod"), []byte(goMod), 0644))
+
+	run := func(args ...string) {
+		cmd := exec.Command(args[0], args[1:]...)
+		cmd.Dir = dir
+		out, err := cmd.CombinedOutput()
+		if err != nil {
+			t.Logf("%s\n%s", strings.Join(args, " "), out)
+		}
+		require.NoError(t, err)
+	}
+
+	run("go", "mod", "edit", "-replace", "github.com/duh-rpc/duh.go/v2=github.com/duh-rpc/duh.go/v2@"+duhStreamRuntime)
+	run("go", "mod", "edit", "-replace", "github.com/kapetan-io/tackle=github.com/kapetan-io/tackle@v0.13.0")
+	run("go", "mod", "tidy")
+	run("go", "build", ".")
+}
+
+// A generated structured JSON stream compiles against the real duh.go runtime,
+// proving the StreamReader/StreamWriter client and server and the four-argument
+// duh.HandleStream dispatch resolve to actual runtime symbols.
+func TestGeneratedStructuredJSONStreamCompiles(t *testing.T) {
+	specPath, stdout := setupTest(t, specStructuredJSONStream)
+
+	require.Equal(t, 0, duh.RunCmd(context.Background(), stdout, []string{"generate", specPath}))
+	buildGenerated(t, filepath.Dir(specPath), eventsProtoStub)
+}
+
+// A generated structured protobuf stream differs only in the Accept content type
+// constant the client sends; it must compile against the runtime too.
+func TestGeneratedStructuredProtobufStreamCompiles(t *testing.T) {
+	specPath, stdout := setupTest(t, specStructuredProtobufStream)
+
+	require.Equal(t, 0, duh.RunCmd(context.Background(), stdout, []string{"generate", specPath}))
+	buildGenerated(t, filepath.Dir(specPath), eventsProtoStub)
+}
+
+// The generated octet-stream code references duh.HandleBytes and duh.BytesWriter,
+// which no published duh.go/v2 release defines yet (pending duh.go#15). Skip until
+// that runtime ships; remove the Skip to turn this into a live compile check.
+func TestGeneratedOctetStreamCompiles(t *testing.T) {
+	t.Skip("pending duh.go#15: duh.HandleBytes/duh.BytesWriter are not in a published duh.go/v2 release")
+
+	specPath, stdout := setupTest(t, specOctetStream)
+
+	require.Equal(t, 0, duh.RunCmd(context.Background(), stdout, []string{"generate", specPath}))
+	buildGenerated(t, filepath.Dir(specPath), jobsProtoStub)
 }
