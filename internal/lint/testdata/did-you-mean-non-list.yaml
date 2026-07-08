@@ -1,0 +1,73 @@
+openapi: "3.0.3"
+info:
+  title: Did-You-Mean Non-List API
+  version: 1.0.0
+  description: The extension declared as a scalar instead of a list
+
+servers:
+  - url: https://api.example.com/v1
+
+paths:
+  /pets.list:
+    x-duh-did-you-mean: /pets.fetch
+    post:
+      operationId: listPets
+      description: List pets with optional filtering
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListRequest'
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListResponse'
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetails'
+
+components:
+  schemas:
+    ListRequest:
+      type: object
+      properties:
+        status:
+          description: Filter pets by status
+          type: string
+
+    ListResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          description: List of pets matching the query
+          type: array
+          items:
+            $ref: '#/components/schemas/Pet'
+
+    Pet:
+      description: Represents a pet in the system
+      type: object
+      required: [pet_id, name]
+      properties:
+        pet_id:
+          description: Unique identifier for the pet
+          type: string
+        name:
+          description: Name of the pet
+          type: string
+
+    ErrorDetails:
+      type: object
+      required: [message]
+      properties:
+        message:
+          description: Human-readable error message
+          type: string

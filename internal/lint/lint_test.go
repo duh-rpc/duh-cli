@@ -318,6 +318,14 @@ func TestLinterAllRuleViolations(t *testing.T) {
 			expectedViolation: "[DID_YOU_MEAN_COLLISION]",
 			expectedExitCode:  1,
 		},
+		{
+			// The extension declared as a scalar rather than a list exercises the
+			// non-sequence guard, otherwise unreached by any test.
+			name:              "DidYouMeanNonList",
+			file:              "testdata/did-you-mean-non-list.yaml",
+			expectedViolation: "[DID_YOU_MEAN_COLLISION]",
+			expectedExitCode:  1,
+		},
 	}
 
 	for _, test := range tests {

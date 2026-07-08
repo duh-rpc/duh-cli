@@ -216,6 +216,74 @@ func TestDidYouMeanHintNamesDeclaringOperation(t *testing.T) {
 	}
 }
 
+// RS-008: the extension declared as a scalar (not a sequence) exercises the
+// node.Kind != SequenceNode guard, which no other test reached. This malformed
+// shape must be rejected with a named error, not panic or slip through.
+const didYouMeanScalarSpec = `openapi: 3.0.0
+info:
+  title: Commits API
+  version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
+paths:
+  /commits.diff:
+    x-duh-did-you-mean: /diffs.get
+    post:
+      summary: Diff commits
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DiffRequest'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiffResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetails'
+components:
+  schemas:
+    DiffRequest:
+      type: object
+      properties:
+        id:
+          type: string
+    DiffResponse:
+      type: object
+      properties:
+        id:
+          type: string
+    ErrorDetails:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+`
+
+// TestDidYouMeanNonListExtensionRejected proves RS-008: a scalar (non-sequence)
+// x-duh-did-you-mean is rejected by generate with an error naming the path and
+// stating the expected shape.
+func TestDidYouMeanNonListExtensionRejected(t *testing.T) {
+	specPath, stdout := setupTest(t, didYouMeanScalarSpec)
+
+	exitCode := duh.RunCmd(context.Background(), stdout, []string{"generate", specPath})
+
+	require.NotEqual(t, 0, exitCode)
+	output := stdout.String()
+	assert.Contains(t, output, "/commits.diff")
+	assert.Contains(t, output, "list of strings")
+}
+
 // RS-002: an entry that passes the leading-slash check but contains characters
 // that cannot appear in a Go string literal ('"', backslash, newline) slips past
 // both validators and breaks template rendering with an opaque error. The
