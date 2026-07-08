@@ -98,9 +98,16 @@ func (r *DidYouMeanCollisionRule) Validate(doc *v3.Document) []Violation {
 		if len(decls) <= 1 {
 			continue
 		}
-		quoted := make([]string, len(decls))
-		for i, d := range decls {
-			quoted[i] = fmt.Sprintf("%q", d)
+		// A within-list duplicate declares the same path item twice; name each
+		// declaring path once so the message never reads "on X and X".
+		seen := make(map[string]bool, len(decls))
+		var quoted []string
+		for _, d := range decls {
+			if seen[d] {
+				continue
+			}
+			seen[d] = true
+			quoted = append(quoted, fmt.Sprintf("%q", d))
 		}
 		violations = append(violations, Violation{
 			Suggestion: "Declare each did-you-mean path on exactly one operation",
