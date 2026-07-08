@@ -88,6 +88,7 @@ func (p *Parser) extractOperations() ([]Operation, error) {
 	}
 
 	base := p.serverBasePath()
+	produced := make(map[string]bool)
 
 	for pair := orderedmap.First(p.spec.Paths.PathItems); pair != nil; pair = pair.Next() {
 		path := pair.Key()
@@ -138,6 +139,19 @@ func (p *Parser) extractOperations() ([]Operation, error) {
 			Path:                 path,
 			RoutePath:            base + path,
 		})
+		produced[path] = true
+	}
+
+	// A teaching path is emitted only for a path item that produced an operation.
+	// ValidateDidYouMean already rejects the extension on a path item with no
+	// post:, but an operation can also be dropped above when its request/response
+	// type does not resolve — leaving the declared teaching routes silently absent
+	// from the switch. Fail naming the path rather than drop them without a word.
+	for pair := orderedmap.First(p.spec.Paths.PathItems); pair != nil; pair = pair.Next() {
+		if _, ok := didyoumean.Node(pair.Value()); !ok || produced[pair.Key()] {
+			continue
+		}
+		return nil, fmt.Errorf("%s on path %q was declared but the path item produced no generated operation; its teaching routes would be silently dropped", didyoumean.Extension, pair.Key())
 	}
 
 	return operations, nil

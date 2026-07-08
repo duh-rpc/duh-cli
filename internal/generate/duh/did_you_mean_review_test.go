@@ -85,6 +85,72 @@ func TestDidYouMeanOnOperationlessPathItemErrors(t *testing.T) {
 	assert.Contains(t, output, "post:")
 }
 
+// didYouMeanDroppedOpSpec has a post: operation whose request body is present but
+// empty (content: {}). That passes lint (a body exists) and ValidateDidYouMean
+// (post: exists), yet the generator drops the whole operation because its request
+// type does not resolve — silently omitting the declared teaching route.
+const didYouMeanDroppedOpSpec = `openapi: 3.0.0
+info:
+  title: Widgets API
+  version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
+paths:
+  /widgets.create:
+    x-duh-did-you-mean:
+      - /widgets.fetch
+    post:
+      summary: Create a widget
+      description: Create a widget
+      requestBody:
+        required: true
+        content: {}
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetails'
+components:
+  schemas:
+    CreateResponse:
+      type: object
+      properties:
+        id:
+          description: the id
+          type: string
+    ErrorDetails:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          description: msg
+          type: string
+`
+
+// TestDidYouMeanDroppedOperationErrors proves the code-review correctness finding:
+// a teaching path whose operation is dropped for any reason (here, an unresolvable
+// request type that still passes lint) must fail generation naming the path, not
+// silently vanish from the switch with a clean exit 0.
+func TestDidYouMeanDroppedOperationErrors(t *testing.T) {
+	specPath, stdout := setupTest(t, didYouMeanDroppedOpSpec)
+
+	exitCode := duh.RunCmd(context.Background(), stdout, []string{"generate", specPath})
+
+	require.NotEqual(t, 0, exitCode)
+	output := stdout.String()
+	assert.Contains(t, output, "/widgets.create")
+	assert.Contains(t, output, "no generated operation")
+}
+
 // RS-005: the "hint names the declaring operation's own route" invariant is only
 // exercised by a single-operation spec, where "op 0's const" and "the wrong op's
 // const" are indistinguishable. This spec has TWO operations each declaring its
