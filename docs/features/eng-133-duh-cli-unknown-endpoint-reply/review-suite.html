@@ -63,23 +63,27 @@ review-for-reader. The feature implementation was uncommitted in the working tre
 into an isolated worktree and committed as the review baseline (<code>a054e7d</code>), leaving your
 branch untouched. All stages ran in the worktree.</p>
 
-<h2>⚠ Open issues (not auto-fixed) — 4</h2>
+<div style="background:#0f2a1a;border:1px solid #1f5133;border-left:4px solid #3fb950;border-radius:10px;padding:14px 18px;margin:18px 0;">
+<strong class="ok">Update — all four open findings resolved this session (commit <code>faaf92b</code>).</strong>
+On the author's approval, RS-001, RS-002, RS-004 and RS-007 were implemented: the two did-you-mean
+validators were consolidated into a shared <code>internal/didyoumean</code> package (RS-004), and the
+RS-001 (operationless path item) and RS-002 (unsafe-character entry) fixes landed there so generate
+and lint enforce them from one implementation. Both proving tests were un-skipped and pass; the
+red-test inventory is now empty. The tickets below are kept for the record with their resolution.
+</div>
 
-<h3>MEDIUM (2)</h3>
-<table>
-<thead><tr><th>ID</th><th>Title</th><th>Location</th><th>Test</th></tr></thead>
-<tbody>
-<tr><td><a href="#rs-001">RS-001</a></td><td>Teaching path on an operationless path item is silently dropped</td><td>parser.go:142 / 341</td><td>skipped</td></tr>
-<tr><td><a href="#rs-002">RS-002</a></td><td>Entry breaking a Go string literal slips past validation to an opaque error</td><td>parser.go:370 · did_you_mean_collision.go:73 · server.go.tmpl:66</td><td>skipped</td></tr>
-</tbody>
-</table>
+<h2>✓ Open issues — 0</h2>
+<p class="small">All findings are either auto-fixed, hardened, or resolved-on-approval. Nothing is left
+for you to decide before merge to main.</p>
 
-<h3>LOW (2)</h3>
+<h3>Resolved on approval (4)</h3>
 <table>
-<thead><tr><th>ID</th><th>Title</th><th>Location</th><th>Test</th></tr></thead>
+<thead><tr><th>ID</th><th>Sev</th><th>Title</th><th>Resolution</th></tr></thead>
 <tbody>
-<tr><td><a href="#rs-004">RS-004</a></td><td>Validation logic duplicated across parser.go and the lint rule (drift risk)</td><td>parser.go:341 ↔ did_you_mean_collision.go:29</td><td>none (advisory)</td></tr>
-<tr><td><a href="#rs-007">RS-007</a></td><td>No-extension acceptance test only greps text; blueprint claims it "pins" fall-through</td><td>did_you_mean_test.go:291</td><td>advisory</td></tr>
+<tr><td><a href="#rs-001">RS-001</a></td><td>MED</td><td>Teaching path on an operationless path item silently dropped</td><td>Generate/lint now error, naming the path</td></tr>
+<tr><td><a href="#rs-002">RS-002</a></td><td>MED</td><td>Entry breaking a Go string literal slipped past validation</td><td>Rejected by name (quote/backslash/newline/control)</td></tr>
+<tr><td><a href="#rs-004">RS-004</a></td><td>LOW</td><td>Validation duplicated across parser.go and the lint rule</td><td>Consolidated into <code>internal/didyoumean</code></td></tr>
+<tr><td><a href="#rs-007">RS-007</a></td><td>LOW</td><td>Blueprint over-claimed the no-extension test "pins" fall-through</td><td>Blueprint wording corrected</td></tr>
 </tbody>
 </table>
 
@@ -115,8 +119,12 @@ branch untouched. All stages ran in the worktree.</p>
 <h2>Tickets</h2>
 
 <!-- ================= RS-001 ================= -->
-<div class="ticket open" id="rs-001">
-<h3>RS-001 · <span class="badge b-med">MEDIUM</span> · Deferred (proving test skipped)</h3>
+<div class="ticket fixed" id="rs-001">
+<h3>RS-001 · <span class="badge b-med">MEDIUM</span> · <span class="ok">Resolved</span> (was: deferred)</h3>
+<p class="lead ok"><strong>Fix applied (commit <code>faaf92b</code>):</strong> the shared validator now errors when
+<code>x-duh-did-you-mean</code> is declared on a path item with no <code>post:</code> operation, naming the
+path (message: "…must sit beside a post: operation; this path item has none"). Chosen resolution: <em>error</em>,
+per the author. Proving test <code>TestDidYouMeanOnOperationlessPathItemErrors</code> un-skipped and passing.</p>
 <p class="lead">A teaching path declared on a path item that produces no generated operation is silently discarded.</p>
 <table class="kv">
 <tr><td>Found by</td><td>code-review (Phase 1)</td></tr>
@@ -145,8 +153,13 @@ branch untouched. All stages ran in the worktree.</p>
 </div>
 
 <!-- ================= RS-002 ================= -->
-<div class="ticket open" id="rs-002">
-<h3>RS-002 · <span class="badge b-med">MEDIUM</span> · Deferred (proving test skipped)</h3>
+<div class="ticket fixed" id="rs-002">
+<h3>RS-002 · <span class="badge b-med">MEDIUM</span> · <span class="ok">Resolved</span> (was: deferred)</h3>
+<p class="lead ok"><strong>Fix applied (commit <code>faaf92b</code>):</strong> the shared validator now rejects any entry
+containing a character that cannot appear in a Go string literal (double-quote, backslash, newline,
+control char), naming the entry and the offending character, before the template runs. Proving test
+<code>TestDidYouMeanUnsafeEntryIsRejectedByName</code> un-skipped and passing;
+<code>TestDidYouMeanBackslashEntryRejected</code> added for the second branch.</p>
 <p class="lead">An entry containing characters that can't appear in a Go string literal passes validation and breaks template rendering with an opaque error.</p>
 <table class="kv">
 <tr><td>Found by</td><td>code-review (Phase 1)</td></tr>
@@ -182,8 +195,13 @@ branch untouched. All stages ran in the worktree.</p>
 </div>
 
 <!-- ================= RS-004 ================= -->
-<div class="ticket low" id="rs-004">
-<h3>RS-004 · <span class="badge b-low">LOW</span> · Advisory (no test)</h3>
+<div class="ticket fixed" id="rs-004">
+<h3>RS-004 · <span class="badge b-low">LOW</span> · <span class="ok">Resolved</span> (was: advisory)</h3>
+<p class="lead ok"><strong>Fix applied (commit <code>faaf92b</code>):</strong> both copies were replaced by one
+<code>internal/didyoumean</code> package (<code>Validate</code>/<code>Resolve</code>/<code>Node</code>), imported by
+the generator (<code>parser.go</code> keeps a thin <code>ValidateDidYouMean</code> wrapper) and by the lint rule
+(which maps <code>Problem</code>s to <code>Violation</code>s). The duplicated <code>sortedKeys</code> is gone; the
+RS-001/RS-002 fixes live in that one place. No import cycle (the shared package depends only on libopenapi).</p>
 <p class="lead">The did-you-mean validation is implemented twice — once for generate, once for lint — with no shared code.</p>
 <table class="kv">
 <tr><td>Found by</td><td>code-review (Phase 1, both reviewers)</td></tr>
@@ -197,8 +215,11 @@ branch untouched. All stages ran in the worktree.</p>
 </div>
 
 <!-- ================= RS-007 ================= -->
-<div class="ticket low" id="rs-007">
-<h3>RS-007 · <span class="badge b-low">LOW</span> · Advisory</h3>
+<div class="ticket fixed" id="rs-007">
+<h3>RS-007 · <span class="badge b-low">LOW</span> · <span class="ok">Resolved</span> (was: advisory)</h3>
+<p class="lead ok"><strong>Fix applied (commit <code>faaf92b</code>):</strong> the blueprint's "Invariant Preservation"
+bullet now says the no-extension test pins <em>text absence</em> and that runtime fall-through is pinned by
+the unmatched-path acceptance test. Documentation-only.</p>
 <p class="lead">The test the blueprint says "pins" fall-through only asserts static text, never compiles the output.</p>
 <table class="kv">
 <tr><td>Found by</td><td>invariant-test (Phase 4)</td></tr>
@@ -273,25 +294,24 @@ for _, d := range decls {
 </div>
 
 <h2>Red-test inventory (fix-before-merge-to-main checklist)</h2>
-<p class="small">These <code>t.Skip()</code>'d tests remain in the branch so CI stays green. Each is a one-line un-skip once its ticket is fixed. They are your checklist before merging to main.</p>
-<table>
-<thead><tr><th>Skipped test</th><th>File:line</th><th>Ticket</th></tr></thead>
-<tbody>
-<tr><td><code>TestDidYouMeanOnOperationlessPathItemIsNotSilentlyDropped</code></td><td>did_you_mean_review_test.go:79</td><td><a href="#rs-001">RS-001</a></td></tr>
-<tr><td><code>TestDidYouMeanUnsafeEntryIsRejectedByName</code></td><td>did_you_mean_review_test.go:363</td><td><a href="#rs-002">RS-002</a></td></tr>
-</tbody>
-</table>
+<p class="small ok"><strong>Empty.</strong> Both proving tests that were <code>t.Skip()</code>'d have been un-skipped
+and pass (RS-001 → <code>TestDidYouMeanOnOperationlessPathItemErrors</code>, RS-002 →
+<code>TestDidYouMeanUnsafeEntryIsRejectedByName</code>). No skipped review-suite tests remain; nothing is
+gated before merge to main.</p>
 
 <h2>Deferred decisions &amp; defaults taken</h2>
 <ul>
 <li><strong>Uncommitted feature.</strong> The implementation was entirely uncommitted in the working tree. Default: transferred it into the isolated worktree and committed it as baseline <code>a054e7d</code>; your branch and working tree were left untouched.</li>
-<li><strong>RS-001</strong> — correct policy (emit arm vs. error) is the author's call → left proving test red (skipped), no behavior change. See <a href="#rs-001">ticket</a>.</li>
-<li><strong>RS-002</strong> — extending "malformed" to cover unsafe characters is a contract decision → left proving test red (skipped), no behavior change. See <a href="#rs-002">ticket</a>.</li>
-<li><strong>RS-004</strong> — de-duplicating the two validators needs a new shared package (import-cycle constraint) → advisory only. See <a href="#rs-004">ticket</a>.</li>
+<li><strong>RS-001</strong> — deferred at review time (emit vs. error was the author's call). <span class="ok">Author chose error; implemented in <code>faaf92b</code>.</span> See <a href="#rs-001">ticket</a>.</li>
+<li><strong>RS-002</strong> — deferred at review time (extending "malformed" is a contract decision). <span class="ok">Approved and implemented in <code>faaf92b</code>.</span> See <a href="#rs-002">ticket</a>.</li>
+<li><strong>RS-004</strong> — flagged as advisory (needs a new shared package). <span class="ok">Approved and implemented in <code>faaf92b</code>.</span> See <a href="#rs-004">ticket</a>.</li>
 </ul>
+<p class="small">These were the only deferred items; all were subsequently approved by the author and resolved.</p>
 
 <h2>Commits on the review branch</h2>
-<pre>d81f5d1  phase 5 (review-tests): cover non-list extension guard — RS-008
+<pre>faaf92b  apply RS-001/RS-002/RS-004/RS-007 (consolidate validators; un-skip proving tests)
+50b474f  phase 7: unified report
+d81f5d1  phase 5 (review-tests): cover non-list extension guard — RS-008
 a760141  phase 4 (invariant-test): harden RS-005 &amp; RS-006
 c625546  phase 2 (review-validate): fix RS-003; add deferred RS-001/RS-002 proving tests (skipped)
 a054e7d  feature: did-you-mean teaching 404s (review-suite baseline)</pre>
@@ -303,7 +323,8 @@ a054e7d  feature: did-you-mean teaching 404s (review-suite baseline)</pre>
 Suite-touched source (RS-003 only): <code>parser.go</code>, <code>did_you_mean_collision.go</code>.</p>
 
 <hr>
-<p class="small">Generated by <code>/review-suite</code>. No production behavior was changed except the RS-003 message fix.
+<p class="small">Generated by <code>/review-suite</code>, then extended on the author's approval to resolve all four
+open findings (RS-001/002/004/007). Full suite green, no skipped review-suite tests remain.
 Nothing has been merged into your PR branch — approve to merge <code>review-suite-eng-133</code> back in.</p>
 
 </div>
