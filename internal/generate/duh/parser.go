@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/duh-rpc/duh-cli/internal/didyoumean"
 	"github.com/pb33f/libopenapi/datamodel/high/base"
 	v3 "github.com/pb33f/libopenapi/datamodel/high/v3"
 	"github.com/pb33f/libopenapi/orderedmap"
@@ -87,6 +88,7 @@ func (p *Parser) extractOperations() ([]Operation, error) {
 	}
 
 	base := p.serverBasePath()
+	produced := make(map[string]bool)
 
 	for pair := orderedmap.First(p.spec.Paths.PathItems); pair != nil; pair = pair.Next() {
 		path := pair.Key()
@@ -132,10 +134,24 @@ func (p *Parser) extractOperations() ([]Operation, error) {
 			ResponseType:         responseType,
 			RequestType:          requestType,
 			StreamKind:           streamKind,
+			DidYouMean:           didyoumean.Resolve(base, pathItem),
 			Summary:              summary,
 			Path:                 path,
 			RoutePath:            base + path,
 		})
+		produced[path] = true
+	}
+
+	// A teaching path is emitted only for a path item that produced an operation.
+	// ValidateDidYouMean already rejects the extension on a path item with no
+	// post:, but an operation can also be dropped above when its request/response
+	// type does not resolve — leaving the declared teaching routes silently absent
+	// from the switch. Fail naming the path rather than drop them without a word.
+	for pair := orderedmap.First(p.spec.Paths.PathItems); pair != nil; pair = pair.Next() {
+		if _, ok := didyoumean.Node(pair.Value()); !ok || produced[pair.Key()] {
+			continue
+		}
+		return nil, fmt.Errorf("%s on path %q was declared but the path item produced no generated operation; its teaching routes would be silently dropped", didyoumean.Extension, pair.Key())
 	}
 
 	return operations, nil
@@ -292,6 +308,23 @@ func (p *Parser) serverBasePath() string {
 		return ""
 	}
 	return strings.TrimSuffix(u.Path, "/")
+}
+
+// ValidateDidYouMean enforces the x-duh-did-you-mean invariant before any code is
+// generated, returning a single error naming every offending path so the author
+// fixes the spec in one pass. The checks live in internal/didyoumean so generate
+// and lint enforce them from one implementation. Returns nil when no operation
+// uses the extension, leaving generation byte-identical to a spec without it.
+func ValidateDidYouMean(spec *v3.Document) error {
+	problems := didyoumean.Validate(spec)
+	if len(problems) == 0 {
+		return nil
+	}
+	msgs := make([]string, len(problems))
+	for i, p := range problems {
+		msgs[i] = p.Message
+	}
+	return fmt.Errorf("%s", strings.Join(msgs, "; "))
 }
 
 func (p *Parser) detectListOperations(ops []Operation) ([]ListOperation, error) {

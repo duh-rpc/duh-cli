@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Did-You-Mean Teaching 404s — Explainer</title>
+<style>
+  /* ── Design tokens — canonical source: docs/design.md ───────────────── */
+  :root {
+    --bg: #0d1117;          /* page canvas              (colors.background)    */
+    --panel: #161b22;       /* cards, callouts          (colors.surface)       */
+    --panel-2: #1c2230;     /* raised: table headers    (colors.surfaceRaised) */
+    --border: #30363d;      /* hairline borders         (colors.border)        */
+    --text: #e6edf3;        /* body text                (colors.onBackground)  */
+    --muted: #9da7b3;       /* supporting text          (colors.onBackgroundMuted) */
+    --accent: #58a6ff;      /* links, emphasis (blue)   (colors.primary)       */
+    --accent-2: #7ee787;    /* headings, CLI (green)    (colors.secondary)     */
+    --warn: #f0883e;        /* caution                  (colors.warning)       */
+    --danger: #ff7b72;      /* danger                   (colors.error)         */
+    --code-bg: #0b0f14;     /* code surface             (colors.codeSurface)   */
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.65;
+  }
+  /* Single centred reading column — NO sidebar. */
+  .layout { max-width: 880px; margin: 0 auto; }
+  main { padding: 3rem 2rem 6rem; }
+  h1 { font-size: 2.1rem; line-height: 1.2; margin: 0 0 .4rem; }
+  h2 { font-size: 1.5rem; margin: 3rem 0 1rem; padding-bottom: .4rem; border-bottom: 1px solid var(--border); }
+  h3 { font-size: 1.18rem; margin: 2rem 0 .6rem; color: var(--accent-2); }
+  h4 { font-size: 1rem; margin: 1.4rem 0 .4rem; color: var(--text); }
+  p, li { color: var(--text); }
+  a { color: var(--accent); }
+  code {
+    font-family: var(--mono); font-size: .86em;
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 5px; padding: .1em .4em;
+  }
+  pre {
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 1rem 1.1rem; overflow-x: auto;
+    font-size: .85rem; line-height: 1.55;
+  }
+  pre code { background: none; border: none; padding: 0; font-size: inherit; }
+  .lead {
+    font-size: 1.15rem; color: var(--muted);
+    border-left: 3px solid var(--accent); padding-left: 1rem; margin: 1.5rem 0 2rem;
+  }
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: .9rem; }
+  th, td { text-align: left; padding: .55rem .7rem; border: 1px solid var(--border); vertical-align: top; }
+  th { background: var(--panel-2); color: var(--text); font-weight: 600; }
+  tr:nth-child(even) td { background: rgba(255,255,255,.015); }
+  /* Callouts — tip / warn / danger encode intent via left border + eyebrow colour */
+  .callout { border-radius: 8px; padding: .9rem 1.1rem; margin: 1.2rem 0; border: 1px solid var(--border); background: var(--panel); }
+  .callout.tip    { border-left: 4px solid var(--accent-2); }
+  .callout.warn   { border-left: 4px solid var(--warn); }
+  .callout.danger { border-left: 4px solid var(--danger); }
+  .callout .label { font-weight: 700; font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; display: block; margin-bottom: .3rem; }
+  .callout.tip .label    { color: var(--accent-2); }
+  .callout.warn .label   { color: var(--warn); }
+  .callout.danger .label { color: var(--danger); }
+  /* Pills / tags */
+  .pill { display: inline-block; font-size: .68rem; letter-spacing: .06em; text-transform: uppercase; font-weight: 700; padding: .12rem .55rem; border-radius: 999px; border: 1px solid var(--border); color: var(--muted); vertical-align: middle; }
+  /* Tinted pill variants — duplicate this pattern with your own accent + 55/12 alpha suffixes */
+  .pill.a { color: var(--accent);   border-color: #58a6ff55; background:#58a6ff12; }
+  .pill.b { color: var(--accent-2); border-color: #7ee78755; background:#7ee78712; }
+  .pill.c { color: #b48ead;         border-color: #b48ead55; background:#b48ead12; }
+  /* Numbered layer/step diagram */
+  .layers { margin: 1.5rem 0; }
+  .layer { display: flex; align-items: stretch; border: 1px solid var(--border); border-radius: 8px; margin-bottom: .6rem; overflow: hidden; background: var(--panel); }
+  .layer .num { flex: 0 0 56px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; font-weight: 700; background: var(--panel-2); color: var(--accent); }
+  .layer .body { padding: .7rem 1rem; flex: 1; }
+  .layer .body .t { font-weight: 600; }
+  .layer .body .d { color: var(--muted); font-size: .9rem; }
+  .layer .owner { flex: 0 0 130px; display:flex; align-items:center; justify-content:center; font-size: .72rem; text-align:center; border-left: 1px solid var(--border); }
+  /* Card grid */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .card { border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.1rem; background: var(--panel); }
+  .card h4 { margin-top: 0; }
+  .muted { color: var(--muted); }
+  .cmd { color: var(--accent-2); }   /* CLI/command text inside <pre> */
+  hr { border: none; border-top: 1px solid var(--border); margin: 2.5rem 0; }
+  footer { color: var(--muted); font-size: .85rem; margin-top: 4rem; border-top: 1px solid var(--border); padding-top: 1.2rem; }
+  @media (max-width: 900px) {
+    main { padding: 2rem 1.2rem 4rem; }
+    .grid2 { grid-template-columns: 1fr; }
+  }
+
+  /* ── Explainer diagrams ─────────────────────────────────────────────── */
+  /* Flow: boxes joined by arrows. Add .vert for top-to-bottom. */
+  .flow { display: flex; align-items: stretch; gap: 0; flex-wrap: wrap; margin: 1.5rem 0; }
+  .flow.vert { flex-direction: column; align-items: flex-start; }
+  .flow .node {
+    border: 1px solid var(--border); border-radius: 8px; background: var(--panel);
+    padding: .7rem 1rem; min-width: 120px; text-align: center;
+  }
+  .flow .node .t { font-weight: 600; font-size: .95rem; }
+  .flow .node .d { color: var(--muted); font-size: .82rem; }
+  .flow .node.surface { border-color: #58a6ff55; background: #58a6ff12; }  /* caller-facing */
+  .flow .node.inside  { border-color: var(--border); background: var(--panel-2); }  /* internal */
+  .flow .arrow { display: flex; align-items: center; justify-content: center; padding: 0 .7rem; color: var(--accent); font-size: 1.3rem; }
+  .flow.vert .arrow { padding: .35rem 0 .35rem 2.2rem; }
+  .flow .arrow .lbl { color: var(--muted); font-size: .72rem; margin-left: .35rem; }
+
+  /* Boundary: the surface (highlighted) wrapping the internals (dimmed). */
+  .boundary { border: 1px solid #58a6ff55; border-radius: 10px; background: #58a6ff0a; padding: 1rem; margin: 1.5rem 0; }
+  .boundary > .cap { font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); font-weight: 700; margin-bottom: .6rem; }
+  .boundary .inner { border: 1px dashed var(--border); border-radius: 8px; background: var(--panel); padding: .9rem; }
+  .boundary .inner > .cap { font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 700; margin-bottom: .5rem; }
+
+  /* SVG diagram wrapper (state machines, sequences) */
+  .diagram { width: 100%; margin: 1.5rem 0; }
+  .diagram text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; fill: var(--text); }
+  .diagram .node-box { fill: var(--panel); stroke: var(--border); }
+  .diagram .node-box.surface { fill: #58a6ff12; stroke: #58a6ff88; }
+  .diagram .edge { stroke: var(--accent); stroke-width: 1.5; fill: none; }
+  .diagram .edge-lbl { fill: var(--muted); font-size: 12px; }
+  .diagram .muted { fill: var(--muted); }
+</style>
+</head>
+<body>
+<div class="layout">
+<main>
+
+<h1>Did-You-Mean Teaching 404s</h1>
+<p class="lead">
+  A caller who guesses the wrong endpoint path on a DUH service gets back a 404 that
+  <em>names the endpoint they meant</em> — and recovers in exactly one retry. The
+  contract author declares the likely wrong guesses in their OpenAPI spec; nobody writes
+  a line of handler code.
+</p>
+
+<p>
+  There are two people at this boundary. The <span class="pill a">API consumer</span> —
+  usually an LLM agent calling the service before it has read the spec — is the one who
+  hits the wrong path and needs the hint. The <span class="pill b">contract author</span>
+  is the one who predicts those wrong guesses and declares them. We meet the consumer
+  first, because their one-retry recovery is the entire reason the feature exists. Then
+  we meet the author's surface, then how <code>duh generate</code> keeps the promise.
+</p>
+
+<!-- ============================================================= -->
+<h2 id="boundary">What the caller gets</h2>
+
+<p>
+  A <strong>did-you-mean path</strong> is a real, matched route whose only job is to
+  teach. Guess it, and the generated server answers 404 with a single machine-readable
+  hint. It never serves the operation, never redirects — it corrects you and stops.
+</p>
+
+<div class="boundary">
+  <div class="cap">What the API consumer sees</div>
+  <p class="muted" style="margin:.2rem 0 .8rem">
+    One request to a guessed path → one 404 carrying <code>did_you_mean</code>, the
+    canonical path spelled out. Any HTTP method, same answer. That is the whole contract.
+  </p>
+  <div class="inner">
+    <div class="cap">Inside — not the caller's concern</div>
+    <p class="muted" style="margin:.2rem 0 0">
+      A generated <code>case</code> arm in the dispatch switch, emitted at
+      <code>duh generate</code> time from the author's declared guess table. No runtime
+      matching, no heuristics, no state.
+    </p>
+  </div>
+</div>
+
+<h3>The round-trip — one wrong guess, one retry</h3>
+
+<svg class="diagram" viewBox="0 0 560 270" role="img" aria-label="One wrong guess recovers in a single retry">
+  <defs>
+    <marker id="seqarrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="var(--accent)"/>
+    </marker>
+  </defs>
+  <!-- lifelines -->
+  <text x="100" y="22" text-anchor="middle" fill="var(--accent)">agent (consumer)</text>
+  <text x="460" y="22" text-anchor="middle" class="muted">generated server</text>
+  <line x1="100" y1="34" x2="100" y2="248" stroke-dasharray="4 4" stroke="var(--border)"/>
+  <line x1="460" y1="34" x2="460" y2="248" stroke-dasharray="4 4" stroke="var(--border)"/>
+  <!-- guess -->
+  <path class="edge" d="M100 74 H460" marker-end="url(#seqarrow)"/>
+  <text class="edge-lbl" x="280" y="66" text-anchor="middle">POST /v1/diffs.get   ·   the guess</text>
+  <path class="edge" d="M460 116 H100" marker-end="url(#seqarrow)"/>
+  <text class="edge-lbl" x="280" y="108" text-anchor="middle">404 · did_you_mean: /v1/commits.diff</text>
+  <!-- retry -->
+  <path class="edge" d="M100 186 H460" marker-end="url(#seqarrow)"/>
+  <text class="edge-lbl" x="280" y="178" text-anchor="middle">POST /v1/commits.diff   ·   the correction</text>
+  <path class="edge" d="M460 228 H100" marker-end="url(#seqarrow)"/>
+  <text class="edge-lbl" x="280" y="220" text-anchor="middle">200 · CommitsDiffResponse</text>
+  <!-- divider note -->
+  <text x="280" y="150" text-anchor="middle" class="muted" font-size="11">— the agent reads the hint and retries once —</text>
+</svg>
+
+<h3>The exact reply</h3>
+<p>
+  The 404 is an ordinary DUH Reply — same content negotiation as every other response
+  (JSON by default, protobuf on request). The JSON form:
+</p>
+
+<pre><code>{
+  "code": 404,
+  "message": "no such endpoint: /v1/diffs.get",
+  "details": {<span class="cmd">"did_you_mean": "/v1/commits.diff"</span>}
+}</code></pre>
+
+<p>
+  <code>did_you_mean</code> is <strong>always exactly one path</strong> — the single
+  canonical endpoint the author mapped this guess to. The reply never enumerates other
+  endpoints, and the message only ever echoes the spec-declared path, never anything from
+  the request. The base path (<code>/v1</code>, from <code>servers[0].url</code>) is
+  prepended to both the guessed path and the hint, just as it is for real routes.
+</p>
+
+<div class="callout tip">
+  <span class="label">Method-agnostic</span>
+  A guessed endpoint does not exist, so the method is irrelevant — <code>GET</code>,
+  <code>POST</code>, anything on a teaching path receives the same teaching 404. Canonical
+  routes keep their usual POST-only check; teaching paths deliberately skip it.
+</div>
+
+<h3>What is <em>not</em> taught — the fall-through</h3>
+<p>
+  Teaching coverage equals the declared table, nothing more. A wrong guess the author did
+  <em>not</em> predict is not this feature's concern: it matches no <code>case</code>, so
+  <code>ServeHTTP</code> returns <code>false</code> and writes <strong>nothing</strong> —
+  byte-identical to today. The binding then consults the next handler and finally the mux.
+  That fall-through contract is load-bearing for scaffold's handler chaining and is never
+  touched.
+</p>
+
+<div class="grid2">
+  <div class="card">
+    <h4><span class="pill a">declared guess</span></h4>
+    <p class="muted">Matches a teaching <code>case</code> → 404 + <code>did_you_mean</code>,
+    <code>ServeHTTP</code> returns <code>true</code>.</p>
+  </div>
+  <div class="card">
+    <h4><span class="pill c">undeclared path</span></h4>
+    <p class="muted">Matches nothing → writes nothing, <code>ServeHTTP</code> returns
+    <code>false</code>. Terminal behavior is the deployment's concern
+    (<a href="https://linear.app/kapetan-io/issue/ENG-134">ENG-134</a>).</p>
+  </div>
+</div>
+
+<!-- ============================================================= -->
+<h2 id="author">The contract author's surface</h2>
+
+<p>
+  The author never writes handler code for this. They add one extension to the spec and
+  regenerate. The maintenance loop is deliberate and manual: <em>observe 404s in the
+  access log → declare the guess → regenerate</em>.
+</p>
+
+<h3>Declaring guesses</h3>
+<p>
+  <code>x-duh-did-you-mean</code> sits at the <strong>path-item level</strong>, beside the
+  path's <code>post:</code> operation. Its value is a list of spec-relative paths, each
+  beginning with <code>/</code> — the same form as the spec's own path keys:
+</p>
+
+<pre><code>paths:
+  /commits.diff:
+    <span class="cmd">x-duh-did-you-mean:</span>
+      <span class="cmd">- /diffs.get</span>
+      <span class="cmd">- /revisions.compare</span>
+    post:
+      ...            <span class="muted"># the real operation, unchanged</span></code></pre>
+
+<p>
+  These guesses are not contract paths, so they are exempt from the naming lint rules that
+  govern canonical paths. They must only be <strong>well-formed</strong> (a string with a
+  leading <code>/</code>) and <strong>collision-free</strong>. The extension touches
+  <code>server.go</code> only — clients, protobuf/fieldmap outputs, and
+  <code>duh docs</code> rendering all ignore it.
+</p>
+
+<h3>Regenerating</h3>
+<pre><code><span class="cmd">duh generate</span> ./api/v1/openapi.yaml --output-dir ./gen</code></pre>
+
+<p>For each declared guess, the dispatch switch gains one arm, after the canonical arms:</p>
+
+<pre><code>case "/v1/diffs.get":
+	duh.ReplyWithCode(w, r, duh.CodeNotFound,
+		map[string]string{"did_you_mean": <span class="cmd">RPCCommitsDiff</span>},
+		"no such endpoint: /v1/diffs.get")
+	return true</code></pre>
+
+<p>
+  The hint references the declaring operation's own route constant
+  (<code>RPCCommitsDiff</code>) — not a second string literal — so it can never drift from
+  the real route. There is no dispatch to any handler in the arm: reply, then
+  <code>return true</code>.
+</p>
+
+<div class="callout tip">
+  <span class="label">Before / after, for the caller</span>
+  Before: a guess to <code>/v1/diffs.get</code> returned a bare 404 with no guidance — the
+  agent was stuck. After: the same guess returns a 404 naming <code>/v1/commits.diff</code>
+  — the agent recovers on the next call.
+</div>
+
+<h3>When a declaration is rejected</h3>
+<p>
+  <code>duh generate</code> fails <strong>before writing any output</strong> — exit
+  non-zero, naming every offending path so the author fixes the spec in one pass.
+  <code>duh lint</code> reports the same problems earlier, as
+  <code>DID_YOU_MEAN_COLLISION</code> <span class="pill" style="color:var(--danger);border-color:#ff7b7255;background:#ff7b7212">ERROR</span>
+  violations. Generate does not depend on lint having run; it enforces independently.
+</p>
+
+<table>
+  <thead><tr><th>Rejected when…</th><th>Example</th><th>Reported by</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>A guess equals a canonical route</td>
+      <td><code>/commits.diff</code> both a real path and a declared guess</td>
+      <td>generate + lint</td>
+    </tr>
+    <tr>
+      <td>The same guess is declared more than once — within one list <em>or</em> across path items</td>
+      <td><code>[/diffs.get, /diffs.get]</code>, or two path items each declaring <code>/diffs.get</code></td>
+      <td>generate + lint</td>
+    </tr>
+    <tr>
+      <td>A malformed entry — not a string, or no leading <code>/</code></td>
+      <td><code>diffs.get</code> (missing slash), or a non-string value</td>
+      <td>generate + lint</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- ============================================================= -->
+<h2 id="internals">How the promise is kept</h2>
+
+<p>
+  The generated output is a pure function of the spec — no heuristics at generate time or
+  request time. Three touch points in the existing <code>duh generate</code> pipeline
+  carry it, described here as contracts (the internal signatures belong to the
+  implementor).
+</p>
+
+<div class="flow">
+  <div class="node surface"><div class="t">openapi.yaml</div><div class="d">author's spec</div></div>
+  <div class="arrow">→</div>
+  <div class="node inside"><div class="t">parser</div><div class="d">extract + resolve paths</div></div>
+  <div class="arrow">→</div>
+  <div class="node inside"><div class="t">validation</div><div class="d">collision + format</div></div>
+  <div class="arrow">→</div>
+  <div class="node inside"><div class="t">template</div><div class="d">emit case arms</div></div>
+  <div class="arrow">→</div>
+  <div class="node surface"><div class="t">server.go</div><div class="d">generated handler</div></div>
+</div>
+
+<div class="layers">
+  <div class="layer">
+    <div class="num">1</div>
+    <div class="body">
+      <div class="t">Parser — <code>internal/generate/duh/parser.go</code></div>
+      <div class="d">Extracts the extension from each path item into the operation record, resolving each entry to its full route path (base + declared path). Malformed entries are generate errors here.</div>
+    </div>
+    <div class="owner"><span class="pill b">internal</span></div>
+  </div>
+  <div class="layer">
+    <div class="num">2</div>
+    <div class="body">
+      <div class="t">Validation — before any output is written</div>
+      <div class="d">The collected teaching paths are checked for both collision classes (equal to a canonical route; the same path declared more than once, within a list or across items). Errors name every offending path.</div>
+    </div>
+    <div class="owner"><span class="pill b">internal</span></div>
+  </div>
+  <div class="layer">
+    <div class="num">3</div>
+    <div class="body">
+      <div class="t">Template — <code>templates/server.go.tmpl</code></div>
+      <div class="d">Emits one teaching arm per declared path, after the canonical arms. When no operation declares the extension, the output is unchanged from today.</div>
+    </div>
+    <div class="owner"><span class="pill b">internal</span></div>
+  </div>
+</div>
+
+<p>
+  <code>duh lint</code> gains one rule, <code>DID_YOU_MEAN_COLLISION</code>, covering both
+  collision classes and entry format — so authors get feedback before they ever generate.
+</p>
+
+<h3>The invariants, and why they hold</h3>
+<p>
+  This feature has no runtime state; the invariants are properties of the
+  <em>generated artifact</em>. Each is preserved by construction, then backstopped.
+</p>
+
+<table>
+  <thead><tr><th>Invariant</th><th>How it is preserved</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>Every <code>case</code> path is unique</strong> — canonical and teaching paths are disjoint, teaching paths pairwise distinct.</td>
+      <td>Generate-time validation rejects both collision classes. Structural backstop: duplicate <code>case</code> literals do not compile in Go, and generated output is compile-verified in tests.</td>
+    </tr>
+    <tr>
+      <td><strong>Every hint names a real route</strong> of the same spec.</td>
+      <td>Structural — the hint is emitted from the declaring operation's own route constant. There is no second source to drift from; an illegal hint is unrepresentable in the template's inputs.</td>
+    </tr>
+    <tr>
+      <td><strong>A teaching path never serves.</strong></td>
+      <td>Its <code>case</code> arm contains only the reply and <code>return true</code> — no dispatch to any handler exists in the arm.</td>
+    </tr>
+    <tr>
+      <td><strong>An unmatched path never gets a reply</strong>, and a spec without the extension generates identical code.</td>
+      <td>Structural — the template's miss path (<code>return false</code>) is not modified by this feature; the no-extension acceptance test pins it byte-for-byte.</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout tip">
+  <span class="label">Reversible</span>
+  Remove a did-you-mean entry and regenerate — that path returns to ordinary fall-through.
+  Nothing persists at runtime.
+</div>
+
+<!-- ============================================================= -->
+<h2 id="principles">Design principles &amp; boundaries</h2>
+
+<div class="grid2">
+  <div class="card">
+    <h4>Correct the caller, never accommodate the guess</h4>
+    <p class="muted">A wrong path always replies 404 + hint and never serves. The moment a
+    wrong path silently works, it becomes a second, undocumented API surface that can never
+    be removed. One canonical path per operation.</p>
+  </div>
+  <div class="card">
+    <h4>The fall-through contract is inviolate</h4>
+    <p class="muted">Generated <code>ServeHTTP</code> returns <code>false</code> for any
+    unmatched path, unconditionally. Scaffold's handler chaining depends on it; no teaching
+    mechanism may touch it.</p>
+  </div>
+  <div class="card">
+    <h4>Spec-declared and deterministic</h4>
+    <p class="muted">No heuristics, generate-time or request-time. The output is a pure
+    function of the spec; the author owns and maintains the guess table like any other part
+    of the contract.</p>
+  </div>
+  <div class="card">
+    <h4>Zero cost to real traffic</h4>
+    <p class="muted">Canonical routes gain no new code on their dispatch path; teaching
+    paths are additional <code>case</code> arms in the existing string switch. Realistic
+    tables (tens of entries) are negligible.</p>
+  </div>
+</div>
+
+<h3>Deliberately out of scope</h3>
+<p>These were considered during design and rejected — they are not coming back without new evidence:</p>
+<ul>
+  <li><strong>Any catch-all / default-arm behavior.</strong> An earlier framing proposed a runtime <code>default:</code> arm claiming all unmatched paths with request-time fuzzy matching. Rejected: it breaks the fall-through contract, drags in prefix-scoping and opt-out machinery, and puts a tunable heuristic on the request path.</li>
+  <li><strong>Mechanical guess derivation</strong> (plural/singular, verb synonyms). Only the author knows the semantic misses that matter, and derived tables make output harder to predict.</li>
+  <li><strong>Runtime fuzzy matching</strong> in any form, in generated code or in duh.go.</li>
+  <li><strong>Client-side changes.</strong> Generated clients ignore the extension entirely.</li>
+</ul>
+
+<div class="callout warn">
+  <span class="label">The boundary with scaffold</span>
+  Unpredicted guesses fall through to whatever the deployment's terminal behavior is.
+  Making that terminal response a proper DUH Reply is scaffold's job, tracked separately as
+  <a href="https://linear.app/kapetan-io/issue/ENG-134">ENG-134</a> — not this feature.
+</div>
+
+<footer>
+  Generated from <code>docs/features/eng-133-duh-cli-unknown-endpoint-reply/blueprint.md</code>
+  and <code>docs/adr/0011-wrong-guess-endpoints-are-spec-declared-teaching-404s.md</code>.
+  Styling per the bundled <code>html-explainer</code> template.
+</footer>
+
+</main>
+</div>
+</body>
+</html>

@@ -292,6 +292,40 @@ func TestLinterAllRuleViolations(t *testing.T) {
 			expectedViolation: "[DESCRIPTION_REQUIRED]",
 			expectedExitCode:  0,
 		},
+		{
+			name:              "DidYouMeanCollidesWithCanonical",
+			file:              "testdata/did-you-mean-collision.yaml",
+			expectedViolation: "[DID_YOU_MEAN_COLLISION]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "DidYouMeanDuplicatePath",
+			file:              "testdata/did-you-mean-duplicate.yaml",
+			expectedViolation: "[DID_YOU_MEAN_COLLISION]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "DidYouMeanMalformedEntry",
+			file:              "testdata/did-you-mean-malformed.yaml",
+			expectedViolation: "[DID_YOU_MEAN_COLLISION]",
+			expectedExitCode:  1,
+		},
+		{
+			// generate and lint enforce the collision invariant independently, so
+			// the within-list duplicate case needs its own lint-layer coverage.
+			name:              "DidYouMeanWithinListDuplicate",
+			file:              "testdata/did-you-mean-within-list-duplicate.yaml",
+			expectedViolation: "[DID_YOU_MEAN_COLLISION]",
+			expectedExitCode:  1,
+		},
+		{
+			// The extension declared as a scalar rather than a list exercises the
+			// non-sequence guard, otherwise unreached by any test.
+			name:              "DidYouMeanNonList",
+			file:              "testdata/did-you-mean-non-list.yaml",
+			expectedViolation: "[DID_YOU_MEAN_COLLISION]",
+			expectedExitCode:  1,
+		},
 	}
 
 	for _, test := range tests {

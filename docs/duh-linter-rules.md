@@ -1111,6 +1111,66 @@ idempotency_key:
 
 ---
 
+## Extension Rules
+
+### `DID_YOU_MEAN_COLLISION` — ERROR
+
+The `x-duh-did-you-mean` path-item extension declares likely wrong-guess paths that
+`duh generate` turns into teaching routes: each replies `404` naming the canonical
+endpoint (see the OpenAPI reference for the extension). This rule enforces the
+switch-path uniqueness invariant those teaching routes depend on. Every entry MUST:
+
+- be a **string beginning with `/`** (same form as a spec path key), free of
+  characters that cannot appear in a path (quote, backslash, newline); and
+- **not equal a canonical route** in the same spec; and
+- be **declared exactly once** across the whole spec — not twice in one list, and
+  not on two different operations.
+
+The extension itself MUST sit beside a `post:` operation — declared on a path
+item with none, its entries would be silently dropped from the generated switch,
+so it is an error.
+
+A did-you-mean path is a guess, not a contract path, so it is exempt from the path
+naming rules (`PATH_FORMAT`, `PATH_PLURAL_RESOURCES`, …); only the three constraints
+above apply.
+
+```yaml
+# ✅ valid — a distinct guess that maps to the canonical route
+/commits.diff:
+  x-duh-did-you-mean:
+    - /diffs.get
+    - /revisions.compare
+  post: { ... }
+
+# ❌ invalid — teaching path equals the real /diffs.get route
+/diffs.get:
+  post: { ... }
+/commits.diff:
+  x-duh-did-you-mean:
+    - /diffs.get       # collides with the canonical route
+  post: { ... }
+
+# ❌ invalid — the same guess declared on two operations
+/commits.diff:
+  x-duh-did-you-mean: [/diffs.get]
+  post: { ... }
+/revisions.compare:
+  x-duh-did-you-mean: [/diffs.get]   # declared more than once
+  post: { ... }
+
+# ❌ invalid — entry does not begin with '/'
+/commits.diff:
+  x-duh-did-you-mean:
+    - diffs.get        # malformed
+  post: { ... }
+```
+
+`duh generate` enforces the same three constraints independently and fails (naming
+the offending paths) before writing any output, so a collision can never reach the
+generated switch.
+
+---
+
 ## Rule Reference
 
 | Rule | Severity | Category |
@@ -1163,6 +1223,7 @@ idempotency_key:
 | `AMOUNT_DECIMAL_STRING` | ERROR | Format Convention |
 | `AMOUNT_SCHEMA_PATTERN` | WARNING | Format Convention |
 | `IDEMPOTENCY_KEY_DEFINITION` | ERROR | Idempotency |
+| `DID_YOU_MEAN_COLLISION` | ERROR | Extension |
 
 ---
 

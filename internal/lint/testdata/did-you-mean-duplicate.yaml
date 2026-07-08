@@ -1,0 +1,169 @@
+openapi: "3.0.3"
+info:
+  title: Did-You-Mean Duplicate API
+  version: 1.0.0
+  description: The same teaching path declared on two operations
+
+servers:
+  - url: https://api.example.com/v1
+
+paths:
+  /pets.list:
+    x-duh-did-you-mean:
+      - /pets.fetch
+    post:
+      operationId: listPets
+      description: List pets with optional filtering
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListRequest'
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListResponse'
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetails'
+
+  /pets.create:
+    x-duh-did-you-mean:
+      - /pets.fetch
+    post:
+      operationId: createPet
+      description: Create a new pet
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRequest'
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateResponse'
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetails'
+
+components:
+  schemas:
+    ListRequest:
+      type: object
+      properties:
+        pagination:
+          $ref: '#/components/schemas/PaginationRequest'
+        status:
+          description: Filter pets by status
+          type: string
+
+    PaginationRequest:
+      description: Pagination parameters for cursor-based pagination
+      type: object
+      properties:
+        first:
+          description: Maximum number of items to return
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 100
+        after:
+          description: Cursor for the next page of results
+          type: string
+
+    ListResponse:
+      type: object
+      required: [items, pagination]
+      properties:
+        items:
+          description: List of pets matching the query
+          type: array
+          items:
+            $ref: '#/components/schemas/Pet'
+        pagination:
+          $ref: '#/components/schemas/PaginationResponse'
+
+    PaginationResponse:
+      description: Pagination response with cursor information
+      type: object
+      required: [end_cursor]
+      properties:
+        end_cursor:
+          description: Cursor pointing to the last item in the current page
+          type: string
+        has_next_page:
+          description: Whether there are more items available
+          type: boolean
+
+    CreateRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          description: Name of the pet to create
+          type: string
+        status:
+          description: Initial status of the pet
+          type: string
+
+    CreateResponse:
+      type: object
+      required: [pet_id, name]
+      properties:
+        pet_id:
+          description: Unique identifier for the created pet
+          type: string
+        name:
+          description: Name of the created pet
+          type: string
+        status:
+          description: Current status of the pet
+          type: string
+
+    Pet:
+      description: Represents a pet in the system
+      type: object
+      required: [pet_id, name]
+      properties:
+        pet_id:
+          description: Unique identifier for the pet
+          type: string
+        name:
+          description: Name of the pet
+          type: string
+        status:
+          description: Current status of the pet
+          type: string
+
+    ErrorDetails:
+      type: object
+      required: [message]
+      properties:
+        message:
+          description: Human-readable error message
+          type: string
+        code:
+          description: Machine-readable error code
+          type: string
+        type:
+          description: Error type classification
+          type: string
+        details:
+          description: Additional error context as key-value pairs
+          type: object
+          additionalProperties:
+            type: string
