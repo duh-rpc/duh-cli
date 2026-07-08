@@ -64,8 +64,9 @@ These are invariants of the generated artifact (the feature has no runtime state
 
 - **Every `case` path in the generated switch is unique** — canonical routes and teaching
   paths are disjoint sets, and teaching paths are pairwise distinct across the spec.
-  Violated by: an author declaring a did-you-mean path equal to a real route, or two path
-  items declaring the same did-you-mean path. Enforcement: `duh generate` fails with an
+  Violated by: an author declaring a did-you-mean path equal to a real route, or the same
+  did-you-mean path declared more than once — within a single path item's list or across
+  path items. Enforcement: `duh generate` fails with an
   error naming the colliding paths (and `duh lint` reports it earlier). Structural
   backstop: duplicate `case` literals in a Go switch do not compile, and generated output
   is compile-verified in tests.
@@ -101,8 +102,11 @@ ordinary fall-through. Nothing persists.
   no other new constructs.
 - `duh generate` exits non-zero, naming both paths, when a did-you-mean path equals a
   canonical path in the spec.
-- `duh generate` exits non-zero, naming the path and both declaring operations, when two
-  path items declare the same did-you-mean path.
+- `duh generate` exits non-zero, naming the path and its declaring operation(s), when the
+  same did-you-mean path is declared more than once — within a single path item's list or
+  across path items.
+- `duh generate` exits non-zero, naming the offending path, when a did-you-mean entry is
+  malformed (non-string, or not starting with `/`).
 - `duh lint` reports the same two collision cases as `ERROR` violations, and reports a
   malformed entry (non-string, or not starting with `/`) as an `ERROR`.
 - Generated code containing teaching arms compiles against the pinned duh.go runtime
@@ -209,8 +213,9 @@ signatures are the implementor's):
   entry to its full route path (base + declared path). Malformed entries (non-string,
   missing leading `/`) are generate errors.
 - **Validation**: before any output is written, the collected teaching paths are checked
-  for the two collision classes (equal to a canonical route; declared by more than one
-  path item). Errors name every offending path so the author can fix the spec in one pass.
+  for the two collision classes (equal to a canonical route; the same teaching path
+  declared more than once, whether within a single path item's list or across path items).
+  Errors name every offending path so the author can fix the spec in one pass.
 - **Template** (`internal/generate/duh/templates/server.go.tmpl`): emits one teaching arm
   per declared path after the canonical arms. When no operation declares the extension,
   the template's output is unchanged from today.
