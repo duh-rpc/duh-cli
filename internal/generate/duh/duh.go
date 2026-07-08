@@ -24,6 +24,12 @@ func Run(config RunConfig) error {
 		return err
 	}
 
+	// Enforce the did-you-mean switch-path invariant independently of lint so the
+	// error names the colliding paths rather than lint's generic failure message.
+	if err := ValidateDidYouMean(spec); err != nil {
+		return err
+	}
+
 	result := lint.Validate(spec, config.SpecPath, nil)
 	if !result.Valid() {
 		return fmt.Errorf("OpenAPI validation failed")

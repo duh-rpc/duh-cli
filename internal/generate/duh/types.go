@@ -49,6 +49,7 @@ type Operation struct {
 	RequestType          string
 	ResponseType         string
 	StreamKind           string
+	DidYouMean           []string
 	IsInitTemplateMethod bool
 }
 

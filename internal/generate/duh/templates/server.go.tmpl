@@ -61,6 +61,15 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) bool {
 {{- end}}
 		return true
 {{- end}}
+{{- range $op := .Operations}}
+{{- range $teach := $op.DidYouMean}}
+	case "{{$teach}}":
+		duh.ReplyWithCode(w, r, duh.CodeNotFound,
+			map[string]string{"did_you_mean": {{$op.ConstName}}},
+			"no such endpoint: {{$teach}}")
+		return true
+{{- end}}
+{{- end}}
 	}
 	return false
 }

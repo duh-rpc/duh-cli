@@ -292,6 +292,24 @@ func TestLinterAllRuleViolations(t *testing.T) {
 			expectedViolation: "[DESCRIPTION_REQUIRED]",
 			expectedExitCode:  0,
 		},
+		{
+			name:              "DidYouMeanCollidesWithCanonical",
+			file:              "testdata/did-you-mean-collision.yaml",
+			expectedViolation: "[DID_YOU_MEAN_COLLISION]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "DidYouMeanDuplicatePath",
+			file:              "testdata/did-you-mean-duplicate.yaml",
+			expectedViolation: "[DID_YOU_MEAN_COLLISION]",
+			expectedExitCode:  1,
+		},
+		{
+			name:              "DidYouMeanMalformedEntry",
+			file:              "testdata/did-you-mean-malformed.yaml",
+			expectedViolation: "[DID_YOU_MEAN_COLLISION]",
+			expectedExitCode:  1,
+		},
 	}
 
 	for _, test := range tests {

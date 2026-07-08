@@ -528,6 +528,68 @@ paths:
 
 ---
 
+## Extension: `x-duh-did-you-mean` (Teaching 404s)
+
+CRUD-shaped endpoint names are easy to guess; non-CRUD ones (`diffs.get`,
+`revisions.compare`, `tree.list`) are not. A caller that guesses the wrong path
+gets a bare `404` with no guidance. The `x-duh-did-you-mean` extension lets the
+contract author declare the wrong guesses they expect for an operation. `duh
+generate` turns each declared guess into a real, matched route in the generated
+server whose only job is to reply with a **teaching 404** naming the canonical
+endpoint — so one wrong guess costs exactly one retry.
+
+The extension sits at the **path-item level**, beside the path's `post:`
+operation. Its value is a list of spec-relative paths, each beginning with `/`
+(the same form as the spec's own path keys; the `servers[0].url` base path is
+prepended exactly as it is for canonical routes):
+
+```yaml
+servers:
+  - url: https://api.example.com/v1
+paths:
+  /commits.diff:
+    x-duh-did-you-mean:
+      - /diffs.get
+      - /revisions.compare
+    post:
+      # ... the real operation ...
+```
+
+Given the spec above, a request to `/v1/diffs.get` (any HTTP method) on the
+generated handler returns `404` with this DUH Reply, naming the one canonical
+path:
+
+```json
+{
+  "code": 404,
+  "message": "no such endpoint: /v1/diffs.get",
+  "details": {"did_you_mean": "/v1/commits.diff"}
+}
+```
+
+Notes:
+
+- **It teaches; it never serves.** A did-you-mean path always replies 404 and
+  never dispatches the operation. There is exactly one canonical path per
+  operation.
+- **Any method matches.** A guessed endpoint does not exist, so the method is
+  irrelevant — every method on a teaching path receives the teaching 404.
+- **It is opt-in and server-only.** A spec that does not use the extension
+  generates byte-identical server code. Clients, protobuf output, and `duh docs`
+  ignore the extension entirely.
+- **Entries must be unique and well-formed.** Each entry must be a string
+  beginning with `/`, must not equal a canonical route, and must be declared
+  exactly once across the spec. `duh generate` fails (naming the offending paths)
+  and `duh lint` reports `DID_YOU_MEAN_COLLISION` when any of these is violated.
+- **Guesses are exempt from path naming rules.** A did-you-mean path is a guess,
+  not a contract path, so `PATH_FORMAT`, `PATH_PLURAL_RESOURCES`, and the other
+  path rules do not apply to it.
+
+The maintenance loop is manual by design: observe the 404s callers actually hit
+in your access logs, declare them, and regenerate.
+
+---
+
 ## Validation Tool
 
 Use `duh lint` to automatically validate your OpenAPI specifications against all DUH-RPC rules:
