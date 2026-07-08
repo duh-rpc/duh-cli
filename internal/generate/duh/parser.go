@@ -3,20 +3,14 @@ package duh
 import (
 	"fmt"
 	"net/url"
-	"sort"
 	"strings"
 	"time"
 
+	"github.com/duh-rpc/duh-cli/internal/didyoumean"
 	"github.com/pb33f/libopenapi/datamodel/high/base"
 	v3 "github.com/pb33f/libopenapi/datamodel/high/v3"
 	"github.com/pb33f/libopenapi/orderedmap"
-	yaml "go.yaml.in/yaml/v4"
 )
-
-// didYouMeanExtension declares, at the path-item level, the wrong-guess paths a
-// caller is likely to try for this operation. Each becomes a teaching route in
-// the generated switch that replies 404 naming the canonical path (ENG-133).
-const didYouMeanExtension = "x-duh-did-you-mean"
 
 type Parser struct {
 	spec           *v3.Document
@@ -139,7 +133,7 @@ func (p *Parser) extractOperations() ([]Operation, error) {
 			ResponseType:         responseType,
 			RequestType:          requestType,
 			StreamKind:           streamKind,
-			DidYouMean:           resolveDidYouMean(base, pathItem),
+			DidYouMean:           didyoumean.Resolve(base, pathItem),
 			Summary:              summary,
 			Path:                 path,
 			RoutePath:            base + path,
@@ -302,114 +296,21 @@ func (p *Parser) serverBasePath() string {
 	return strings.TrimSuffix(u.Path, "/")
 }
 
-// didYouMeanNode returns the raw x-duh-did-you-mean sequence node declared on a
-// path item, or (nil, false) when the extension is absent.
-func didYouMeanNode(item *v3.PathItem) (*yaml.Node, bool) {
-	if item == nil || item.Extensions == nil {
-		return nil, false
-	}
-	node, ok := item.Extensions.Get(didYouMeanExtension)
-	if !ok || node == nil {
-		return nil, false
-	}
-	return node, true
-}
-
-// resolveDidYouMean returns the full teaching route paths (base + declared) for a
-// path item. It trusts the entries have already passed ValidateDidYouMean and
-// silently skips anything malformed, so a template never emits a broken case.
-func resolveDidYouMean(base string, item *v3.PathItem) []string {
-	node, ok := didYouMeanNode(item)
-	if !ok || node.Kind != yaml.SequenceNode {
-		return nil
-	}
-	var out []string
-	for _, child := range node.Content {
-		if child.Kind == yaml.ScalarNode && child.Tag == "!!str" && strings.HasPrefix(child.Value, "/") {
-			out = append(out, base+child.Value)
-		}
-	}
-	return out
-}
-
-// ValidateDidYouMean enforces the switch-path uniqueness invariant on the
-// x-duh-did-you-mean extension before any code is generated: every entry must be
-// a well-formed spec-relative path, must not equal a canonical route, and must be
-// declared exactly once across the whole spec. All problems are collected so the
-// author can fix the spec in one pass. Returns nil when no operation uses the
-// extension, leaving generation byte-identical to a spec without it.
+// ValidateDidYouMean enforces the x-duh-did-you-mean invariant before any code is
+// generated, returning a single error naming every offending path so the author
+// fixes the spec in one pass. The checks live in internal/didyoumean so generate
+// and lint enforce them from one implementation. Returns nil when no operation
+// uses the extension, leaving generation byte-identical to a spec without it.
 func ValidateDidYouMean(spec *v3.Document) error {
-	if spec == nil || spec.Paths == nil || spec.Paths.PathItems == nil {
+	problems := didyoumean.Validate(spec)
+	if len(problems) == 0 {
 		return nil
 	}
-
-	canonical := make(map[string]bool)
-	for pair := orderedmap.First(spec.Paths.PathItems); pair != nil; pair = pair.Next() {
-		canonical[pair.Key()] = true
+	msgs := make([]string, len(problems))
+	for i, p := range problems {
+		msgs[i] = p.Message
 	}
-
-	var problems []string
-	declaredBy := make(map[string][]string)
-
-	for pair := orderedmap.First(spec.Paths.PathItems); pair != nil; pair = pair.Next() {
-		path := pair.Key()
-		node, ok := didYouMeanNode(pair.Value())
-		if !ok {
-			continue
-		}
-		if node.Kind != yaml.SequenceNode {
-			problems = append(problems, fmt.Sprintf("%s on path %q must be a list of strings, each beginning with '/'", didYouMeanExtension, path))
-			continue
-		}
-		for _, child := range node.Content {
-			if child.Kind != yaml.ScalarNode || child.Tag != "!!str" {
-				problems = append(problems, fmt.Sprintf("%s entry on path %q is malformed: each entry must be a string beginning with '/'", didYouMeanExtension, path))
-				continue
-			}
-			entry := child.Value
-			if !strings.HasPrefix(entry, "/") {
-				problems = append(problems, fmt.Sprintf("%s entry %q on path %q is malformed: must begin with '/'", didYouMeanExtension, entry, path))
-				continue
-			}
-			if canonical[entry] {
-				problems = append(problems, fmt.Sprintf("%s path %q on %q collides with the canonical route %q", didYouMeanExtension, entry, path, entry))
-			}
-			declaredBy[entry] = append(declaredBy[entry], path)
-		}
-	}
-
-	for _, entry := range sortedKeys(declaredBy) {
-		decls := declaredBy[entry]
-		if len(decls) > 1 {
-			// A within-list duplicate declares the same path item twice; name each
-			// declaring path once so the message never reads "on X and X".
-			seen := make(map[string]bool, len(decls))
-			var quoted []string
-			for _, d := range decls {
-				if seen[d] {
-					continue
-				}
-				seen[d] = true
-				quoted = append(quoted, fmt.Sprintf("%q", d))
-			}
-			problems = append(problems, fmt.Sprintf("%s path %q is declared more than once (on %s)", didYouMeanExtension, entry, strings.Join(quoted, " and ")))
-		}
-	}
-
-	if len(problems) > 0 {
-		sort.Strings(problems)
-		return fmt.Errorf("%s", strings.Join(problems, "; "))
-	}
-	return nil
-}
-
-func sortedKeys(m map[string][]string) []string {
-	keys := make([]string, 0, len(m))
-	for k := range m {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-	return keys
+	return fmt.Errorf("%s", strings.Join(msgs, "; "))
 }
 
 func (p *Parser) detectListOperations(ops []Operation) ([]ListOperation, error) {

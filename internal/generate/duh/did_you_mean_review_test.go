@@ -71,24 +71,18 @@ components:
           type: string
 `
 
-// TestDidYouMeanOnOperationlessPathItemIsNotSilentlyDropped proves RS-001: a
-// declared teaching path must not vanish with a clean exit 0. Either generate
-// emits the teaching arm (the blueprint contract) or it errors naming the path —
-// what it must not do is succeed while silently discarding the declared guess.
-func TestDidYouMeanOnOperationlessPathItemIsNotSilentlyDropped(t *testing.T) {
-	t.Skip("review-suite: RS-001 declared teaching path on operationless path item silently dropped; see review-suite.html")
+// TestDidYouMeanOnOperationlessPathItemErrors proves RS-001: the extension on a
+// path item with no post: operation would be silently dropped from the switch, so
+// generate must reject it naming the offending path rather than exit 0.
+func TestDidYouMeanOnOperationlessPathItemErrors(t *testing.T) {
 	specPath, stdout := setupTest(t, didYouMeanOperationlessSpec)
-	tempDir := filepath.Dir(specPath)
 
 	exitCode := duh.RunCmd(context.Background(), stdout, []string{"generate", specPath})
 
-	// A declared teaching path was silently dropped when generation succeeds but
-	// the arm is absent. That is the defect: neither taught nor reported.
-	if exitCode == 0 {
-		content, err := os.ReadFile(filepath.Join(tempDir, "server.go"))
-		require.NoError(t, err)
-		assert.Contains(t, string(content), "/v1/widgets.fetch")
-	}
+	require.NotEqual(t, 0, exitCode)
+	output := stdout.String()
+	assert.Contains(t, output, "/widgets.get")
+	assert.Contains(t, output, "post:")
 }
 
 // RS-005: the "hint names the declaring operation's own route" invariant is only
@@ -357,10 +351,10 @@ func TestDidYouMeanDuplicateWithinListNamesPathOnce(t *testing.T) {
 }
 
 // TestDidYouMeanUnsafeEntryIsRejectedByName proves RS-002: an entry that would
-// break generated Go source must be rejected by the validator with a named
-// error, not slip through to an opaque template-render failure.
+// break generated Go source is rejected by the validator with a named error
+// (naming the path and the offending character), not left to slip through to an
+// opaque template-render failure.
 func TestDidYouMeanUnsafeEntryIsRejectedByName(t *testing.T) {
-	t.Skip("review-suite: RS-002 entry breaking Go string literal slips past validation to opaque template error; see review-suite.html")
 	specPath, stdout := setupTest(t, didYouMeanUnsafeEntrySpec)
 
 	exitCode := duh.RunCmd(context.Background(), stdout, []string{"generate", specPath})
@@ -368,5 +362,22 @@ func TestDidYouMeanUnsafeEntryIsRejectedByName(t *testing.T) {
 	require.NotEqual(t, 0, exitCode)
 	output := stdout.String()
 	assert.Contains(t, strings.ToLower(output), "malformed")
-	assert.Contains(t, output, "widgets\".injected")
+	assert.Contains(t, output, "/widgets.create")
+	assert.Contains(t, output, "double-quote")
+	assert.Contains(t, output, "injected")
+}
+
+// TestDidYouMeanBackslashEntryRejected covers the second unsafe-character branch
+// (a backslash, distinct from the double-quote in the test above), which would
+// also break the generated Go string literal.
+func TestDidYouMeanBackslashEntryRejected(t *testing.T) {
+	spec := strings.Replace(didYouMeanUnsafeEntrySpec, `'/widgets".injected'`, `'/widgets\bad'`, 1)
+	specPath, stdout := setupTest(t, spec)
+
+	exitCode := duh.RunCmd(context.Background(), stdout, []string{"generate", specPath})
+
+	require.NotEqual(t, 0, exitCode)
+	output := stdout.String()
+	assert.Contains(t, strings.ToLower(output), "malformed")
+	assert.Contains(t, output, "backslash")
 }

@@ -1120,10 +1120,15 @@ The `x-duh-did-you-mean` path-item extension declares likely wrong-guess paths t
 endpoint (see the OpenAPI reference for the extension). This rule enforces the
 switch-path uniqueness invariant those teaching routes depend on. Every entry MUST:
 
-- be a **string beginning with `/`** (same form as a spec path key); and
+- be a **string beginning with `/`** (same form as a spec path key), free of
+  characters that cannot appear in a path (quote, backslash, newline); and
 - **not equal a canonical route** in the same spec; and
 - be **declared exactly once** across the whole spec — not twice in one list, and
   not on two different operations.
+
+The extension itself MUST sit beside a `post:` operation — declared on a path
+item with none, its entries would be silently dropped from the generated switch,
+so it is an error.
 
 A did-you-mean path is a guess, not a contract path, so it is exempt from the path
 naming rules (`PATH_FORMAT`, `PATH_PLURAL_RESOURCES`, …); only the three constraints

@@ -106,7 +106,11 @@ ordinary fall-through. Nothing persists.
   same did-you-mean path is declared more than once — within a single path item's list or
   across path items.
 - `duh generate` exits non-zero, naming the offending path, when a did-you-mean entry is
-  malformed (non-string, or not starting with `/`).
+  malformed (non-string, not starting with `/`, or containing a character that cannot appear in
+  a path such as a quote, backslash, or newline).
+- `duh generate` exits non-zero, naming the path, when `x-duh-did-you-mean` is declared on a
+  path item that has no `post:` operation for it to teach (its entries would otherwise be
+  silently dropped from the switch).
 - `duh lint` reports the same two collision cases as `ERROR` violations, and reports a
   malformed entry (non-string, or not starting with `/`) as an `ERROR`.
 - Generated code containing teaching arms compiles against the pinned duh.go runtime
@@ -165,7 +169,8 @@ paths:
 ```
 
 Teaching paths are guesses, not contract paths — they are exempt from the naming lint
-rules that govern canonical paths. They must only be well-formed (string, leading `/`) and
+rules that govern canonical paths. They must only be well-formed (a string beginning with `/`,
+free of characters that cannot appear in a path), sit beside a `post:` operation, and be
 collision-free (see Correctness Constraints).
 
 The extension affects `server.go` generation only. Clients, protobuf/fieldmap outputs, and
@@ -233,7 +238,9 @@ depend on lint having run; it enforces independently.
 - *Hint names a real route*: structural — emitted from the declaring operation's own
   record; illegal state unrepresentable in the template's inputs.
 - *Fall-through untouched*: structural — the template's miss path is not modified by this
-  feature; the no-extension acceptance test pins it.
+  feature. The no-extension acceptance test pins that no teaching constructs appear in the
+  generated text; runtime fall-through itself (`return false`, nothing written) is pinned by
+  the unmatched-path acceptance test against the compiled handler.
 
 ## Security
 

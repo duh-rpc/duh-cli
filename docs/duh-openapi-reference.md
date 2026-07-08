@@ -578,8 +578,10 @@ Notes:
   generates byte-identical server code. Clients, protobuf output, and `duh docs`
   ignore the extension entirely.
 - **Entries must be unique and well-formed.** Each entry must be a string
-  beginning with `/`, must not equal a canonical route, and must be declared
-  exactly once across the spec. `duh generate` fails (naming the offending paths)
+  beginning with `/`, free of characters that cannot appear in a path (quote,
+  backslash, newline), must not equal a canonical route, and must be declared
+  exactly once across the spec. The extension must also sit beside a `post:`
+  operation for it to teach. `duh generate` fails (naming the offending paths)
   and `duh lint` reports `DID_YOU_MEAN_COLLISION` when any of these is violated.
 - **Guesses are exempt from path naming rules.** A did-you-mean path is a guess,
   not a contract path, so `PATH_FORMAT`, `PATH_PLURAL_RESOURCES`, and the other
