@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Review Suite Report — did-you-mean teaching 404s</title>
+<style>
+  :root {
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c2430; --border:#30363d;
+    --text:#e6edf3; --muted:#9aa7b4; --link:#58a6ff;
+    --hi:#f85149; --hibg:#3d1d1d; --med:#d29922; --medbg:#3a2f10;
+    --low:#3fb950; --lowbg:#122117; --code:#0b0f14;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text);
+    font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif; }
+  .wrap { max-width:960px; margin:0 auto; padding:32px 24px 96px; }
+  h1 { font-size:26px; margin:0 0 4px; }
+  h2 { font-size:20px; margin:34px 0 12px; border-bottom:1px solid var(--border); padding-bottom:6px; }
+  h3 { font-size:16px; margin:20px 0 8px; }
+  .sub { color:var(--muted); margin:0 0 18px; }
+  a { color:var(--link); text-decoration:none; }
+  a:hover { text-decoration:underline; }
+  code, pre { font-family:"SF Mono",Menlo,Consolas,monospace; }
+  code { background:var(--code); padding:1px 5px; border-radius:4px; font-size:13px; }
+  pre { background:var(--code); border:1px solid var(--border); border-radius:8px;
+    padding:12px 14px; overflow-x:auto; font-size:12.5px; line-height:1.5; }
+  table { border-collapse:collapse; width:100%; margin:10px 0; font-size:13.5px; }
+  th,td { border:1px solid var(--border); padding:7px 10px; text-align:left; vertical-align:top; }
+  th { background:var(--panel2); }
+  .badge { display:inline-block; padding:1px 8px; border-radius:999px; font-size:11px;
+    font-weight:600; letter-spacing:.3px; }
+  .b-hi { background:var(--hibg); color:#ff9b95; border:1px solid #6e2b28; }
+  .b-med { background:var(--medbg); color:#e3b341; border:1px solid #6b5411; }
+  .b-low { background:var(--lowbg); color:#56d364; border:1px solid #234d2b; }
+  .b-fix { background:#10233a; color:#79c0ff; border:1px solid #1f4b7a; }
+  .ticket { background:var(--panel); border:1px solid var(--border); border-radius:10px;
+    padding:18px 20px; margin:18px 0; }
+  .ticket.open { border-left:4px solid var(--med); }
+  .ticket.low { border-left:4px solid var(--low); }
+  .ticket.fixed { border-left:4px solid #388bfd; }
+  .ticket h3 { margin-top:0; }
+  .kv td:first-child { color:var(--muted); width:130px; white-space:nowrap; }
+  .lead { color:var(--muted); font-size:13px; margin:2px 0 12px; }
+  .ok { color:var(--low); } .warn { color:var(--med); } .bad { color:var(--hi); }
+  details { background:var(--panel); border:1px solid var(--border); border-radius:10px;
+    padding:6px 16px; margin:12px 0; }
+  summary { cursor:pointer; font-weight:600; padding:8px 0; }
+  .small { font-size:12.5px; color:var(--muted); }
+  ul { margin:8px 0; padding-left:22px; } li { margin:3px 0; }
+  hr { border:0; border-top:1px solid var(--border); margin:22px 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Review Suite Report</h1>
+<p class="sub">Feature: <strong>did-you-mean teaching 404s</strong> (ENG-133) ·
+branch <code>review-suite-eng-133</code> off <code>thrawn01/eng-133-duh-cli-unknown-endpoint-reply</code></p>
+
+<p class="small">Pipeline: code-review → review-validate → green-gate → invariant-test → review-tests →
+review-for-reader. The feature implementation was uncommitted in the working tree; it was transferred
+into an isolated worktree and committed as the review baseline (<code>a054e7d</code>), leaving your
+branch untouched. All stages ran in the worktree.</p>
+
+<h2>⚠ Open issues (not auto-fixed) — 4</h2>
+
+<h3>MEDIUM (2)</h3>
+<table>
+<thead><tr><th>ID</th><th>Title</th><th>Location</th><th>Test</th></tr></thead>
+<tbody>
+<tr><td><a href="#rs-001">RS-001</a></td><td>Teaching path on an operationless path item is silently dropped</td><td>parser.go:142 / 341</td><td>skipped</td></tr>
+<tr><td><a href="#rs-002">RS-002</a></td><td>Entry breaking a Go string literal slips past validation to an opaque error</td><td>parser.go:370 · did_you_mean_collision.go:73 · server.go.tmpl:66</td><td>skipped</td></tr>
+</tbody>
+</table>
+
+<h3>LOW (2)</h3>
+<table>
+<thead><tr><th>ID</th><th>Title</th><th>Location</th><th>Test</th></tr></thead>
+<tbody>
+<tr><td><a href="#rs-004">RS-004</a></td><td>Validation logic duplicated across parser.go and the lint rule (drift risk)</td><td>parser.go:341 ↔ did_you_mean_collision.go:29</td><td>none (advisory)</td></tr>
+<tr><td><a href="#rs-007">RS-007</a></td><td>No-extension acceptance test only greps text; blueprint claims it "pins" fall-through</td><td>did_you_mean_test.go:291</td><td>advisory</td></tr>
+</tbody>
+</table>
+
+<details>
+<summary>✓ Auto-fixed / hardened (4)</summary>
+<table>
+<thead><tr><th>ID</th><th>Title</th><th>Location</th><th>Test</th></tr></thead>
+<tbody>
+<tr><td><a href="#rs-003">RS-003</a></td><td>Within-list duplicate message named the declaring path twice ("on X and X")</td><td>parser.go:388 · did_you_mean_collision.go:105</td><td>green</td></tr>
+<tr><td><a href="#rs-005">RS-005</a></td><td>Hint-names-declaring-operation invariant untested for multi-operation specs</td><td>did_you_mean_review_test.go</td><td>added, green</td></tr>
+<tr><td><a href="#rs-006">RS-006</a></td><td>Lint layer had no test for the within-list duplicate case</td><td>lint_test.go + testdata</td><td>added, green</td></tr>
+<tr><td><a href="#rs-008">RS-008</a></td><td>Non-list (scalar) extension guard was unreached by any test</td><td>lint_test.go + generate test</td><td>added, green</td></tr>
+</tbody>
+</table>
+</details>
+
+<h2>Stages &amp; gates</h2>
+<table>
+<thead><tr><th>Stage</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>Phase 0 — build gate</td><td class="ok">PASS — <code>go build ./...</code> clean</td></tr>
+<tr><td>Phase 0 — baseline</td><td class="ok">PASS — <code>go test ./... -race</code> all green</td></tr>
+<tr><td>Phase 1 — code-review (high)</td><td class="ok">2 parallel critical reviewers over the worktree diff → 4 candidate findings</td></tr>
+<tr><td>Phase 2 — review-validate</td><td class="ok">Proved 3 findings; auto-fixed RS-003; deferred RS-001/RS-002 (proving tests skipped)</td></tr>
+<tr><td>Phase 3 — green-gate</td><td class="ok">PASS — no regression from the RS-003 fix</td></tr>
+<tr><td>Phase 4 — invariant-test</td><td class="ok">3 gaps; hardened RS-005 &amp; RS-006 (mutation-validated); RS-007 advisory</td></tr>
+<tr><td>Phase 5 — review-tests</td><td class="ok">Coverage ≥80% floor met; hardened RS-008 (non-list guard)</td></tr>
+<tr><td>Phase 6 — review-for-reader</td><td class="ok">No rewrites — docs read standalone; <code>(ENG-133)</code> tags match repo convention</td></tr>
+<tr><td>Final green-gate</td><td class="ok">PASS — full suite <code>-race</code>, 2 suite-skipped tests</td></tr>
+</tbody>
+</table>
+
+<h2>Tickets</h2>
+
+<!-- ================= RS-001 ================= -->
+<div class="ticket open" id="rs-001">
+<h3>RS-001 · <span class="badge b-med">MEDIUM</span> · Deferred (proving test skipped)</h3>
+<p class="lead">A teaching path declared on a path item that produces no generated operation is silently discarded.</p>
+<table class="kv">
+<tr><td>Found by</td><td>code-review (Phase 1)</td></tr>
+<tr><td>Stage</td><td>review-validate (Phase 2)</td></tr>
+<tr><td>Location</td><td><code>internal/generate/duh/parser.go:142</code> (resolveDidYouMean only reached for surviving ops) vs <code>parser.go:341</code> (ValidateDidYouMean walks every path item)</td></tr>
+<tr><td>Proving test</td><td><code>TestDidYouMeanOnOperationlessPathItemIsNotSilentlyDropped</code> (skipped) — <code>did_you_mean_review_test.go:79</code></td></tr>
+<tr><td>Invariant</td><td>Blueprint: "For each declared path, the switch gains one arm."</td></tr>
+</table>
+
+<p><strong>Summary</strong> — <code>ValidateDidYouMean</code> validates the <code>x-duh-did-you-mean</code> entries on <em>every</em> path item, but the teaching <code>case</code> arms are only emitted for path items that survive <code>extractOperations</code>. A path item that carries the extension but produces no operation (e.g. it has no <code>post:</code>) passes validation cleanly and is then dropped — generation exits <span class="ok">0</span> with no arm and no diagnostic.</p>
+
+<p><strong>Explainer</strong> — When <code>duh generate</code> parses a spec, <code>extractOperations()</code> (<code>parser.go:89</code>) skips any path item where <code>pathItem.Post == nil</code> (<code>parser.go:102</code>) and also skips items whose request/response types don't resolve. Only for the survivors does it call <code>resolveDidYouMean(base, pathItem)</code> (<code>parser.go:142</code>) to attach the teaching paths to that operation record, which the template later turns into <code>case</code> arms.</p>
+<p>Independently, <code>ValidateDidYouMean(spec)</code> (<code>parser.go:341</code>) iterates <em>all</em> path items to check for collisions and malformed entries. So the two passes see different sets of path items. If an author writes the extension on a path item with no <code>post:</code> operation — a plausible mistake, e.g. attaching the guess table to the wrong path, or to a GET-only stub — <code>ValidateDidYouMean</code> sees it (finds no collision, so no error), but <code>extractOperations</code> never reaches <code>resolveDidYouMean</code> for it. The declared guess never becomes a route.</p>
+<p>The failure scenario, step by step: a spec has <code>/widgets.create</code> (valid POST) and a second path item <code>/widgets.get</code> carrying only <code>x-duh-did-you-mean: [/widgets.fetch]</code> and no operations → <code>duh generate</code> prints <span class="ok">✓</span> and exits 0 → the generated <code>server.go</code> contains <em>no</em> reference to <code>/v1/widgets.fetch</code>. The author believes <code>/v1/widgets.fetch</code> now teaches; it does not. Blast radius: any spec that declares the extension on a path item that doesn't generate an operation — the guess is neither taught nor reported.</p>
+<p>Correct behavior is a judgment call, which is why this was deferred: either (a) emit the teaching arm anyway (the literal "each declared path gains one arm" contract), or (b) fail generation naming the offending path (a path item with the extension but no operation is arguably itself a spec error). What is <em>not</em> acceptable is the current silent success.</p>
+
+<p><strong>Evidence</strong></p>
+<pre>--- FAIL: TestDidYouMeanOnOperationlessPathItemIsNotSilentlyDropped
+    exit code 0, generated server.go does not contain "/v1/widgets.fetch"
+    (switch has only: case RPCWidgetsCreate; no teaching arm emitted)</pre>
+<p class="small">Repro (remove the <code>t.Skip</code> first): <code>go test -run '^TestDidYouMeanOnOperationlessPathItemIsNotSilentlyDropped$' ./internal/generate/duh/...</code></p>
+
+<p><strong>Why it wasn't auto-fixed</strong> — the correct resolution (emit vs. error) is a design decision about how <code>duh generate</code> should treat the extension on a non-generating path item. The suite took the safe default: leave the proving test red (skipped), report, change no behavior.</p>
+
+<p><strong>Suggested fix</strong> — decide the policy, then enforce it in one place. If erroring: in <code>ValidateDidYouMean</code>, when a path item declares the extension, verify it also has a generated operation (mirror the <code>extractOperations</code> filters) and add a problem naming the path if not. If emitting: hoist teaching-path resolution out of the per-operation loop so it runs for every path item that declares the extension. Given RS-004 (duplicated validators), enforce it in the shared location once that consolidation happens. Remove the <code>t.Skip</code> at <code>did_you_mean_review_test.go:79</code> after applying (adjust the assertion to match the chosen policy).</p>
+</div>
+
+<!-- ================= RS-002 ================= -->
+<div class="ticket open" id="rs-002">
+<h3>RS-002 · <span class="badge b-med">MEDIUM</span> · Deferred (proving test skipped)</h3>
+<p class="lead">An entry containing characters that can't appear in a Go string literal passes validation and breaks template rendering with an opaque error.</p>
+<table class="kv">
+<tr><td>Found by</td><td>code-review (Phase 1)</td></tr>
+<tr><td>Stage</td><td>review-validate (Phase 2)</td></tr>
+<tr><td>Location</td><td><code>parser.go:370</code> &amp; <code>did_you_mean_collision.go:73</code> (only leading-slash checked) → <code>server.go.tmpl:66</code> (raw interpolation into <code>case "…"</code>)</td></tr>
+<tr><td>Proving test</td><td><code>TestDidYouMeanUnsafeEntryIsRejectedByName</code> (skipped) — <code>did_you_mean_review_test.go:363</code></td></tr>
+<tr><td>Invariant</td><td>Blueprint acceptance: "<code>duh generate</code> exits non-zero, <em>naming the offending path</em>, when a did-you-mean entry is malformed."</td></tr>
+</table>
+
+<p><strong>Summary</strong> — both validators check only that an entry is a string beginning with <code>/</code>. An entry like <code>/widgets".injected</code> passes, then the template interpolates it verbatim into <code>case "{{$teach}}":</code>, producing invalid Go. Generation fails — but with an opaque <em>template-render</em> error that does not name the entry, instead of the clean, named "malformed" rejection the blueprint promises.</p>
+
+<p><strong>Explainer</strong> — The teaching arm is generated by <code>server.go.tmpl:66-69</code>, which emits <code>case "{{$teach}}":</code> where <code>$teach</code> is the full teaching path, interpolated with no escaping. Both <code>ValidateDidYouMean</code> (<code>parser.go:364-373</code>) and its lint twin (<code>did_you_mean_collision.go:61-82</code>) accept any YAML scalar string whose value starts with <code>/</code>. Neither rejects an embedded double-quote, backslash, or newline.</p>
+<p>Failure scenario: a spec declares <code>x-duh-did-you-mean: ['/widgets".injected']</code> on an otherwise-valid POST path → validation passes → the template renders <code>case "/widgets".injected":</code>, which is not valid Go → generation aborts with <code>error: failed to render server.go: 46:29: string literal not terminated (and 10 more errors)</code>. No file is corrupted (generation buffers before writing), so this is not a code-injection or bad-output bug — but the acceptance criterion that a malformed entry is rejected <em>by name</em> is violated: the author gets an internal template error pointing at a generated-source line, not their spec.</p>
+<p>Blast radius: any hand-authored spec whose teaching entry contains a character illegal in a Go string literal. Low probability (real URL paths rarely contain <code>"</code>), bounded impact (safe failure, confusing message).</p>
+
+<p><strong>Evidence</strong></p>
+<pre>--- FAIL: TestDidYouMeanUnsafeEntryIsRejectedByName
+  "error: failed to render server.go: 46:29: string literal not terminated (and 10 more errors)"
+     does not contain "malformed"
+     does not contain "widgets\".injected"</pre>
+<p class="small">Repro (remove the <code>t.Skip</code> first): <code>go test -run '^TestDidYouMeanUnsafeEntryIsRejectedByName$' ./internal/generate/duh/...</code></p>
+
+<p><strong>Why it wasn't auto-fixed</strong> — the blueprint's definition of "malformed" is only "non-string, or not starting with <code>/</code>." Rejecting quote/backslash/newline (or restricting to a URL-path character set) <em>extends</em> that contract, which is a design choice. The suite took the safe default: leave the proving test red (skipped), report, change no behavior.</p>
+
+<p><strong>Suggested fix</strong> — add a character check to the shared entry validation. Minimal, defensible rule:</p>
+<pre>if strings.ContainsAny(entry, "\"\\\n\r\t") {
+    problems = append(problems, fmt.Sprintf(
+        "%s entry %q on path %q is malformed: contains a character not allowed in a path",
+        didYouMeanExtension, entry, path))
+    continue
+}</pre>
+<p>Apply to <em>both</em> <code>parser.go</code> and <code>did_you_mean_collision.go</code> (see RS-004). Remove the <code>t.Skip</code> at <code>did_you_mean_review_test.go:363</code> after applying.</p>
+</div>
+
+<!-- ================= RS-004 ================= -->
+<div class="ticket low" id="rs-004">
+<h3>RS-004 · <span class="badge b-low">LOW</span> · Advisory (no test)</h3>
+<p class="lead">The did-you-mean validation is implemented twice — once for generate, once for lint — with no shared code.</p>
+<table class="kv">
+<tr><td>Found by</td><td>code-review (Phase 1, both reviewers)</td></tr>
+<tr><td>Location</td><td><code>internal/generate/duh/parser.go:341-411</code> ↔ <code>internal/lint/rules/did_you_mean_collision.go:29-131</code>; duplicated <code>sortedKeys</code> at <code>parser.go:406</code> and <code>did_you_mean_collision.go:124</code></td></tr>
+<tr><td>Invariant</td><td>Blueprint: "Generate does not depend on lint having run; it enforces independently."</td></tr>
+</table>
+<p><strong>Summary</strong> — <code>ValidateDidYouMean</code> and <code>DidYouMeanCollisionRule.Validate</code> are near-verbatim copies of the same three-constraint validation (well-formed, no canonical collision, declared once), plus an identical private <code>sortedKeys</code>. They agree today, but nothing links them — a future fix to one can silently diverge from the other.</p>
+<p><strong>Explainer</strong> — Independent enforcement (generate not depending on lint) is a deliberate blueprint decision, so <em>some</em> duplication of the <em>invocation</em> is expected. The concern is the duplication of the <em>logic itself</em>. This is not hypothetical: the same real gaps (RS-001, RS-002) exist identically in both copies, and RS-003 had to be fixed in both places. A direct import can't remove it — <code>internal/generate/duh</code> already imports <code>internal/lint</code> (<code>duh.go:9</code>), so the lint rule can't call back into the generator without an import cycle.</p>
+<p><strong>Why it wasn't auto-fixed</strong> — consolidation requires introducing a third shared package (e.g. <code>internal/didyoumean</code>) that both the generator and the lint rule import, and deciding its API surface. That is a structural refactor and a design call, not a mechanical fix.</p>
+<p><strong>Suggested fix</strong> — extract the entry-parsing + three-constraint check into one small package returning structured problems; have <code>ValidateDidYouMean</code> format them as an <code>error</code> and the lint rule map them to <code>Violation</code>s. Fold the RS-001/RS-002 fixes into that single implementation. No test change required beyond the existing generate + lint coverage, which will then exercise one code path.</p>
+</div>
+
+<!-- ================= RS-007 ================= -->
+<div class="ticket low" id="rs-007">
+<h3>RS-007 · <span class="badge b-low">LOW</span> · Advisory</h3>
+<p class="lead">The test the blueprint says "pins" fall-through only asserts static text, never compiles the output.</p>
+<table class="kv">
+<tr><td>Found by</td><td>invariant-test (Phase 4)</td></tr>
+<tr><td>Location</td><td><code>internal/generate/duh/did_you_mean_test.go:291</code> (<code>TestDidYouMeanAbsentGeneratesNoTeachingArms</code>)</td></tr>
+<tr><td>Invariant</td><td>Blueprint: "Fall-through untouched: structural … the no-extension acceptance test pins it."</td></tr>
+</table>
+<p><strong>Summary</strong> — <code>TestDidYouMeanAbsentGeneratesNoTeachingArms</code> greps the generated <code>server.go</code> text for the <em>absence</em> of <code>did_you_mean</code> / <code>no such endpoint</code> / <code>CodeNotFound</code>. It never runs <code>go build</code>/<code>go test</code> against that output, so it does not actually "pin" fall-through behavior — it pins static-text absence.</p>
+<p><strong>Explainer</strong> — This is largely mitigated in practice: the shared <code>return false</code> miss-path is exercised at runtime by <code>TestUnmatchedPathFallsThrough</code> (against the with-extension spec) and by pre-existing compile-verify tests in the package. So there is no live coverage hole — the flag is that the blueprint's stated invariant-preservation claim over-describes what this specific named test does. Advisory: either soften the blueprint wording, or extend the no-extension test to compile-run its output the way <code>TestDidYouMeanTeaching404</code> does.</p>
+<p><strong>Evidence</strong> — <code>did_you_mean_test.go:298-304</code> reads <code>server.go</code> and runs three <code>assert.NotContains</code> checks; there is no <code>go test</code>/<code>go build</code> invocation in the test body.</p>
+<p><strong>Suggested fix</strong> — lowest-effort: reword the blueprint's "Invariant Preservation" bullet to say the no-extension test pins <em>text absence</em> and that runtime fall-through is pinned by <code>TestUnmatchedPathFallsThrough</code>. Optional hardening: add a compile-verify pass to the no-extension test. No production code change.</p>
+</div>
+
+<h2>✓ Auto-fixed &amp; hardened tickets</h2>
+
+<!-- ================= RS-003 ================= -->
+<div class="ticket fixed" id="rs-003">
+<h3>RS-003 · <span class="badge b-fix">AUTO-FIXED</span></h3>
+<p class="lead">A within-list duplicate reported the declaring path twice: "declared more than once (on \"X\" and \"X\")".</p>
+<table class="kv">
+<tr><td>Found by</td><td>code-review (Phase 1)</td></tr>
+<tr><td>Location</td><td><code>parser.go:388</code> &amp; <code>did_you_mean_collision.go:105</code></td></tr>
+<tr><td>Proving test</td><td><code>TestDidYouMeanDuplicateWithinListNamesPathOnce</code> (green) — <code>did_you_mean_review_test.go</code></td></tr>
+</table>
+<p><strong>Summary</strong> — when the same teaching path is listed twice inside one path item's list (<code>[/diffs.get, /diffs.get]</code>), <code>declaredBy["/diffs.get"]</code> became <code>["/commits.diff","/commits.diff"]</code>, so the error read <code>… declared more than once (on "/commits.diff" and "/commits.diff")</code> — naming the same path twice, which reads as a typo. This path was not covered by any testdata file.</p>
+<p><strong>Fix applied</strong> (commit <code>c625546</code>) — dedupe the declaring-path names for the message while keeping detection on the raw occurrence count, in <em>both</em> validators:</p>
+<pre>seen := make(map[string]bool, len(decls))
+var quoted []string
+for _, d := range decls {
+    if seen[d] { continue }
+    seen[d] = true
+    quoted = append(quoted, fmt.Sprintf("%q", d))
+}</pre>
+<p>A within-list duplicate now reads <code>… declared more than once (on "/commits.diff")</code>. Verified green; the existing cross-path duplicate test and <code>TestDidYouMeanDuplicateWithinList</code> still pass.</p>
+</div>
+
+<!-- ================= RS-005 ================= -->
+<div class="ticket fixed" id="rs-005">
+<h3>RS-005 · <span class="badge b-fix">HARDENED</span> (test added, green)</h3>
+<p class="lead">The "hint names the declaring operation's own route" invariant was only exercised by a single-operation spec, where a wrong-const mutation is invisible.</p>
+<table class="kv">
+<tr><td>Found by</td><td>invariant-test (Phase 4)</td></tr>
+<tr><td>Test added</td><td><code>TestDidYouMeanHintNamesDeclaringOperation</code> — <code>did_you_mean_review_test.go</code></td></tr>
+<tr><td>Invariant</td><td>Blueprint: "Every <code>did_you_mean</code> value names a canonical route of the same spec … the declaring operation's own route-path constant."</td></tr>
+</table>
+<p><strong>Summary</strong> — every successful, compile-verified test used a spec with exactly one operation, so "op 0's const" and "the wrong op's const" were indistinguishable. A mutation emitting a fixed operation's const for every teaching arm would have passed the whole suite.</p>
+<p><strong>Fix applied</strong> (commit <code>a760141</code>) — added a two-operation spec (<code>/commits.diff</code>→<code>/diffs.get</code>, <code>/repos.tree</code>→<code>/tree.list</code>) and assert each teaching arm's hint resolves to <em>its own</em> declaring route. Mutation-validated: rewriting the template to emit <code>{{(index $.Operations 0).ConstName}}</code> makes the test fail (<code>/v1/tree.list</code> maps to <code>/v1/commits.diff</code>); it passes on the real template.</p>
+</div>
+
+<!-- ================= RS-006 ================= -->
+<div class="ticket fixed" id="rs-006">
+<h3>RS-006 · <span class="badge b-fix">HARDENED</span> (test added, green)</h3>
+<p class="lead">The lint layer had no test for a within-list duplicate — only the cross-path case.</p>
+<table class="kv">
+<tr><td>Found by</td><td>invariant-test (Phase 4)</td></tr>
+<tr><td>Test added</td><td><code>lint_test.go</code> row <code>DidYouMeanWithinListDuplicate</code> + <code>testdata/did-you-mean-within-list-duplicate.yaml</code></td></tr>
+<tr><td>Invariant</td><td>Blueprint: "<code>duh lint</code> reports … the same guess declared more than once — within a single path item's list or across path items."</td></tr>
+</table>
+<p><strong>Summary</strong> — generate and lint enforce this independently (RS-004), yet <code>testdata/did-you-mean-duplicate.yaml</code> only covered the cross-path case. A regression confined to the lint rule's within-list handling would have shipped undetected.</p>
+<p><strong>Fix applied</strong> (commit <code>a760141</code>) — new fixture declaring <code>/pets.fetch</code> twice under one path item, asserted to emit a <code>[DID_YOU_MEAN_COLLISION]</code> ERROR. Green on current code.</p>
+</div>
+
+<!-- ================= RS-008 ================= -->
+<div class="ticket fixed" id="rs-008">
+<h3>RS-008 · <span class="badge b-fix">HARDENED</span> (test added, green)</h3>
+<p class="lead">The "extension is not a list" guard was unreached by any test.</p>
+<table class="kv">
+<tr><td>Found by</td><td>review-tests (Phase 5, coverage sweep)</td></tr>
+<tr><td>Test added</td><td><code>TestDidYouMeanNonListExtensionRejected</code> (generate) + <code>lint_test.go</code> row <code>DidYouMeanNonList</code> + <code>testdata/did-you-mean-non-list.yaml</code></td></tr>
+</table>
+<p><strong>Summary</strong> — a coverage sweep showed the <code>node.Kind != yaml.SequenceNode</code> branch in both validators was never exercised (rule <code>Validate</code> at 85%, <code>ValidateDidYouMean</code> at 92.7%). A scalar extension (<code>x-duh-did-you-mean: /diffs.get</code>) hits that branch.</p>
+<p><strong>Fix applied</strong> (commit <code>d81f5d1</code>) — added generate + lint tests asserting a scalar extension is rejected with the "must be a list of strings" message naming the path. Coverage rose to <code>Validate</code> 90%, <code>ValidateDidYouMean</code> 97.6% — both above the 80% floor. Green on current code.</p>
+</div>
+
+<h2>Red-test inventory (fix-before-merge-to-main checklist)</h2>
+<p class="small">These <code>t.Skip()</code>'d tests remain in the branch so CI stays green. Each is a one-line un-skip once its ticket is fixed. They are your checklist before merging to main.</p>
+<table>
+<thead><tr><th>Skipped test</th><th>File:line</th><th>Ticket</th></tr></thead>
+<tbody>
+<tr><td><code>TestDidYouMeanOnOperationlessPathItemIsNotSilentlyDropped</code></td><td>did_you_mean_review_test.go:79</td><td><a href="#rs-001">RS-001</a></td></tr>
+<tr><td><code>TestDidYouMeanUnsafeEntryIsRejectedByName</code></td><td>did_you_mean_review_test.go:363</td><td><a href="#rs-002">RS-002</a></td></tr>
+</tbody>
+</table>
+
+<h2>Deferred decisions &amp; defaults taken</h2>
+<ul>
+<li><strong>Uncommitted feature.</strong> The implementation was entirely uncommitted in the working tree. Default: transferred it into the isolated worktree and committed it as baseline <code>a054e7d</code>; your branch and working tree were left untouched.</li>
+<li><strong>RS-001</strong> — correct policy (emit arm vs. error) is the author's call → left proving test red (skipped), no behavior change. See <a href="#rs-001">ticket</a>.</li>
+<li><strong>RS-002</strong> — extending "malformed" to cover unsafe characters is a contract decision → left proving test red (skipped), no behavior change. See <a href="#rs-002">ticket</a>.</li>
+<li><strong>RS-004</strong> — de-duplicating the two validators needs a new shared package (import-cycle constraint) → advisory only. See <a href="#rs-004">ticket</a>.</li>
+</ul>
+
+<h2>Commits on the review branch</h2>
+<pre>d81f5d1  phase 5 (review-tests): cover non-list extension guard — RS-008
+a760141  phase 4 (invariant-test): harden RS-005 &amp; RS-006
+c625546  phase 2 (review-validate): fix RS-003; add deferred RS-001/RS-002 proving tests (skipped)
+a054e7d  feature: did-you-mean teaching 404s (review-suite baseline)</pre>
+
+<h2>Diff summary vs <code>origin/main</code></h2>
+<p class="small">21 files, +2976 (docs + the feature + all suite-added tests). Suite-added test/testdata files:
+<code>did_you_mean_review_test.go</code>, <code>lint_test.go</code> (4 rows),
+<code>testdata/did-you-mean-within-list-duplicate.yaml</code>, <code>testdata/did-you-mean-non-list.yaml</code>.
+Suite-touched source (RS-003 only): <code>parser.go</code>, <code>did_you_mean_collision.go</code>.</p>
+
+<hr>
+<p class="small">Generated by <code>/review-suite</code>. No production behavior was changed except the RS-003 message fix.
+Nothing has been merged into your PR branch — approve to merge <code>review-suite-eng-133</code> back in.</p>
+
+</div>
+</body>
+</html>
