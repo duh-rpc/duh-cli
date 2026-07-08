@@ -100,6 +100,20 @@ for you to decide before merge to main.</p>
 </table>
 </details>
 
+<h2>Post-merge follow-up — high-effort workflow code-review</h2>
+<p class="small">After merge, a workflow-backed <code>/code-review</code> (4 finder angles, independent verify pass) was
+run over the branch. It confirmed two findings — one of which showed the RS-001 fix was incomplete.
+Both were fixed (commit <code>38d4c79</code>). Two other candidates were refuted by the verifier
+(unrestored <code>os.Chdir</code> in a test; a second <code>range</code> over <code>.Operations</code> for the
+teaching arms — intentional).</p>
+<table>
+<thead><tr><th>ID</th><th>Sev</th><th>Finding</th><th>Resolution</th></tr></thead>
+<tbody>
+<tr><td>RS-009</td><td>MED</td><td><strong>RS-001 was under-fixed.</strong> The fix only closed <code>post: == nil</code>; an operation is also dropped when its request/response type can't resolve. A <code>requestBody</code> with empty <code>content: {}</code> <em>passes lint</em> yet yields no request type, so the teaching route was silently omitted with exit 0.</td><td>Generator now cross-checks that every extension-declaring path produced an operation and errors naming the path (<code>parser.go</code>); proving test <code>TestDidYouMeanDroppedOperationErrors</code>, mutation-validated.</td></tr>
+<tr><td>RS-010</td><td>LOW</td><td>Cleanup: <code>generate</code> ran <code>didyoumean.Validate</code> twice — directly, then again via the lint rule — scanning the document for the same invariant on every invocation.</td><td>Generate now disables <code>DID_YOU_MEAN_COLLISION</code> in its lint pass (<code>duh.go</code>), since <code>ValidateDidYouMean</code> already enforced it; one walk instead of two.</td></tr>
+</tbody>
+</table>
+
 <h2>Stages &amp; gates</h2>
 <table>
 <thead><tr><th>Stage</th><th>Result</th></tr></thead>
@@ -124,7 +138,10 @@ for you to decide before merge to main.</p>
 <p class="lead ok"><strong>Fix applied (commit <code>faaf92b</code>):</strong> the shared validator now errors when
 <code>x-duh-did-you-mean</code> is declared on a path item with no <code>post:</code> operation, naming the
 path (message: "…must sit beside a post: operation; this path item has none"). Chosen resolution: <em>error</em>,
-per the author. Proving test <code>TestDidYouMeanOnOperationlessPathItemErrors</code> un-skipped and passing.</p>
+per the author. Proving test <code>TestDidYouMeanOnOperationlessPathItemErrors</code> un-skipped and passing.
+<br><strong>Follow-up:</strong> the post-merge workflow review (RS-009 above) found this fix covered only
+the <code>post: == nil</code> case; the generator cross-check added in <code>38d4c79</code> now closes the
+remaining silent-drop paths too.</p>
 <p class="lead">A teaching path declared on a path item that produces no generated operation is silently discarded.</p>
 <table class="kv">
 <tr><td>Found by</td><td>code-review (Phase 1)</td></tr>
