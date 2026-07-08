@@ -82,6 +82,24 @@ offline with no build step and no network. Works only for a single-file spec; ex
 `$ref`s are not bundled.
 _Avoid_: standalone file, bundle
 
+**Did-you-mean path**:
+An author-declared likely wrong-guess route, listed in a path item's `x-duh-did-you-mean`
+extension. Generated as a real, matched route whose only behavior is the **Teaching 404**;
+it never serves the operation.
+_Avoid_: alias, redirect, vanity path
+
+**Teaching 404**:
+The DUH Reply (code 404) a **Did-you-mean path** returns — message `no such endpoint: <path>`
+with a `did_you_mean` detail naming exactly one canonical route.
+_Avoid_: bare 404, soft 404, empty-body 404 (those denote the non-DUH terminal responses this
+reply replaces)
+
+**Fall-through**:
+Generated `ServeHTTP` returning `false` for an unmatched path, so the scaffold binding
+consults the next RPCHandler and finally the mux. Load-bearing for handler chaining; no
+generated code may claim a path it does not match.
+_Avoid_: passthrough, pass-through
+
 ## Relationships
 
 - A **Contract author** maintains one `openapi.yaml` and its co-located **Fieldmap lock** per
@@ -92,6 +110,9 @@ _Avoid_: standalone file, bundle
   lock** to the **Contract directory**.
 - A **Consumer-service developer** regenerates from the provider's `openapi.yaml` **and**
   **Fieldmap lock** to stay wire-compatible.
+- A **Contract author** declares **Did-you-mean paths** per path item; `duh generate` turns
+  each into a **Teaching 404** route and errors when one collides with a canonical route or
+  another declaration. Unmatched paths keep **Fall-through**.
 
 ## Example dialogue
 
