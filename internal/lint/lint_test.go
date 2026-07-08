@@ -310,6 +310,14 @@ func TestLinterAllRuleViolations(t *testing.T) {
 			expectedViolation: "[DID_YOU_MEAN_COLLISION]",
 			expectedExitCode:  1,
 		},
+		{
+			// generate and lint enforce the collision invariant independently, so
+			// the within-list duplicate case needs its own lint-layer coverage.
+			name:              "DidYouMeanWithinListDuplicate",
+			file:              "testdata/did-you-mean-within-list-duplicate.yaml",
+			expectedViolation: "[DID_YOU_MEAN_COLLISION]",
+			expectedExitCode:  1,
+		},
 	}
 
 	for _, test := range tests {

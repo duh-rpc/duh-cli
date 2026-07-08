@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -87,6 +88,131 @@ func TestDidYouMeanOnOperationlessPathItemIsNotSilentlyDropped(t *testing.T) {
 		content, err := os.ReadFile(filepath.Join(tempDir, "server.go"))
 		require.NoError(t, err)
 		assert.Contains(t, string(content), "/v1/widgets.fetch")
+	}
+}
+
+// RS-005: the "hint names the declaring operation's own route" invariant is only
+// exercised by a single-operation spec, where "op 0's const" and "the wrong op's
+// const" are indistinguishable. This spec has TWO operations each declaring its
+// own distinct teaching path, so a mutation that emitted a fixed operation's
+// const for every teaching arm would be caught.
+const didYouMeanTwoOperationSpec = `openapi: 3.0.0
+info:
+  title: Multi API
+  version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
+paths:
+  /commits.diff:
+    x-duh-did-you-mean:
+      - /diffs.get
+    post:
+      summary: Diff commits
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DiffRequest'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiffResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetails'
+  /repos.tree:
+    x-duh-did-you-mean:
+      - /tree.list
+    post:
+      summary: Tree of a repo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TreeRequest'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TreeResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetails'
+components:
+  schemas:
+    DiffRequest:
+      type: object
+      properties:
+        id:
+          type: string
+    DiffResponse:
+      type: object
+      properties:
+        id:
+          type: string
+    TreeRequest:
+      type: object
+      properties:
+        id:
+          type: string
+    TreeResponse:
+      type: object
+      properties:
+        id:
+          type: string
+    ErrorDetails:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+`
+
+// TestDidYouMeanHintNamesDeclaringOperation proves RS-005: each teaching arm's
+// did_you_mean hint resolves to the route of the operation that DECLARED it, not
+// some other operation's route. It maps the generated route constants back to
+// their values and checks the pairing per teaching path.
+func TestDidYouMeanHintNamesDeclaringOperation(t *testing.T) {
+	specPath, stdout := setupTest(t, didYouMeanTwoOperationSpec)
+	tempDir := filepath.Dir(specPath)
+
+	exitCode := duh.RunCmd(context.Background(), stdout, []string{"generate", specPath})
+	require.Equal(t, 0, exitCode)
+
+	content, err := os.ReadFile(filepath.Join(tempDir, "server.go"))
+	require.NoError(t, err)
+	server := string(content)
+
+	// Map each generated route constant to its literal value.
+	routeByConst := make(map[string]string)
+	for _, m := range regexp.MustCompile(`(?m)^\s*(RPC\w+)\s*=\s*"([^"]+)"`).FindAllStringSubmatch(server, -1) {
+		routeByConst[m[1]] = m[2]
+	}
+	require.NotEmpty(t, routeByConst)
+
+	// Each teaching path must map to the DECLARING operation's own route.
+	for teach, wantRoute := range map[string]string{
+		"/v1/diffs.get": "/v1/commits.diff",
+		"/v1/tree.list": "/v1/repos.tree",
+	} {
+		re := regexp.MustCompile(`(?s)case "` + regexp.QuoteMeta(teach) + `":.*?did_you_mean":\s*(\w+)`)
+		match := re.FindStringSubmatch(server)
+		require.NotNil(t, match, "teaching arm for %s not found", teach)
+		assert.Equal(t, wantRoute, routeByConst[match[1]])
 	}
 }
 
