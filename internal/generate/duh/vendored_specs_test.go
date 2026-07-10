@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// steve's real spec is vendored under testdata/ from the mono-repo as the single
+// steve's real spec is vendored under testdata/ from the mono-repo as the
 // integration fixture exercising all three ENG-102 defects at once (two-segment
 // /admin/jobs.* paths, octet-stream streaming, and additionalProperties maps). The
 // per-defect mechanisms are covered by the focused specs in protobuf_twin_test.go,
@@ -56,4 +56,28 @@ func TestGenerateVendoredSteveSpec(t *testing.T) {
 	exitCode, out = lint(t)
 	require.Equal(t, 0, exitCode, out)
 	assert.Contains(t, out, "compliant")
+}
+
+// The git-server graph-API spec is vendored from the mono-repo at 28dbf2e — the exact
+// file ENG-135 reported as rejected with "inline schema not supported for response
+// body in path /repos.list". Every endpoint carries a media-type example beside its
+// $ref schema plus the protobuf wire twin. It is lint-clean, so it must also generate:
+// this is the lint/generate consistency check the ticket asks for, on the real
+// contract. Re-vendor if the contract changes:
+// services/git-server/api/v1/openapi.yaml.
+func TestGenerateVendoredGitServerSpec(t *testing.T) {
+	dir := writeVendoredProject(t, "gitserver_openapi.yaml")
+
+	exitCode, out := lint(t)
+	require.Equal(t, 0, exitCode, out)
+	assert.Contains(t, out, "compliant")
+
+	exitCode, out = generate(t, "--output-dir", "out")
+	require.Equal(t, 0, exitCode, out)
+
+	assertValidGo(t, filepath.Join(dir, "out", "server.go"))
+	assertValidGo(t, filepath.Join(dir, "out", "client.go"))
+
+	client := readFile(t, filepath.Join(dir, "out", "client.go"))
+	assert.Contains(t, client, "ReposList(ctx context.Context, req *pb.ReposListRequest, resp *pb.ReposListResponse) error")
 }
