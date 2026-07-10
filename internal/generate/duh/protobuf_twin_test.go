@@ -333,13 +333,17 @@ func TestGenerateProtobufRefStillWorks(t *testing.T) {
 // A genuinely inline structured object (an inline type:object WITH properties) under
 // application/json is still rejected — the fix only exempts the propertyless binary
 // twin, not nameable inline messages. The SCHEMA_NO_INLINE_OBJECTS lint rule is the
-// gate here, failing generation before the parser runs.
+// gate here, failing generation before the parser runs. The gate prints the
+// violations themselves, not just a bare failure, so the user need not re-run
+// 'duh lint' to learn what to fix.
 func TestGenerateInlineStructuredStillRejected(t *testing.T) {
 	writeProject(t, inlineStructuredResponse)
 
 	exitCode, out := generate(t, "--output-dir", "out")
 	assert.Equal(t, 2, exitCode, out)
 	assert.Contains(t, out, "validation failed")
+	assert.Contains(t, out, "SCHEMA_NO_INLINE_OBJECTS")
+	assert.Contains(t, out, "POST /polls.create")
 }
 
 // A propertyless inline object under application/json passes lint but is rejected by
