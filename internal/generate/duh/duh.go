@@ -32,8 +32,11 @@ func Run(config RunConfig) error {
 		return err
 	}
 
+	// Print the violations before failing so the user learns what to fix without
+	// having to re-run 'duh lint' (ENG-135 was misdiagnosed behind this opacity).
 	result := lint.Validate(spec, config.SpecPath, []string{"DID_YOU_MEAN_COLLISION"})
 	if !result.Valid() {
+		lint.Print(config.Writer, result)
 		return fmt.Errorf("OpenAPI validation failed")
 	}
 

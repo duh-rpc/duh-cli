@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"runtime/debug"
 	"strings"
 
 	"github.com/duh-rpc/duh-cli/internal/add"
@@ -15,7 +16,42 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const Version = "1.0.0"
+// Version reports the binary's provenance from Go build metadata rather than a
+// hardcoded constant, so a bug report can never claim a version the code doesn't
+// have (a hardcoded "1.0.0" sent ENG-135 chasing the wrong build). A tagged
+// release reports its tag, an untagged build a pseudo-version carrying the
+// commit, a dirty tree a +dirty suffix; when the toolchain stamps no module
+// version (go run, test binaries), fall back to the VCS revision if present.
+func Version() string {
+	info, ok := debug.ReadBuildInfo()
+	if !ok {
+		return "unknown"
+	}
+
+	version := info.Main.Version
+	if version != "" && version != "(devel)" {
+		return version
+	}
+
+	revision, modified := "", ""
+	for _, setting := range info.Settings {
+		switch setting.Key {
+		case "vcs.revision":
+			revision = setting.Value
+		case "vcs.modified":
+			if setting.Value == "true" {
+				modified = "+dirty"
+			}
+		}
+	}
+	if revision == "" {
+		return "devel"
+	}
+	if len(revision) > 12 {
+		revision = revision[:12]
+	}
+	return "devel-" + revision + modified
+}
 
 // RunCmd executes the CLI logic and returns exit code. The context cancels
 // long-running commands (such as 'docs serve') on interrupt or from a test.
@@ -31,7 +67,7 @@ func RunCmd(ctx context.Context, stdout io.Writer, args []string) int {
 		},
 	}
 
-	rootCmd.Version = Version
+	rootCmd.Version = Version()
 	rootCmd.SetVersionTemplate("duh version {{.Version}}\n")
 
 	lintCmd := &cobra.Command{

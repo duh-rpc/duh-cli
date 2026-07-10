@@ -1,0 +1,1432 @@
+openapi: "3.0.3"
+info:
+  title: git-server Graph API
+  description: |
+    Read-only graph queries over the git-server object store, served beside the
+    git wire protocol (clone/fetch/push) from the same store.
+
+    The wire protocol moves packs; this API answers questions: refs, trees,
+    file contents, commits, logs, diffs, merge-bases, comparisons.
+
+    Consistency is anchor-then-read: a query resolves its mutable input (a ref
+    name, HEAD) to an object ID once; every subsequent read under that anchor —
+    including later pages via the cursor — is of immutable, content-addressed
+    state. Reads are read-your-writes with the wire protocol: a push the server
+    has acknowledged is visible to every subsequent query here.
+
+    Correctness is defined by reference git: every query with a git-plumbing
+    counterpart returns data equivalent to what real git produces for the same
+    repository state. The API is read-only — no endpoint mutates a repository.
+  version: "1.0.0"
+
+servers:
+  - url: https://api.example.com/v1
+    description: Default server
+
+tags:
+  - name: Repos
+    description: Repository-registry queries — names and HEAD state.
+  - name: Refs
+    description: Ref namespace queries — names, target OIDs, symbolic refs.
+  - name: Trees
+    description: Tree listings at a revision — entry modes, types, OIDs, sizes.
+  - name: Files
+    description: Raw blob content at a revision and path, streamed.
+  - name: Commits
+    description: Commit objects, history listings, diffs, merge-bases, and comparisons.
+
+paths:
+  # ---------------------------------------------------------------------------
+  # Repos
+  # ---------------------------------------------------------------------------
+  /repos.list:
+    post:
+      operationId: ReposList
+      tags:
+        - Repos
+      summary: List visible repositories
+      description: |
+        Lists the repositories the caller may see, in lexicographic name order.
+        Anonymous callers see repos whose policy allows anonymous advertisement;
+        credentialed callers additionally see repos their scope covers with a
+        git:read grant. This endpoint filters rather than denies: it never
+        returns 403.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReposListRequest"
+            example:
+              pagination:
+                first: 25
+          application/protobuf:
+            schema:
+              type: string
+              format: binary
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReposListResponse"
+              example:
+                items:
+                  - name: app.git
+                    head: refs/heads/main
+                    head_oid: 8c7e5a3d9f1b2c4e6a8d0f2b4c6e8a0d2f4b6c8e
+                  - name: docs.git
+                    head: refs/heads/main
+                pagination:
+                  end_cursor: ""
+                  has_next_page: false
+            application/protobuf:
+              schema:
+                type: string
+                format: binary
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /repos.get:
+    post:
+      operationId: ReposGet
+      tags:
+        - Repos
+      summary: Get a repository record
+      description: |
+        Returns the minimal repository record: its name, the ref HEAD points at,
+        and the OID that ref resolves to (absent for an unborn branch).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReposGetRequest"
+            example:
+              repo: app.git
+          application/protobuf:
+            schema:
+              type: string
+              format: binary
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReposGetResponse"
+              example:
+                repo:
+                  name: app.git
+                  head: refs/heads/main
+                  head_oid: 8c7e5a3d9f1b2c4e6a8d0f2b4c6e8a0d2f4b6c8e
+            application/protobuf:
+              schema:
+                type: string
+                format: binary
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFoundRepo"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  # ---------------------------------------------------------------------------
+  # Refs
+  # ---------------------------------------------------------------------------
+  /refs.list:
+    post:
+      operationId: RefsList
+      tags:
+        - Refs
+      summary: List refs
+      description: |
+        Lists the repo's refs (the refs/ namespace) in lexicographic name order,
+        optionally filtered to name prefixes (e.g. "refs/heads/"). Symbolic refs
+        carry their target. HEAD is not in the listing; read it via refs.get or
+        repos.get. Equivalent to git for-each-ref.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefsListRequest"
+            example:
+              repo: app.git
+              prefixes:
+                - refs/heads/
+                - refs/tags/
+          application/protobuf:
+            schema:
+              type: string
+              format: binary
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RefsListResponse"
+              example:
+                items:
+                  - name: refs/heads/feature
+                    oid: d2b4f6a8c0e2a4c6e8b0d2f4a6c8e0b2d4f6a8c0
+                  - name: refs/heads/main
+                    oid: 8c7e5a3d9f1b2c4e6a8d0f2b4c6e8a0d2f4b6c8e
+                  - name: refs/tags/v1.0
+                    oid: 1e8f2a4c6b8d0f2a4c6e8b0d2f4a6c8e0b2d4f60
+                pagination:
+                  end_cursor: ""
+                  has_next_page: false
+            application/protobuf:
+              schema:
+                type: string
+                format: binary
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFoundRepo"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /refs.get:
+    post:
+      operationId: RefsGet
+      tags:
+        - Refs
+      summary: Get one ref
+      description: |
+        Resolves a single ref by name — a full ref name ("refs/heads/main"),
+        "HEAD", or a short name resolved in git's DWIM order ("main", "v1.0"),
+        the same order rev parameters use. The response always carries the
+        full name. A symbolic ref reports both its target ref and the
+        resolved OID.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefsGetRequest"
+            example:
+              repo: app.git
+              name: HEAD
+          application/protobuf:
+            schema:
+              type: string
+              format: binary
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RefsGetResponse"
+              example:
+                ref:
+                  name: HEAD
+                  oid: 8c7e5a3d9f1b2c4e6a8d0f2b4c6e8a0d2f4b6c8e
+                  target: refs/heads/main
+            application/protobuf:
+              schema:
+                type: string
+                format: binary
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFoundRef"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  # ---------------------------------------------------------------------------
+  # Trees
+  # ---------------------------------------------------------------------------
+  /trees.list:
+    post:
+      operationId: TreesList
+      tags:
+        - Trees
+      summary: List a tree
+      description: |
+        Lists the tree at a revision, optionally under a subdirectory path and
+        optionally recursively. Entries are returned in git tree order with
+        mode, type, OID, size (blobs only), and path. Equivalent to
+        git ls-tree [-r] -l.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TreesListRequest"
+            example:
+              repo: app.git
+              rev: HEAD
+          application/protobuf:
+            schema:
+              type: string
+              format: binary
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TreesListResponse"
+              example:
+                items:
+                  - mode: "100644"
+                    type: blob
+                    oid: 3b18e512dba79e4c8300dd08aeb37f8e728b8dad
+                    size: 12
+                    path: README.md
+                  - mode: "040000"
+                    type: tree
+                    oid: 7a9d1f3b5c7e9a1d3f5b7d9f1a3c5e7b9d1f3a5c
+                    path: src
+                pagination:
+                  end_cursor: ""
+                  has_next_page: false
+            application/protobuf:
+              schema:
+                type: string
+                format: binary
+        "400":
+          $ref: "#/components/responses/BadRequestWrongType"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFoundPathCursor"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  # ---------------------------------------------------------------------------
+  # Files
+  # ---------------------------------------------------------------------------
+  /files.get:
+    post:
+      operationId: FilesGet
+      tags:
+        - Files
+      summary: Stream a file's raw bytes
+      description: |
+        Streams the raw bytes of the blob at a path within a revision, as
+        application/octet-stream. Metadata (mode, OID, size) comes from
+        trees.list. Errors — unknown repo, rev, or path; path names a tree or a
+        gitlink (submodule) — are returned as a Reply before any content byte
+        is written. A response
+        that has started streaming can no longer carry a Reply; a mid-stream
+        disconnect is an infrastructure error the client retries from the start.
+        Equivalent to git cat-file blob.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FilesGetRequest"
+            example:
+              repo: app.git
+              rev: HEAD
+              path: README.md
+          application/protobuf:
+            schema:
+              type: string
+              format: binary
+      responses:
+        "200":
+          description: Raw blob bytes.
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+              example: "hello world\n"
+        "400":
+          $ref: "#/components/responses/BadRequestWrongType"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFoundPath"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  # ---------------------------------------------------------------------------
+  # Commits
+  # ---------------------------------------------------------------------------
+  /commits.get:
+    post:
+      operationId: CommitsGet
+      tags:
+        - Commits
+      summary: Get one commit
+      description: |
+        Returns the commit a revision resolves to: tree, parents, author,
+        committer, and the full message. Field values are byte-faithful to the
+        raw commit object. Equivalent to git cat-file commit.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommitsGetRequest"
+            example:
+              repo: app.git
+              rev: main
+          application/protobuf:
+            schema:
+              type: string
+              format: binary
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommitsGetResponse"
+              example:
+                commit:
+                  oid: 8c7e5a3d9f1b2c4e6a8d0f2b4c6e8a0d2f4b6c8e
+                  tree: 6d3a5c7e9f1b0d2c4e6a8b0d2f4c6e8a0b2d4f6a
+                  parents:
+                    - 9c1f6d4e2b8a0c3d5e7f9a1b3c5d7e9f0a2b4c6d
+                  author:
+                    name: Ada Lovelace
+                    email: ada@example.com
+                    time: 1751990400
+                    tz_offset: "-0500"
+                  committer:
+                    name: Ada Lovelace
+                    email: ada@example.com
+                    time: 1751990400
+                    tz_offset: "-0500"
+                  message: "app: handle run() errors\n\nExit non-zero so failures are visible to callers.\n"
+            application/protobuf:
+              schema:
+                type: string
+                format: binary
+        "400":
+          $ref: "#/components/responses/BadRequestWrongType"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFoundRev"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /commits.list:
+    post:
+      operationId: CommitsList
+      tags:
+        - Commits
+      summary: List commit history
+      description: |
+        Lists commits reachable from a revision in git rev-list default order
+        (commit-date descending with git's tie-breaking). The pagination cursor
+        anchors at the resolved tip OID, so later pages reflect the same
+        snapshot even as the ref advances. Equivalent to git rev-list.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommitsListRequest"
+            example:
+              repo: app.git
+              rev: HEAD
+              pagination:
+                first: 2
+          application/protobuf:
+            schema:
+              type: string
+              format: binary
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommitsListResponse"
+              example:
+                items:
+                  - oid: 8c7e5a3d9f1b2c4e6a8d0f2b4c6e8a0d2f4b6c8e
+                    tree: 6d3a5c7e9f1b0d2c4e6a8b0d2f4c6e8a0b2d4f6a
+                    parents:
+                      - 9c1f6d4e2b8a0c3d5e7f9a1b3c5d7e9f0a2b4c6d
+                    author:
+                      name: Ada Lovelace
+                      email: ada@example.com
+                      time: 1751990400
+                      tz_offset: "-0500"
+                    committer:
+                      name: Ada Lovelace
+                      email: ada@example.com
+                      time: 1751990400
+                      tz_offset: "-0500"
+                    message: "app: handle run() errors\n"
+                  - oid: 9c1f6d4e2b8a0c3d5e7f9a1b3c5d7e9f0a2b4c6d
+                    tree: 5e2c4a6b8d0f1a3c5e7b9d1f3a5c7e9b1d3f5a7c
+                    parents:
+                      - 1e8f2a4c6b8d0f2a4c6e8b0d2f4a6c8e0b2d4f60
+                    author:
+                      name: Ada Lovelace
+                      email: ada@example.com
+                      time: 1751904000
+                      tz_offset: "-0500"
+                    committer:
+                      name: Ada Lovelace
+                      email: ada@example.com
+                      time: 1751904000
+                      tz_offset: "-0500"
+                    message: "app: scaffold the service\n"
+                pagination:
+                  end_cursor: eyJrIjoiY29tbWl0cy5saXN0IiwiYSI6IjhjN2U1YTNkOWYxYjJjNGU2YThkMGYyYjRjNmU4YTBkMmY0YjZjOGUiLCJwIjoyfQ
+                  has_next_page: true
+            application/protobuf:
+              schema:
+                type: string
+                format: binary
+        "400":
+          $ref: "#/components/responses/BadRequestWrongType"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFoundRevCursor"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /commits.diff:
+    post:
+      operationId: CommitsDiff
+      tags:
+        - Commits
+      summary: Diff two revisions
+      description: |
+        Computes the tree diff between two revisions (two-dot: base tree against
+        head tree), one entry per changed file in stable path order, paginated
+        by file. Each entry carries git-plumbing metadata (status letter, paths,
+        modes, blob OIDs, binary flag, line counts) and, for text files, the
+        file's unified diff as git-standard patch text — the ---/+++ header
+        lines and @@ hunks, including the "\ No newline at end of file" marker —
+        directly consumable by patch-based diff renderers. Rename detection is
+        off (plumbing default): a rename appears as delete + add. For a
+        triple-dot (merge-base) diff, call commits.merge-base first and pass the
+        base it returns. Equivalent to git diff-tree -r -p --no-renames.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommitsDiffRequest"
+            example:
+              repo: app.git
+              base: 9c1f6d4e2b8a0c3d5e7f9a1b3c5d7e9f0a2b4c6d
+              head: main
+          application/protobuf:
+            schema:
+              type: string
+              format: binary
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommitsDiffResponse"
+              example:
+                items:
+                  - status: M
+                    old_path: src/main.go
+                    new_path: src/main.go
+                    old_mode: "100644"
+                    new_mode: "100644"
+                    old_oid: b6fc4c620b67d95f953a5c1c1230aaab5db5a1b0
+                    new_oid: a94a8fe5ccb19ba61c4c0873d391e987982fbbd3
+                    binary: false
+                    additions: 3
+                    deletions: 1
+                    patch: "--- a/src/main.go\n+++ b/src/main.go\n@@ -10,3 +10,5 @@ func main() {\n-\trun()\n+\tif err := run(); err != nil {\n+\t\tlog.Fatal(err)\n+\t}\n"
+                pagination:
+                  end_cursor: ""
+                  has_next_page: false
+            application/protobuf:
+              schema:
+                type: string
+                format: binary
+        "400":
+          $ref: "#/components/responses/BadRequestWrongType"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFoundRevCursor"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /commits.merge-base:
+    post:
+      operationId: CommitsMergeBase
+      tags:
+        - Commits
+      summary: Compute merge bases
+      description: |
+        Computes the best common ancestors of two commits — all of them, none an
+        ancestor of another (git merge-base --all semantics). Disjoint histories
+        return an empty list with status 200: no common ancestor is data, not an
+        error.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommitsMergeBaseRequest"
+            example:
+              repo: app.git
+              a: main
+              b: feature
+          application/protobuf:
+            schema:
+              type: string
+              format: binary
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommitsMergeBaseResponse"
+              example:
+                bases:
+                  - 1e8f2a4c6b8d0f2a4c6e8b0d2f4a6c8e0b2d4f60
+            application/protobuf:
+              schema:
+                type: string
+                format: binary
+        "400":
+          $ref: "#/components/responses/BadRequestWrongType"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFoundRev"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /commits.compare:
+    post:
+      operationId: CommitsCompare
+      tags:
+        - Commits
+      summary: Compare two revisions
+      description: |
+        Compares head against base: the merge bases, how many commits head is
+        ahead (reachable from head but not base) and behind (reachable from base
+        but not head), and the ahead commits themselves in rev-list order,
+        paginated. The diff against the merge base is composed separately via
+        commits.diff. Counts are equivalent to
+        git rev-list --left-right --count base...head.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommitsCompareRequest"
+            example:
+              repo: app.git
+              base: main
+              head: feature
+          application/protobuf:
+            schema:
+              type: string
+              format: binary
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommitsCompareResponse"
+              example:
+                merge_bases:
+                  - 1e8f2a4c6b8d0f2a4c6e8b0d2f4a6c8e0b2d4f60
+                ahead_count: 1
+                behind_count: 2
+                items:
+                  - oid: d2b4f6a8c0e2a4c6e8b0d2f4a6c8e0b2d4f6a8c0
+                    tree: 8b0d2f4a6c8e0b2d4f6a8c0e2a4c6e8b0d2f4a6c
+                    parents:
+                      - 1e8f2a4c6b8d0f2a4c6e8b0d2f4a6c8e0b2d4f60
+                    author:
+                      name: Ada Lovelace
+                      email: ada@example.com
+                      time: 1752076800
+                      tz_offset: "-0500"
+                    committer:
+                      name: Ada Lovelace
+                      email: ada@example.com
+                      time: 1752076800
+                      tz_offset: "-0500"
+                    message: "feature: rework the sync loop\n"
+                pagination:
+                  end_cursor: ""
+                  has_next_page: false
+            application/protobuf:
+              schema:
+                type: string
+                format: binary
+        "400":
+          $ref: "#/components/responses/BadRequestWrongType"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFoundRevCursor"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+components:
+  schemas:
+    # -------------------------------------------------------------------------
+    # Shared model objects
+    # -------------------------------------------------------------------------
+    Reply:
+      type: object
+      description: >
+        Error response body. Every non-2xx response carries this shape:
+        a machine-readable code, a human-readable message, and details
+        naming the offending input.
+      properties:
+        code:
+          type: string
+          description: >
+            Machine-readable error code — branch on this, never on message
+            text. Where several conditions share an HTTP status, the code
+            tells them apart; each error response's description lists the
+            codes it can carry. A condition its status already identifies
+            carries the numeric status as its code (e.g. "401").
+        message:
+          type: string
+          description: Human-readable error message.
+        details:
+          type: object
+          description: >
+            Machine-readable context — the offending input, keyed by its
+            request field ("repo", "ref", "rev", "path").
+          additionalProperties:
+            type: string
+
+    PaginationRequest:
+      type: object
+      description: Cursor-based pagination parameters.
+      properties:
+        first:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 100
+          default: 25
+          description: Number of items to return.
+        after:
+          type: string
+          description: Opaque cursor from the previous page response.
+
+    PaginationResponse:
+      type: object
+      description: Cursor-based pagination state.
+      required:
+        - end_cursor
+        - has_next_page
+      properties:
+        end_cursor:
+          type: string
+          description: Opaque cursor for the next page.
+        has_next_page:
+          type: boolean
+          description: Whether more results exist.
+
+    Repo:
+      type: object
+      description: Minimal repository record — name and HEAD state.
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Repository name.
+        head:
+          type: string
+          description: The full ref name HEAD points at (e.g. "refs/heads/main").
+        head_oid:
+          type: string
+          description: The OID that ref resolves to. Absent for an unborn branch.
+
+    Ref:
+      type: object
+      description: One entry in a repo's ref namespace.
+      required:
+        - name
+        - oid
+      properties:
+        name:
+          type: string
+          description: Full ref name (e.g. "refs/heads/main") or "HEAD".
+        oid:
+          type: string
+          description: Resolved object ID (lowercase hex).
+        target:
+          type: string
+          description: For a symbolic ref, the full ref name it points at. Absent otherwise.
+
+    Signature:
+      type: object
+      description: A commit identity line (author or committer), byte-faithful to the commit object.
+      required:
+        - name
+        - email
+        - time
+        - tz_offset
+      properties:
+        name:
+          type: string
+          description: Identity name.
+        email:
+          type: string
+          description: Identity email.
+        time:
+          type: integer
+          format: int64
+          description: Unix seconds.
+        tz_offset:
+          type: string
+          description: Timezone offset as git records it (e.g. "-0700").
+
+    Commit:
+      type: object
+      description: A commit object's fields, byte-faithful to the raw object.
+      required:
+        - oid
+        - tree
+        - parents
+        - author
+        - committer
+        - message
+      properties:
+        oid:
+          type: string
+          description: Commit object ID (lowercase hex).
+        tree:
+          type: string
+          description: Root tree OID.
+        parents:
+          type: array
+          description: Parent commit OIDs in commit order.
+          items:
+            type: string
+        author:
+          description: Author identity.
+          $ref: "#/components/schemas/Signature"
+        committer:
+          description: Committer identity.
+          $ref: "#/components/schemas/Signature"
+        message:
+          type: string
+          description: Full commit message, unabridged.
+
+    TreeEntry:
+      type: object
+      description: One tree entry, matching git ls-tree -l output fields.
+      required:
+        - mode
+        - type
+        - oid
+        - path
+      properties:
+        mode:
+          type: string
+          description: Octal mode string (e.g. "100644", "040000", "120000", "160000").
+        type:
+          type: string
+          description: Object type — "blob", "tree", or "commit" (submodule/gitlink).
+        oid:
+          type: string
+          description: Entry object ID (lowercase hex).
+        size:
+          type: integer
+          format: int64
+          description: Blob payload size in bytes. Absent for trees and gitlinks.
+        path:
+          type: string
+          description: Entry name; the full path relative to the listing root when recursive.
+
+    FileDiff:
+      type: object
+      description: One changed file in a diff, with git-plumbing metadata and patch text.
+      required:
+        - status
+        - binary
+      properties:
+        status:
+          type: string
+          description: Git status letter — A (added), M (modified), D (deleted), T (type change).
+        old_path:
+          type: string
+          description: Path on the base side. Absent for added files.
+        new_path:
+          type: string
+          description: Path on the head side. Absent for deleted files.
+        old_mode:
+          type: string
+          description: Octal mode on the base side. Absent for added files.
+        new_mode:
+          type: string
+          description: Octal mode on the head side. Absent for deleted files.
+        old_oid:
+          type: string
+          description: Blob OID on the base side. Absent for added files.
+        new_oid:
+          type: string
+          description: Blob OID on the head side. Absent for deleted files.
+        binary:
+          type: boolean
+          description: Whether the content is binary (git heuristic); binary files carry no patch.
+        additions:
+          type: integer
+          format: int32
+          description: Added line count. Zero for binary files.
+        deletions:
+          type: integer
+          format: int32
+          description: Deleted line count. Zero for binary files.
+        patch:
+          type: string
+          description: >
+            The file's unified diff as git-standard patch text: the ---/+++
+            header lines and @@ hunks, including the
+            "\ No newline at end of file" marker. Omitted for binary files.
+
+    # -------------------------------------------------------------------------
+    # Repos
+    # -------------------------------------------------------------------------
+    ReposListRequest:
+      type: object
+      description: Request for repos.list.
+      properties:
+        pagination:
+          description: Cursor-based pagination parameters.
+          $ref: "#/components/schemas/PaginationRequest"
+
+    ReposListResponse:
+      type: object
+      description: A page of visible repositories.
+      required:
+        - items
+        - pagination
+      properties:
+        items:
+          type: array
+          description: Repositories in lexicographic name order.
+          items:
+            $ref: "#/components/schemas/Repo"
+        pagination:
+          description: Cursor-based pagination state.
+          $ref: "#/components/schemas/PaginationResponse"
+
+    ReposGetRequest:
+      type: object
+      description: Request for repos.get.
+      required:
+        - repo
+      properties:
+        repo:
+          type: string
+          description: Repository name.
+
+    ReposGetResponse:
+      type: object
+      description: The repository record.
+      required:
+        - repo
+      properties:
+        repo:
+          description: The repository record.
+          $ref: "#/components/schemas/Repo"
+
+    # -------------------------------------------------------------------------
+    # Refs
+    # -------------------------------------------------------------------------
+    RefsListRequest:
+      type: object
+      description: Request for refs.list.
+      required:
+        - repo
+      properties:
+        repo:
+          type: string
+          description: Repository name.
+        prefixes:
+          type: array
+          description: >
+            Optional ref-name prefixes to filter by (e.g. "refs/heads/",
+            "refs/tags/"). Empty means all refs.
+          items:
+            type: string
+        pagination:
+          description: Cursor-based pagination parameters.
+          $ref: "#/components/schemas/PaginationRequest"
+
+    RefsListResponse:
+      type: object
+      description: A page of refs.
+      required:
+        - items
+        - pagination
+      properties:
+        items:
+          type: array
+          description: Refs in lexicographic name order.
+          items:
+            $ref: "#/components/schemas/Ref"
+        pagination:
+          description: Cursor-based pagination state.
+          $ref: "#/components/schemas/PaginationResponse"
+
+    RefsGetRequest:
+      type: object
+      description: Request for refs.get.
+      required:
+        - repo
+        - name
+      properties:
+        repo:
+          type: string
+          description: Repository name.
+        name:
+          type: string
+          description: >
+            Ref name — a full ref name ("refs/heads/main"), "HEAD", or a short
+            name resolved in git's DWIM order ("main", "v1.0").
+
+    RefsGetResponse:
+      type: object
+      description: The resolved ref.
+      required:
+        - ref
+      properties:
+        ref:
+          description: The resolved ref.
+          $ref: "#/components/schemas/Ref"
+
+    # -------------------------------------------------------------------------
+    # Trees
+    # -------------------------------------------------------------------------
+    TreesListRequest:
+      type: object
+      description: Request for trees.list.
+      required:
+        - repo
+        - rev
+      properties:
+        repo:
+          type: string
+          description: Repository name.
+        rev:
+          type: string
+          description: >
+            Revision — a hex OID, "HEAD", a full ref name, or a short name
+            resolved in git's DWIM order. No expression syntax.
+        path:
+          type: string
+          description: >
+            Subdirectory to list, relative to the root. Empty means the root
+            tree. Must name a tree: a terminal entry of another type is 400
+            WRONG_OBJECT_TYPE; a path descending through a non-tree does not
+            exist (404 PATH_NOT_FOUND, matching files.get).
+        recursive:
+          type: boolean
+          description: Recurse into subtrees (git ls-tree -r); entries then carry full paths.
+        pagination:
+          description: Cursor-based pagination parameters.
+          $ref: "#/components/schemas/PaginationRequest"
+
+    TreesListResponse:
+      type: object
+      description: A page of tree entries.
+      required:
+        - items
+        - pagination
+      properties:
+        items:
+          type: array
+          description: Entries in git tree order.
+          items:
+            $ref: "#/components/schemas/TreeEntry"
+        pagination:
+          description: Cursor-based pagination state.
+          $ref: "#/components/schemas/PaginationResponse"
+
+    # -------------------------------------------------------------------------
+    # Files
+    # -------------------------------------------------------------------------
+    FilesGetRequest:
+      type: object
+      description: Request for files.get.
+      required:
+        - repo
+        - rev
+        - path
+      properties:
+        repo:
+          type: string
+          description: Repository name.
+        rev:
+          type: string
+          description: >
+            Revision — a hex OID, "HEAD", a full ref name, or a short name
+            resolved in git's DWIM order. No expression syntax.
+        path:
+          type: string
+          description: >
+            File path within the revision's tree. Must name a blob: a terminal
+            tree or gitlink (submodule) is 400 WRONG_OBJECT_TYPE; a path
+            descending through a non-tree does not exist (404 PATH_NOT_FOUND,
+            matching trees.list).
+
+    # -------------------------------------------------------------------------
+    # Commits
+    # -------------------------------------------------------------------------
+    CommitsGetRequest:
+      type: object
+      description: Request for commits.get.
+      required:
+        - repo
+        - rev
+      properties:
+        repo:
+          type: string
+          description: Repository name.
+        rev:
+          type: string
+          description: >
+            Revision — a hex OID, "HEAD", a full ref name, or a short name
+            resolved in git's DWIM order. No expression syntax.
+
+    CommitsGetResponse:
+      type: object
+      description: The resolved commit.
+      required:
+        - commit
+      properties:
+        commit:
+          description: The resolved commit.
+          $ref: "#/components/schemas/Commit"
+
+    CommitsListRequest:
+      type: object
+      description: Request for commits.list.
+      required:
+        - repo
+        - rev
+      properties:
+        repo:
+          type: string
+          description: Repository name.
+        rev:
+          type: string
+          description: >
+            Revision to start from — a hex OID, "HEAD", a full ref name, or a
+            short name resolved in git's DWIM order. No expression syntax.
+        pagination:
+          description: Cursor-based pagination parameters.
+          $ref: "#/components/schemas/PaginationRequest"
+
+    CommitsListResponse:
+      type: object
+      description: A page of commit history.
+      required:
+        - items
+        - pagination
+      properties:
+        items:
+          type: array
+          description: Commits in git rev-list default order.
+          items:
+            $ref: "#/components/schemas/Commit"
+        pagination:
+          description: Cursor-based pagination state.
+          $ref: "#/components/schemas/PaginationResponse"
+
+    CommitsDiffRequest:
+      type: object
+      description: Request for commits.diff.
+      required:
+        - repo
+        - base
+        - head
+      properties:
+        repo:
+          type: string
+          description: Repository name.
+        base:
+          type: string
+          description: >
+            Base revision — a hex OID, "HEAD", a full ref name, or a short name
+            resolved in git's DWIM order.
+        head:
+          type: string
+          description: >
+            Head revision — a hex OID, "HEAD", a full ref name, or a short name
+            resolved in git's DWIM order.
+        pagination:
+          description: Cursor-based pagination parameters (one item per changed file).
+          $ref: "#/components/schemas/PaginationRequest"
+
+    CommitsDiffResponse:
+      type: object
+      description: A page of changed files.
+      required:
+        - items
+        - pagination
+      properties:
+        items:
+          type: array
+          description: Changed files in stable path order.
+          items:
+            $ref: "#/components/schemas/FileDiff"
+        pagination:
+          description: Cursor-based pagination state.
+          $ref: "#/components/schemas/PaginationResponse"
+
+    CommitsMergeBaseRequest:
+      type: object
+      description: Request for commits.merge-base.
+      required:
+        - repo
+        - a
+        - b
+      properties:
+        repo:
+          type: string
+          description: Repository name.
+        a:
+          type: string
+          description: >
+            First revision — a hex OID, "HEAD", a full ref name, or a short
+            name resolved in git's DWIM order.
+        b:
+          type: string
+          description: >
+            Second revision — a hex OID, "HEAD", a full ref name, or a short
+            name resolved in git's DWIM order.
+
+    CommitsMergeBaseResponse:
+      type: object
+      description: The merge bases of the two revisions.
+      required:
+        - bases
+      properties:
+        bases:
+          type: array
+          description: >
+            All best common ancestor OIDs (git merge-base --all semantics).
+            Empty when the histories share no common ancestor.
+          items:
+            type: string
+
+    CommitsCompareRequest:
+      type: object
+      description: Request for commits.compare.
+      required:
+        - repo
+        - base
+        - head
+      properties:
+        repo:
+          type: string
+          description: Repository name.
+        base:
+          type: string
+          description: >
+            Base revision — a hex OID, "HEAD", a full ref name, or a short name
+            resolved in git's DWIM order.
+        head:
+          type: string
+          description: >
+            Head revision — a hex OID, "HEAD", a full ref name, or a short name
+            resolved in git's DWIM order.
+        pagination:
+          description: Cursor-based pagination parameters (over the ahead commits).
+          $ref: "#/components/schemas/PaginationRequest"
+
+    CommitsCompareResponse:
+      type: object
+      description: The comparison of head against base.
+      required:
+        - merge_bases
+        - ahead_count
+        - behind_count
+        - items
+        - pagination
+      properties:
+        merge_bases:
+          type: array
+          description: All best common ancestor OIDs. Empty for disjoint histories.
+          items:
+            type: string
+        ahead_count:
+          type: integer
+          format: int32
+          description: Commits reachable from head but not base.
+        behind_count:
+          type: integer
+          format: int32
+          description: Commits reachable from base but not head.
+        items:
+          type: array
+          description: The ahead commits in git rev-list default order.
+          items:
+            $ref: "#/components/schemas/Commit"
+        pagination:
+          description: Cursor-based pagination state.
+          $ref: "#/components/schemas/PaginationResponse"
+
+  responses:
+    BadRequest:
+      description: >
+        Bad request (code "400", the only code here) — malformed input: a bad
+        object id or cursor, pagination out of range, an invalid path or
+        prefix, or an unknown field. The message states what was received and
+        what was expected.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Reply"
+    BadRequestWrongType:
+      description: >
+        Bad request. Code "400" — malformed input: a bad object id or cursor,
+        an empty rev, an invalid path, pagination out of range, or an unknown
+        field; the message states what was received and what was expected.
+        Code WRONG_OBJECT_TYPE — the rev or path resolved to an existing
+        object of the wrong type (see the field descriptions for the types
+        this operation requires); the message names the type received and the
+        type wanted. These are the only two codes.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Reply"
+    Unauthorized:
+      description: >
+        Unauthorized (code "401") — the operation requires a credential and
+        none (or an unknown one) was presented. Carries a WWW-Authenticate:
+        Basic challenge header; credentials are accepted as a Basic password
+        or a Bearer token.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Reply"
+    Forbidden:
+      description: >
+        Forbidden (code "403") — a valid credential whose scope covers this
+        repo lacks the required git:read grant. A credential whose scope does
+        not cover the repo gets 404 REPO_NOT_FOUND instead, indistinguishable
+        from an absent repo.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Reply"
+    NotFoundRepo:
+      description: >
+        Not found (code REPO_NOT_FOUND, the only code here) — the repository
+        does not exist or is not visible to the caller; absent and hidden
+        repositories are indistinguishable by design. details.repo carries
+        the name.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Reply"
+    NotFoundRef:
+      description: >
+        Not found. The code is one of: REPO_NOT_FOUND (repository absent or
+        not visible to the caller — indistinguishable by design) or
+        REF_NOT_FOUND (the named ref does not resolve). details carries the
+        offending value.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Reply"
+    NotFoundRev:
+      description: >
+        Not found. The code is one of: REPO_NOT_FOUND (repository absent or
+        not visible to the caller — indistinguishable by design) or
+        REV_NOT_FOUND (the revision does not resolve to an object). details
+        carries the offending value.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Reply"
+    NotFoundRevCursor:
+      description: >
+        Not found. The code is one of: REPO_NOT_FOUND (repository absent or
+        not visible to the caller — indistinguishable by design),
+        REV_NOT_FOUND (the revision does not resolve to an object), or
+        CURSOR_EXPIRED (the page cursor's anchor no longer exists; re-issue
+        the first-page query). details carries the offending value.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Reply"
+    NotFoundPath:
+      description: >
+        Not found. The code is one of: REPO_NOT_FOUND (repository absent or
+        not visible to the caller — indistinguishable by design),
+        REV_NOT_FOUND (the revision does not resolve to an object), or
+        PATH_NOT_FOUND (the path names no entry in the resolved tree,
+        including a path descending through a non-tree). details carries the
+        offending value.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Reply"
+    NotFoundPathCursor:
+      description: >
+        Not found. The code is one of: REPO_NOT_FOUND (repository absent or
+        not visible to the caller — indistinguishable by design),
+        REV_NOT_FOUND (the revision does not resolve to an object),
+        PATH_NOT_FOUND (the path names no entry in the resolved tree,
+        including a path descending through a non-tree), or CURSOR_EXPIRED
+        (the page cursor's anchor no longer exists; re-issue the first-page
+        query). details carries the offending value.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Reply"
+    InternalError:
+      description: >
+        Internal server error (code "500") — a transient storage fault. Safe
+        to retry: every operation is read-only.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Reply"
