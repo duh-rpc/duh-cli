@@ -34,13 +34,17 @@ func TestRunCmdHelp(t *testing.T) {
 	assert.Contains(t, stdout.String(), "Available Commands:")
 }
 
+// The version must come from build metadata, never a hardcoded constant: a
+// constant claimed "1.0.0" for every from-source build and sent ENG-135 chasing
+// a fix that had already landed. A test binary carries no module version, so
+// this asserts the metadata-derived fallback rather than a release tag.
 func TestRunCmdVersion(t *testing.T) {
 	var stdout bytes.Buffer
 	exitCode := duh.RunCmd(context.Background(), &stdout, []string{"--version"})
 
 	assert.Equal(t, 0, exitCode)
-	assert.Contains(t, stdout.String(), "duh version")
-	assert.Contains(t, stdout.String(), "1.0.0")
+	assert.Regexp(t, `duh version (devel|v?\d+\.\d+)\S*\n`, stdout.String())
+	assert.NotContains(t, stdout.String(), "1.0.0")
 }
 
 func TestRunCmdFileNotFound(t *testing.T) {
