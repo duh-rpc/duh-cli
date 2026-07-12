@@ -12,6 +12,18 @@ A paragraph describing what this change intends to acheive
 - An explaination of each major code change made
 ```
 
+## Releases & Versioning
+- The version reported by `duh --version` is NOT a hardcoded constant. `Version()`
+  in `run_cmd.go` derives it from Go build metadata via `debug.ReadBuildInfo()`:
+  a `go install`ed tagged build reports its module version (e.g. `v0.9.0`), an
+  untagged from-source build reports a pseudo-version carrying the commit, and a
+  dirty tree gets a `+dirty` suffix.
+- Cutting a release is therefore just tagging — there is no version string in the
+  code to bump. Tag the merged commit on `main` and publish a GitHub release
+  (`gh release create vX.Y.0 --target main ...`).
+- Releases are minor bumps (`v0.1.0` → `v0.9.0`, patch always `0`). Release notes
+  are prose describing what changed and why, ending with `Fixes ENG-NNN`.
+
 ## Testing Patterns
 
 ### Surface Testing Style
