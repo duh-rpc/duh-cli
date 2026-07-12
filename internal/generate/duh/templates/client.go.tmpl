@@ -145,7 +145,7 @@ func (c *Client) {{.IteratorName}}(first int32) *duh.Iterator[{{.ItemType}}] {
 			HasNextPage: resp.Pagination != nil && resp.Pagination.HasNextPage,
 			EndCursor:   endCursor,
 		}, nil
-	})
+	}, nil)
 }
 {{end}}
 {{end}}

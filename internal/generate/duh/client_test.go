@@ -215,17 +215,21 @@ func (x *User) ProtoReflect() protoreflect.Message {
 `
 	require.NoError(t, os.WriteFile(filepath.Join(protoDir, "api.pb.go"), []byte(goProtoStub), 0644))
 
+	// v2.6.0 is the release where duh.NewIterator takes a *duh.IteratorConfig
+	// argument (nil for defaults); the generated iterator only compiles against it.
+	const duhIteratorRuntime = "v2.6.0"
+
 	goMod := `module github.com/example/test
 
 go 1.24
 
-require github.com/duh-rpc/duh.go/v2 v2.0.0
+require github.com/duh-rpc/duh.go/v2 ` + duhIteratorRuntime + `
 require github.com/kapetan-io/tackle v0.0.0
 require google.golang.org/protobuf v0.0.0
 `
 	require.NoError(t, os.WriteFile(filepath.Join(tempDir, "go.mod"), []byte(goMod), 0644))
 
-	cmd := exec.Command("go", "mod", "edit", "-replace", "github.com/duh-rpc/duh.go/v2=github.com/duh-rpc/duh.go/v2@v2.0.0")
+	cmd := exec.Command("go", "mod", "edit", "-replace", "github.com/duh-rpc/duh.go/v2=github.com/duh-rpc/duh.go/v2@"+duhIteratorRuntime)
 	cmd.Dir = tempDir
 	output, err := cmd.CombinedOutput()
 	require.NoError(t, err, string(output))
